@@ -1,6 +1,5 @@
 package org.escalaralcoiaicomtat.android.ui.list
 
-import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -203,12 +202,13 @@ fun <T: DataEntity> DataCard(
             }
         }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(imageSize) {
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
+                if (imageSize == null) return@withContext
 
                 // Get the display's width
-                val width = Resources.getSystem().displayMetrics.widthPixels
+                val width = imageSize?.width
 
                 item.fetchImage(
                     context,
