@@ -20,10 +20,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
 import androidx.work.workDataOf
+import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.contentLength
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.network.EndpointUtils
 import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
@@ -170,8 +170,21 @@ class DownloadWorker(appContext: Context, workerParams: WorkerParameters) :
             // Allow only secure urls
             .replace("http:", "https:")
 
+        val targetFile = info.cache(applicationContext)
+
+        var lastStep = 0
+
         Timber.d("Downloading $url...")
-        val byteArray = ktorHttpClient.get(url).let { response ->
+        ktorHttpClient.get(url) {
+            onDownload { bytesSentTotal, contentLength ->
+                // Send updates for 1/20th of the complete data
+                val piece = contentLength / 20
+                if (lastStep * piece < bytesSentTotal) {
+                    setProgress(bytesSentTotal.toInt() to contentLength.toInt())
+                    lastStep++
+                }
+            }
+        }.let { response ->
             val status = response.status.value
             if (status !in 200..299) {
                 Timber.d(
@@ -188,22 +201,10 @@ class DownloadWorker(appContext: Context, workerParams: WorkerParameters) :
             }
 
             val channel = response.bodyAsChannel()
+            targetFile.write(channel, info)
 
-            var offset = 0
-            val byteArray = ByteArray(response.contentLength()!!.toInt())
-            do {
-                val currentRead = channel.readAvailable(byteArray, offset, byteArray.size)
-                setProgress(offset to byteArray.size)
-                offset += currentRead
-            } while (currentRead > 0)
-
-            Timber.d("Finished download for $url. Bytes: ${byteArray.size}")
-
-            byteArray
+            Timber.d("Finished download for $url")
         }
-
-        Timber.d("Writing data to target file...")
-        info.cache(applicationContext).write(byteArray, info)
 
         return Result.success()
     }

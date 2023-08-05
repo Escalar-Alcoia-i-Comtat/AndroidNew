@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
@@ -212,7 +213,8 @@ fun <T: DataEntity> DataCard(
 
                 item.fetchImage(
                     context,
-                    width,
+                    // Download sector images fully
+                    width.takeIf { item !is Sector },
                     progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
                 ).collect { file ->
                     withContext(Dispatchers.Main) { imageFile = file }

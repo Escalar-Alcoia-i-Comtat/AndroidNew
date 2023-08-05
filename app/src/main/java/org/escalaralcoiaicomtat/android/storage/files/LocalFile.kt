@@ -3,6 +3,9 @@ package org.escalaralcoiaicomtat.android.storage.files
 import android.os.Build
 import android.os.FileObserver
 import coil.request.ImageRequest
+import io.ktor.util.cio.writeChannel
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
@@ -123,7 +126,7 @@ class LocalFile(parent: File, uuid: UUID) {
      * @param charset The charset to use for writing the file.
      */
     suspend fun write(
-        dataBytes: ByteArray,
+        dataBytes: ByteReadChannel,
         metaData: RemoteFileInfo,
         overwrite: Boolean = false,
         charset: Charset = Charsets.UTF_8
@@ -131,7 +134,7 @@ class LocalFile(parent: File, uuid: UUID) {
         if (!overwrite && exists()) return@withContext
         if (exists()) delete()
 
-        file.writeBytes(dataBytes)
+        dataBytes.copyAndClose(file.writeChannel())
         meta.writeText(metaData.toJson().toString(), charset)
     }
 }
