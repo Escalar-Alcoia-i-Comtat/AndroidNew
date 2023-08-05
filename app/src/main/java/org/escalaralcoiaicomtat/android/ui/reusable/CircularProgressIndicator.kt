@@ -9,9 +9,9 @@ import androidx.compose.runtime.Composable
  */
 @Composable
 fun CircularProgressIndicator(progress: Pair<Int, Int>? = null) {
-    if (progress != null) {
-        val (current, max) = progress
-        val value = current.toFloat() / max
+    val value = progress?.let { (current, max) -> current.toFloat() / max }
+
+    if (value != null && !value.isNaN()) {
         androidx.compose.material3.CircularProgressIndicator(value)
     } else {
         androidx.compose.material3.CircularProgressIndicator()
