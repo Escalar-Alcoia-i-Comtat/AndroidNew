@@ -61,6 +61,7 @@ abstract class DataEntity : BaseEntity() {
 
     suspend fun fetchImage(
         context: Context,
+        imageWidth: Int?,
         progress: suspend (current: Int, max: Int) -> Unit
     ): Flow<LocalFile> = channelFlow {
         val local = fetchLocalImageInfo(context)
@@ -81,7 +82,7 @@ abstract class DataEntity : BaseEntity() {
         // If there's no stored version, or hashes do not match, download a new one
 
         Timber.d("Downloading image for ${this::class.simpleName} $id...")
-        val file = DownloadWorker.download(context, info, progress)
+        val file = DownloadWorker.download(context, info, imageWidth, progress)
 
         Timber.d("Image for $id downloaded. Decoding image...")
         send(file)

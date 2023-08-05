@@ -167,6 +167,7 @@ class SectorViewer : AppCompatActivity() {
 
                 sector.fetchImage(
                     context,
+                    null,
                     progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
                 ).collect { file ->
                     withContext(Dispatchers.Main) { imageFile = file }

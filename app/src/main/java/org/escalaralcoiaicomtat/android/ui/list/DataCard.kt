@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.ui.list
 
+import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -206,8 +207,12 @@ fun <T: DataEntity> DataCard(
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
 
+                // Get the display's width
+                val width = Resources.getSystem().displayMetrics.widthPixels
+
                 item.fetchImage(
                     context,
+                    width,
                     progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
                 ).collect { file ->
                     withContext(Dispatchers.Main) { imageFile = file }

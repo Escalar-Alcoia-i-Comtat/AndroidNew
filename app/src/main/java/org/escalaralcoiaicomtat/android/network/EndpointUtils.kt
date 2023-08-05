@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.network
 
 import android.net.Uri
 import org.escalaralcoiaicomtat.android.BuildConfig
+import org.escalaralcoiaicomtat.android.utils.letIf
 import java.util.UUID
 
 object EndpointUtils {
@@ -24,9 +25,10 @@ object EndpointUtils {
         .build()
         .toString()
 
-    fun getDownload(uuid: UUID) = server.buildUpon()
+    fun getDownload(uuid: UUID, width: Int? = null) = server.buildUpon()
         .appendPath("download")
         .appendPath(uuid.toString())
+        .letIf(width != null) { it.appendQueryParameter("width", width!!.toString()) }
         .build()
         .toString()
 

@@ -52,12 +52,13 @@ class DownloadWorker(appContext: Context, workerParams: WorkerParameters) :
         suspend fun download(
             context: Context,
             remoteFileInfo: RemoteFileInfo,
+            imageWidth: Int?,
             progress: suspend (current: Int, max: Int) -> Unit
         ): LocalFile {
             val workManager = WorkManager.getInstance(context)
 
             val uuid = remoteFileInfo.uuid
-            val url = EndpointUtils.getDownload(uuid)
+            val url = EndpointUtils.getDownload(uuid, imageWidth)
 
             Timber.d("Getting all work infos for $url...")
 
