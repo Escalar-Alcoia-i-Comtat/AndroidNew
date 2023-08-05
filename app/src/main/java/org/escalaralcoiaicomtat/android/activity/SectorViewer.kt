@@ -1,0 +1,248 @@
+package org.escalaralcoiaicomtat.android.activity
+
+import android.app.Activity
+import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
+import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.files.LocalFile
+import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
+import org.escalaralcoiaicomtat.android.ui.logic.compat.BackHandlerCompat
+import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
+import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
+import timber.log.Timber
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+    ExperimentalMaterial3WindowSizeClassApi::class
+)
+class SectorViewer : AppCompatActivity() {
+    companion object {
+        const val EXTRA_SECTOR_ID = "sector_id"
+    }
+
+    data class Input(
+        val sectorId: Long
+    )
+
+    object Contract : ActivityResultContract<Input, Void?>() {
+        override fun createIntent(context: Context, input: Input): Intent =
+            Intent(context, SectorViewer::class.java).apply {
+                putExtra(EXTRA_SECTOR_ID, input.sectorId)
+            }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Void? = null
+    }
+
+    private val viewModel: Model by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val extras = intent.extras
+        val sectorId = extras?.getLong(EXTRA_SECTOR_ID, -1)
+        if (sectorId == null || sectorId < 0) {
+            Timber.e("Sector ID not specified, going back...")
+            setResult(Activity.RESULT_CANCELED)
+            finish()
+            return
+        }
+
+        viewModel.loadSector(sectorId)
+
+        setContentThemed {
+            BackHandlerCompat(onBack = ::onBack)
+
+            val sector by viewModel.sector.observeAsState()
+
+            Scaffold(
+                topBar = {
+                    AnimatedVisibility(visible = sector != null) {
+                        TopAppBar(
+                            title = { Text(sector?.displayName ?: "") },
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = ::onBack
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.ChevronLeft,
+                                        stringResource(R.string.action_back)
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            ) { paddingValues ->
+                AnimatedContent(
+                    targetState = sector,
+                    label = "animate-sector-loading"
+                ) { sector ->
+                    if (sector == null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                        ) {
+                            Content(sector)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun RowScope.Content(sector: Sector) {
+        val context = LocalContext.current
+        val windowSizeClass = calculateWindowSizeClass(this@SectorViewer)
+
+        var imageFile by remember { mutableStateOf<LocalFile?>(null) }
+        var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                if (imageFile != null) return@withContext
+
+                sector.fetchImage(
+                    context,
+                    progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
+                ).collect { file ->
+                    withContext(Dispatchers.Main) { imageFile = file }
+                }
+            }
+        }
+
+        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                // TODO - paths list and blockages
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    Text("Paths list")
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+        ) {
+            imageFile?.let { file ->
+                val zoomState = rememberZoomState()
+
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .file(file)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = sector.displayName,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zoomable(zoomState, enableOneFingerZoom = false),
+                    contentScale = ContentScale.Fit
+                )
+            } ?: Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(
+                        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded)
+                            1f
+                        else
+                            .7f
+                    )
+            ) {
+                CircularProgressIndicator(progress)
+            }
+
+            // TODO - sector image
+        }
+    }
+
+    private fun onBack() {
+        setResult(Activity.RESULT_CANCELED)
+        finish()
+    }
+
+    class Model(application: Application) : AndroidViewModel(application) {
+        private val database = AppDatabase.getInstance(application)
+        private val dao = database.dataDao()
+
+        private val _sector = MutableLiveData<Sector?>()
+        val sector: LiveData<Sector?> get() = _sector
+
+        fun loadSector(sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
+            val sector = dao.getSector(sectorId)
+                ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
+            _sector.postValue(sector)
+        }
+    }
+}

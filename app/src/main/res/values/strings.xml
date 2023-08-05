@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">Escalar Alcoià i Comtat</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_create">Create</string>
+    <string name="action_add">Add</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="item_home">Home</string>
+    <string name="item_favorites">Favorites</string>
+    <string name="item_settings">Setting</string>
+
+    <string name="list_item_favorite">Favorite</string>
+    <string name="list_item_download">Download</string>
+    <string name="list_item_create">Create New</string>
+
+    <string name="settings_category_ui">User Interface</string>
+    <string name="settings_category_security">Security</string>
+
+    <string name="settings_language">Language</string>
+    <string name="settings_language_default">System Default</string>
+    <string name="settings_security_lock">Security lock</string>
+    <string name="settings_security_lock_locked">Locked</string>
+    <string name="settings_security_lock_unlocked">Unlocked</string>
+    <string name="settings_security_lock_api_key">API Key</string>
+    <string name="settings_security_lock_unlock">Unlock</string>
+    <string name="settings_security_lock_api_key_wrong">Wrong API key</string>
+
+    <string name="new_area_title">Create New Area</string>
+    <string name="new_zone_title">Create New Zone</string>
+    <string name="new_sector_title">Create New Sector</string>
+
+    <string name="creation_step_compressing">Compressing image…</string>
+    <string name="creation_step_uploading">Uploading… %f %</string>
+    <string name="creation_step_finishing">Finishing…</string>
+    <string name="creation_error_toast">Could not create. Check logcat</string>
+
+    <string name="form_parent">Parent</string>
+    <string name="form_display_name">Display Name</string>
+    <string name="form_web_url">Web URL</string>
+    <string name="form_image_pick">Pick Image</string>
+    <string name="form_kmz_pick">Pick KMZ File</string>
+    <string name="form_latitude">Latitude</string>
+    <string name="form_longitude">Longitude</string>
+    <string name="form_point_label">Label</string>
+    <string name="form_sun_time">Sun Time</string>
+    <string name="form_kids_apt">Kids Apt</string>
+    <string name="form_walking_time">Walking Time</string>
+
+    <string name="sun_time_none">None</string>
+    <string name="sun_time_morning">Morning</string>
+    <string name="sun_time_afternoon">Afternoon</string>
+    <string name="sun_time_day">Day</string>
+
+    <string name="icon_label_default">Default</string>
+    <string name="icon_label_parking">Parking</string>
+    <string name="icon_label_park">Park</string>
+    <string name="icon_label_water">Water</string>
+    <string name="icon_label_pool">Pool</string>
+    <string name="icon_label_restaurant">Restaurant</string>
+    <string name="icon_label_hotel">Hotel</string>
+
+    <string name="dialog_delete_title">Delete stored version?</string>
+    <string name="dialog_delete_message">Do you want to delete the permanent version of the image of this element? This means that it will still be available in the device, but it will be considered cache, and may be deleted without previous warning by the system.</string>
+
+    <string name="notification_channel_downloads_id" translatable="false">downloads</string>
+    <string name="notification_channel_downloads_name">Downloads</string>
+    <string name="notification_channel_downloads_description">Provides information about ongoing downloads.</string>
+    <string name="notification_channel_sync_id" translatable="false">sync</string>
+    <string name="notification_channel_sync_name">Synchronization</string>
+    <string name="notification_channel_sync_description">Provides information about the progress of data synchronization between your device and the server.</string>
+
+    <string name="notification_group_tasks_id" translatable="false">tasks</string>
+    <string name="notification_group_tasks_name">Ongoing Tasks</string>
+
+    <string name="notification_downloading_title">Downloading…</string>
+    <string name="notification_downloading_message">Downloading file from server</string>
+    <string name="notification_sync_title">Running Synchronization…</string>
+    <string name="notification_sync_message">Synchronizing device\'s data with server\'s.</string>
+</resources>
