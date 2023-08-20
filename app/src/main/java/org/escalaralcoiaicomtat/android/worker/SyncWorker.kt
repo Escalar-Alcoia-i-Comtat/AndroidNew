@@ -43,6 +43,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.utils.map
 import org.escalaralcoiaicomtat.android.utils.serialize
+import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
 import java.util.UUID
@@ -137,9 +138,15 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             createForegroundInfo()
         )
 
-        getTree()
+        return try {
+            getTree()
 
-        return Result.success()
+            Result.success()
+        } catch (e: JSONException) {
+            Timber.e("Got an invalid response from server.", e)
+
+            Result.retry()
+        }
     }
 
     private suspend fun synchronizeAreas(data: JSONObject) {
