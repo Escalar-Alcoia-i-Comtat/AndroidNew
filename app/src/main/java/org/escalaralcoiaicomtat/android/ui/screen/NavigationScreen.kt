@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
@@ -82,6 +85,7 @@ fun NavigationScreen(
                 modifier = Modifier
                     .width(width)
                     .padding(top = 12.dp, end = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.item_home)) },
@@ -91,7 +95,7 @@ fun NavigationScreen(
                     icon = { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.action_back)) }
                 )
 
-                areas?.forEach { area ->
+                areas?.sorted()?.forEach { area ->
                     SideNavigationItem(
                         label = area.displayName,
                         depth = 0,
@@ -100,7 +104,7 @@ fun NavigationScreen(
                         onClick = { viewModel.navigateTo(area) },
                         onCreate =  { onCreateZone(area) }
                     )
-                    zones.filter { it.areaId == area.id }.forEach { zone ->
+                    zones.sorted().filter { it.areaId == area.id }.forEach { zone ->
                         SideNavigationItem(
                             label = zone.displayName,
                             depth = 1,
@@ -109,7 +113,7 @@ fun NavigationScreen(
                             onClick = { viewModel.navigateTo(zone) },
                             onCreate =  { onCreateSector(zone) }
                         )
-                        sectors.filter { it.zoneId == zone.id }.forEach { sector ->
+                        sectors.sorted().filter { it.zoneId == zone.id }.forEach { sector ->
                             SideNavigationItem(
                                 label = sector.displayName,
                                 depth = 2,
@@ -204,8 +208,7 @@ fun NavigationScreen(
                     onFavoriteToggle,
                     onCreate = { onCreateSector(selection) },
                     onClick = { viewModel.navigateTo(it) },
-                    onMove = { from, to -> viewModel.moveSector(from, to) },
-                    ({ it.weight })
+                    onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
             }
         }

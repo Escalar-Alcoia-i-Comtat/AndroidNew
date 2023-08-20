@@ -24,22 +24,22 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
 import org.burnoutcrew.reorderable.reorderable
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.list.CreateCard
 import org.escalaralcoiaicomtat.android.ui.list.DataCard
 import org.escalaralcoiaicomtat.android.utils.letIf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun <T : DataEntity> DataList(
+inline fun <reified T : DataEntity> DataList(
     list: List<T>?,
     gridCellSize: Dp,
     imageHeight: Dp,
     modifier: Modifier = Modifier,
-    onFavoriteToggle: (T) -> Job,
-    onCreate: () -> Unit,
-    onClick: (T) -> Unit,
-    onMove: ((from: Int, to: Int) -> Unit)?,
-    vararg sortedBy: (T) -> Comparable<*>?
+    crossinline onFavoriteToggle: (T) -> Job,
+    noinline onCreate: () -> Unit,
+    crossinline onClick: (T) -> Unit,
+    noinline onMove: ((from: Int, to: Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
 
@@ -66,12 +66,7 @@ fun <T : DataEntity> DataList(
                 }
             }
             itemsIndexed(
-                items = list.sortedWith(
-                    compareBy(
-                        *sortedBy,
-                        { if (it.isFavorite) "\u0000${it.displayName}" else it.displayName }
-                    )
-                ),
+                items = list.sorted(),
                 key = { _, area -> area.id }
             ) { index, item ->
                 ReorderableItem(
