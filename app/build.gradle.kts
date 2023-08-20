@@ -90,7 +90,7 @@ dependencies {
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
 
     // Jetpack Compose - Zoomable Image
-    implementation("net.engawapg.lib:zoomable:1.4.3")
+    implementation("net.engawapg.lib:zoomable:1.5.0")
 
     // Coil Image loading
     // implementation("io.coil-kt:coil:2.4.0")
