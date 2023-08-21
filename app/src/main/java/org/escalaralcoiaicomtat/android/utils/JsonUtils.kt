@@ -8,7 +8,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.time.Instant
-import kotlin.reflect.KClass
 
 /** Initializes a new [JSONObject] with `this` string. */
 val String.json: JSONObject get() = JSONObject(this)
@@ -37,7 +36,7 @@ fun JSONObject.putAll(pairs: Map<String, Any?>): JSONObject {
         when (value) {
             is JsonSerializable -> put(key, value.toJson())
             is JSONArray -> put(key, value)
-            is Instant -> put(key, value.toEpochMilli())
+            is Instant -> putInstant(key, value)
             is Iterable<*> -> putIterable(key, value)
 
             else -> put(key, value)
@@ -67,6 +66,18 @@ fun JSONObject.putIterable(key: String, iterable: Iterable<Any?>): JSONObject =
 
         put(key, array)
     }
+
+/**
+ * Puts the value of the given instant in the passed [key]. Stores as a Long, that matches
+ * [Instant.toEpochMilli]. Can be converted back into [Instant] with [Instant.ofEpochMilli].
+ *
+ * @param key The key to store the instant at.
+ * @param value The instant to store.
+ *
+ * @return The updated [JSONObject]
+ */
+fun JSONObject.putInstant(key: String, value: Instant): JSONObject =
+    put(key, value.toEpochMilli())
 
 /**
  * Constructs a JSON object from a map of key-value pairs.
@@ -218,7 +229,6 @@ fun JSONObject.getUIntOrNull(key: String): UInt? =
  * Retrieves the value associated with the specified key from the JSON object
  * and converts it to the specified enum type using the enumValueOf function.
  *
- * @param kClass The class representing the enum type.
  * @param key The key associated with the value to retrieve from the JSON object.
  *
  * @return The enum value associated with the specified key from the JSON object.
@@ -231,13 +241,12 @@ inline fun <reified E: Enum<E>> JSONObject.getEnum(key: String): E = enumValueOf
 /**
  * Retrieves the enum value from the JSONObject for the specified key.
  *
- * @param kClass the class object of the enum type.
  * @param key the key to retrieve the enum value from the JSONObject.
  *
  * @return the enum value corresponding to the key, or null if the key is not present or cannot be parsed as an enum
  * value.
  */
-inline fun <reified E : Enum<E>> JSONObject.getEnumOrNull(kClass: KClass<E>, key: String): E? =
+inline fun <reified E : Enum<E>> JSONObject.getEnumOrNull(key: String): E? =
     try {
         if (has(key)) getEnum<E>(key) else null
     } catch (_: JSONException) {
@@ -261,6 +270,15 @@ fun JSONObject.getBooleanOrNull(key: String): Boolean? =
     } catch (_: JSONException) {
         null
     }
+
+/**
+ * Returns the Instant value associated with the specified key.
+ *
+ * @param key the key to look up
+ *
+ * @return the Instant value associated with the specified key.
+ */
+fun JSONObject.getInstant(key: String): Instant = getLong(key).let(Instant::ofEpochMilli)
 
 inline fun <T, reified S: JsonSerializer<T>> JSONObject.getSerializable(name: String): T {
     val serializer = S::class.objectInstance ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")

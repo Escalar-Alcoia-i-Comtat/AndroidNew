@@ -7,6 +7,7 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
+import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
@@ -29,7 +30,7 @@ data class Area(
     companion object CREATOR : JsonSerializer<Area>, Parcelable.Creator<Area> {
         override fun fromJson(json: JSONObject): Area = Area(
             json.getLong("id"),
-            json.getLong("timestamp").let(Instant::ofEpochMilli),
+            json.getInstant("timestamp"),
             json.getString("display_name"),
             json.getString("web_url").let(Uri::parse),
             json.getString("image").let { it.substring(0, it.indexOf('.')) },

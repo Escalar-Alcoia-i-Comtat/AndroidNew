@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.storage.type.DataPoint
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
+import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getJSONObjectOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
@@ -32,7 +33,7 @@ data class Zone(
     companion object: JsonSerializer<Zone> {
         override fun fromJson(json: JSONObject): Zone = Zone(
             json.getLong("id"),
-            json.getLong("timestamp").let(Instant::ofEpochMilli),
+            json.getInstant("timestamp"),
             json.getString("display_name"),
             json.getString("web_url").let(Uri::parse),
             json.getString("image"),

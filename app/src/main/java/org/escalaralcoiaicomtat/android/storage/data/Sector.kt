@@ -6,6 +6,7 @@ import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getEnum
+import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.getSerializable
 import org.escalaralcoiaicomtat.android.utils.jsonOf
@@ -33,7 +34,7 @@ data class Sector(
     companion object: JsonSerializer<Sector> {
         override fun fromJson(json: JSONObject): Sector = Sector(
             json.getLong("id"),
-            json.getLong("timestamp").let(Instant::ofEpochMilli),
+            json.getInstant("timestamp"),
             json.getString("display_name"),
             json.getBoolean("kids_apt"),
             json.getEnum("sun_time"),
@@ -48,7 +49,7 @@ data class Sector(
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
-        "timestamp" to timestamp.toEpochMilli(),
+        "timestamp" to timestamp,
         "display_name" to displayName,
         "kids_apt" to kidsApt,
         "sun_time" to sunTime,
