@@ -27,7 +27,6 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            @Suppress("UnstableApiUsage")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
@@ -43,7 +42,6 @@ android {
         jvmTarget = "1.8"
     }
 
-    @Suppress("UnstableApiUsage")
     buildFeatures {
         buildConfig = true
         compose = true
@@ -75,7 +73,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Jetpack Compose
-    implementation(platform("androidx.compose:compose-bom:2023.06.01"))
+    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
@@ -83,7 +81,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.4.3")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
     // Jetpack Compose - Reorderable lists
