@@ -2,11 +2,10 @@ package org.escalaralcoiaicomtat.android.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,7 +42,6 @@ import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun NavigationScreen(
     widthSizeClass: WindowWidthSizeClass,
@@ -141,7 +139,7 @@ fun NavigationScreen(
             targetState = currentSelection,
             label = "animate-areas-navigation",
             transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } with
+                slideInHorizontally { if (targetState == null) -it else it } togetherWith
                     slideOutHorizontally { if (targetState == null) it else -it }
             }
         ) { selection ->
@@ -165,7 +163,7 @@ fun NavigationScreen(
             targetState = currentSelection,
             label = "animate-area-navigation",
             transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } with
+                slideInHorizontally { if (targetState == null) -it else it } togetherWith
                     slideOutHorizontally { if (targetState == null) it else -it }
             }
         ) { selection ->
@@ -191,7 +189,7 @@ fun NavigationScreen(
             targetState = currentSelection,
             label = "animate-zone-navigation",
             transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } with
+                slideInHorizontally { if (targetState == null) -it else it } togetherWith
                     slideOutHorizontally { if (targetState == null) it else -it }
             }
         ) { selection ->

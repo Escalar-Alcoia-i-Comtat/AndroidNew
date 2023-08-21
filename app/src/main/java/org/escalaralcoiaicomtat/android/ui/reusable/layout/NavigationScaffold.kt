@@ -20,10 +20,11 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationBar
@@ -48,9 +49,10 @@ fun NavigationScaffold(
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
     pageContentModifier: Modifier = Modifier,
+    pageContentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     pageContent: @Composable ColumnScope.(page: Int) -> Unit
 ) {
-    var currentPage by remember { mutableStateOf(initialPage) }
+    var currentPage by remember { mutableIntStateOf(initialPage) }
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { currentPage = it }
@@ -67,7 +69,11 @@ fun NavigationScaffold(
         contentWindowInsets = contentWindowInsets,
         bottomBar = {
             if (widthSizeClass == WindowWidthSizeClass.Compact) {
-                NavigationBar(currentPage, items, alwaysShowLabel) { pagerState.animateScrollToPage(it) }
+                NavigationBar(currentPage, items, alwaysShowLabel) {
+                    pagerState.animateScrollToPage(
+                        it
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -91,7 +97,16 @@ fun NavigationScaffold(
                     .weight(1f),
                 state = pagerState
             ) {
-                Column(pageContentModifier) { pageContent(it) }
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = pageContentAlignment
+                ) {
+                    Column(
+                        modifier = pageContentModifier
+                    ) {
+                        pageContent(it)
+                    }
+                }
             }
         }
     }

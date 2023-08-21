@@ -2,14 +2,13 @@ package org.escalaralcoiaicomtat.android.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -63,7 +62,6 @@ private const val PAGES_COUNT = 2
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalAnimationApi::class,
     ExperimentalFoundationApi::class
 )
 @Composable
@@ -148,7 +146,7 @@ fun MainScreen(
                             targetState = currentArea,
                             label = "animate-area-name-change",
                             transitionSpec = {
-                                fadeIn() with fadeOut()
+                                fadeIn() togetherWith fadeOut()
                             }
                         ) { area ->
                             Text(
@@ -172,7 +170,15 @@ fun MainScreen(
         }
     ) { page ->
         when (page) {
-            0 -> NavigationScreen(widthSizeClass, onFavoriteToggle, onCreateArea, onCreateZone, onCreateSector, onCreatePath, viewModel)
+            0 -> NavigationScreen(
+                widthSizeClass,
+                onFavoriteToggle,
+                onCreateArea,
+                onCreateZone,
+                onCreateSector,
+                onCreatePath,
+                viewModel
+            )
 
             1 -> Column(
                 modifier = Modifier
