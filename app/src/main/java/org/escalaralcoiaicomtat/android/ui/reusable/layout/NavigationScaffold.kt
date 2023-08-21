@@ -37,7 +37,7 @@ fun NavigationScaffold(
     widthSizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier,
     initialPage: Int = 0,
-    pagerState: PagerState = rememberPagerState(initialPage),
+    pagerState: PagerState = rememberPagerState(initialPage) { items.size },
     alwaysShowLabel: Boolean = false,
     header: @Composable (ColumnScope.() -> Unit)? = null,
     topBar: @Composable () -> Unit = { },
@@ -86,7 +86,6 @@ fun NavigationScaffold(
             }
 
             HorizontalPager(
-                pageCount = items.size,
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f),

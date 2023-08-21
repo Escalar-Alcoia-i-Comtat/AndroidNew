@@ -59,6 +59,8 @@ import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
 import org.escalaralcoiaicomtat.android.ui.theme.AppTheme
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
+private const val PAGES_COUNT = 2
+
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalAnimationApi::class,
@@ -79,7 +81,9 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
-    val pagerState = rememberPagerState()
+    val pagerState = rememberPagerState(
+        initialPage = 0
+    ) { PAGES_COUNT }
 
     val currentArea by viewModel.currentArea.observeAsState()
     val currentZone by viewModel.currentZone.observeAsState()
