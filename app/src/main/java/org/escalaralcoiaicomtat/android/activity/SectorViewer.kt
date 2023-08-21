@@ -191,14 +191,14 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-        ) {
-            imageFile?.let { file ->
-                val zoomState = rememberZoomState()
+        imageFile?.let { file ->
+            val zoomState = rememberZoomState()
 
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+            ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .file(file)
@@ -206,25 +206,23 @@ class SectorViewer : AppCompatActivity() {
                         .build(),
                     contentDescription = sector.displayName,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .zoomable(zoomState, enableOneFingerZoom = false),
+                        .zoomable(zoomState, enableOneFingerZoom = false)
+                        .fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
-            } ?: Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(
-                        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded)
-                            1f
-                        else
-                            .7f
-                    )
-            ) {
-                CircularProgressIndicator(progress)
             }
-
-            // TODO - sector image
+        } ?: Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(
+                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded)
+                        1f
+                    else
+                        .7f
+                )
+        ) {
+            CircularProgressIndicator(progress)
         }
     }
 
