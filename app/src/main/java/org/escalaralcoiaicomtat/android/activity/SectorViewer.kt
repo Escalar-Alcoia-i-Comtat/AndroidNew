@@ -12,19 +12,20 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,7 +45,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -60,8 +60,10 @@ import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
+import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.logic.compat.BackHandlerCompat
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
@@ -179,17 +181,14 @@ class SectorViewer : AppCompatActivity() {
         }
 
         if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
             ) {
-                // TODO - paths list and blockages
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    Text("Paths list: ${paths.size}")
+                itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
+                    PathItem(path)
+
+                    if (index < paths.lastIndex) Divider()
                 }
             }
         }
@@ -252,7 +251,7 @@ class SectorViewer : AppCompatActivity() {
 
             val paths = dao.getPathsFromSector(sector.id)
                 ?: throw IllegalArgumentException("Could not find associated paths with sector")
-            _paths.postValue(paths.paths)
+            _paths.postValue(paths.paths.sorted())
         }
     }
 }
