@@ -236,7 +236,7 @@ fun JSONObject.getUIntOrNull(key: String): UInt? =
  * @throws IllegalArgumentException if the value associated with the key
  * is not a valid enum constant of the specified enum type.
  */
-inline fun <reified E: Enum<E>> JSONObject.getEnum(key: String): E = enumValueOf(getString(key))
+inline fun <reified E : Enum<E>> JSONObject.getEnum(key: String): E = enumValueOf(getString(key))
 
 /**
  * Retrieves the enum value from the JSONObject for the specified key.
@@ -280,14 +280,33 @@ fun JSONObject.getBooleanOrNull(key: String): Boolean? =
  */
 fun JSONObject.getInstant(key: String): Instant = getLong(key).let(Instant::ofEpochMilli)
 
-inline fun <T, reified S: JsonSerializer<T>> JSONObject.getSerializable(name: String): T {
-    val serializer = S::class.objectInstance ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")
+inline fun <T, reified S : JsonSerializer<T>> JSONObject.getSerializable(name: String): T {
+    val serializer = S::class.objectInstance
+        ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")
     val json = getJSONObject(name)
     return serializer.fromJson(json)
 }
 
-inline fun <T, reified S: JsonSerializer<T>> JSONObject.getSerializableArray(name: String): List<T> {
-    val serializer = S::class.objectInstance ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")
+inline fun <T, reified S : JsonSerializer<T>> JSONObject.getSerializableOrNull(name: String): T? =
+    try {
+        if (has(name)) getSerializable<T, S>(name)
+        else null
+    } catch (_: JSONException) {
+        null
+    }
+
+inline fun <T, reified S : JsonSerializer<T>> JSONObject.getSerializableArray(name: String): List<T> {
+    val serializer = S::class.objectInstance
+        ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")
     val array = getJSONArray(name)
     return array.serialize(serializer)
+}
+
+inline fun <T, reified S : JsonSerializer<T>> JSONObject.getSerializableArrayOrNull(
+    name: String
+): List<T>? = try {
+    if (has(name)) getSerializableArray<T, S>(name)
+    else null
+} catch (_: JSONException) {
+    null
 }
