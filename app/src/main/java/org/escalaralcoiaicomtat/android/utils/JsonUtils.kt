@@ -285,3 +285,9 @@ inline fun <T, reified S: JsonSerializer<T>> JSONObject.getSerializable(name: St
     val json = getJSONObject(name)
     return serializer.fromJson(json)
 }
+
+inline fun <T, reified S: JsonSerializer<T>> JSONObject.getSerializableArray(name: String): List<T> {
+    val serializer = S::class.objectInstance ?: throw IllegalArgumentException("Could not get serializer instance for ${S::class.simpleName}")
+    val array = getJSONArray(name)
+    return array.serialize(serializer)
+}

@@ -15,6 +15,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.relations.AreaWithZones
 import org.escalaralcoiaicomtat.android.storage.relations.PathWithBlocks
+import org.escalaralcoiaicomtat.android.storage.relations.SectorWithPaths
 import org.escalaralcoiaicomtat.android.storage.relations.ZoneWithSectors
 
 @Dao
@@ -109,6 +110,11 @@ interface DataDao {
     @Query("SELECT * FROM sectors")
     fun getAllSectorsLive(): LiveData<List<Sector>>
 
+    @WorkerThread
+    @Transaction
+    @Query("SELECT * FROM sectors WHERE id=:sectorId")
+    suspend fun getPathsFromSector(sectorId: Long): SectorWithPaths?
+
 
     @WorkerThread
     @Insert
@@ -121,6 +127,10 @@ interface DataDao {
     @WorkerThread
     @Update
     suspend fun update(vararg items: Path)
+
+    @WorkerThread
+    @Query("SELECT * FROM paths WHERE id=:id")
+    suspend fun getPath(id: Long): Path?
 
     @WorkerThread
     @Query("SELECT * FROM paths")

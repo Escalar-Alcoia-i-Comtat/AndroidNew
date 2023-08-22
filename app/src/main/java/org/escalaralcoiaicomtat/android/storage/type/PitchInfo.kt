@@ -22,9 +22,9 @@ data class PitchInfo(
             json.getUInt("pitch"),
             json.getStringOrNull("grade")?.let { GradeValue.fromString(it) },
             json.getUIntOrNull("height"),
-            json.getEnumOrNull(Ending::class, "ending"),
-            json.getEnumOrNull(EndingInfo::class, "info"),
-            json.getEnumOrNull(EndingInclination::class, "inclination")
+            json.getEnumOrNull<Ending>("ending"),
+            json.getEnumOrNull<EndingInfo>("info"),
+            json.getEnumOrNull<EndingInclination>("inclination")
         )
     }
 

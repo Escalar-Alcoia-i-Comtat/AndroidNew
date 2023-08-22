@@ -5,7 +5,6 @@ import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
-import android.database.sqlite.SQLiteConstraintException
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -37,11 +36,16 @@ import org.escalaralcoiaicomtat.android.network.get
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.dao.DataDao
 import org.escalaralcoiaicomtat.android.storage.data.Area
+import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.storage.data.propertiesWith
 import org.escalaralcoiaicomtat.android.utils.map
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.serialize
 import org.json.JSONException
 import org.json.JSONObject
@@ -127,6 +131,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private val dao = database.dataDao()
 
+    private val serverPaths = arrayListOf<Long>()
     private val serverSectors = arrayListOf<Long>()
     private val serverZones = arrayListOf<Long>()
     private val serverAreas = arrayListOf<Long>()
@@ -149,80 +154,89 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun synchronizeAreas(data: JSONObject) {
-        data.getJSONArray("areas")
-            .also { Timber.d("Got ${it.length()} areas. Serializing and inserting into database.") }
-            .apply {
-                serialize(Area).forEach { area ->
-                    serverAreas.add(area.id)
-                    try {
-                        dao.insert(area)
-                    } catch (_: SQLiteConstraintException) {
-                        dao.update(area)
-                    }
-                }
-            }
-            .map { index ->
-                val areaJson = getJSONObject(index)
-                synchronizeZones(areaJson)
-            }
-    }
-
-    private suspend fun synchronizeZones(data: JSONObject) {
-        data.getJSONArray("zones")
-            .also { Timber.d("Got ${it.length()} zones. Serializing and inserting into database.") }
-            .apply {
-                serialize(Zone).forEach { zone ->
-                    serverZones.add(zone.id)
-                    try {
-                        dao.insert(zone)
-                    } catch (_: SQLiteConstraintException) {
-                        dao.update(zone)
-                    }
-                }
-            }
-            .map { index ->
-                val zoneJson = getJSONObject(index)
-                synchronizeSectors(zoneJson)
-            }
-    }
-
-    private suspend fun synchronizeSectors(data: JSONObject) {
-        data.getJSONArray("sectors")
-            .also { Timber.d("Got ${it.length()} sectors. Serializing and inserting into database.") }
-            .apply {
-                serialize(Sector).forEach { serverSector ->
-                    serverSectors.add(serverSector.id)
-                    val localSector = dao.getSector(serverSector.id)
-
-                    patchSector(localSector, serverSector)
-                }
-            }
-            .map { index ->
-                // val zoneJson = getJSONObject(index)
-                // TODO - synchronize sectors
-            }
-    }
-
-    private suspend fun patchSector(
-        localSector: Sector?,
-        serverSector: Sector
+    sealed class DataTypeInfo<R : BaseEntity>(
+        val endpoint: String,
+        val arrayKey: String,
+        val daoGet: suspend DataDao.(Long) -> R?,
+        val daoInsert: suspend DataDao.(R) -> Unit,
+        val daoUpdate: suspend DataDao.(R) -> Unit
     ) {
-        if (localSector == null) {
+        data object AreaInfo : DataTypeInfo<Area>(
+            "area",
+            "areas",
+            DataDao::getArea,
+            DataDao::insert,
+            DataDao::update
+        )
+
+        data object ZoneInfo : DataTypeInfo<Zone>(
+            "zone",
+            "zones",
+            DataDao::getZone,
+            DataDao::insert,
+            DataDao::update
+        )
+
+        data object SectorInfo : DataTypeInfo<Sector>(
+            "sector",
+            "sectors",
+            DataDao::getSector,
+            DataDao::insert,
+            DataDao::update
+        )
+
+        data object PathInfo : DataTypeInfo<Path>(
+            "path",
+            "paths",
+            DataDao::getPath,
+            DataDao::insert,
+            DataDao::update
+        )
+    }
+
+    private suspend inline fun <reified R : BaseEntity> synchronize(
+        data: JSONObject,
+        serializer: JsonSerializer<R>,
+        serverCache: MutableList<Long>,
+        info: DataTypeInfo<R>,
+        forEach: (JSONObject) -> Unit
+    ) = with(info) {
+        val array = data.getJSONArray(arrayKey)
+            .also { Timber.d("Got ${it.length()} $arrayKey. Serializing and inserting into database.") }
+            .apply {
+                serialize(serializer).forEach { server ->
+                    serverCache.add(server.id)
+                    val local = dao.daoGet(server.id)
+
+                    patch(local, server, info)
+                }
+            }
+        array.map { index ->
+            val json = getJSONObject(index)
+            forEach(json)
+        }
+    }
+
+    private suspend inline fun <reified R : BaseEntity> patch(
+        local: R?,
+        server: R,
+        info: DataTypeInfo<R>
+    ) = with(info) {
+        if (local == null) {
             // No local copy of the sector, insert it
-            Timber.d("- Got new sector! ID: ${serverSector.id}. Inserting...")
-            dao.insert(serverSector)
-            return
+            Timber.d("- Got new $endpoint! ID: ${server.id}. Inserting...")
+            dao.daoInsert(server)
+            return@with
         }
-        if (localSector.timestamp <= serverSector.timestamp) {
+        if (local.timestamp <= server.timestamp) {
             // No modification is needed, up to date
-            Timber.d("- Sector with ID: ${serverSector.id}. No update needed")
+            Timber.d("- $endpoint with ID: ${server.id}. No update needed")
             return
         }
-        if (localSector.timestamp < serverSector.timestamp) {
+        if (local.timestamp < server.timestamp) {
             // Local copy outdated, update with server
-            Timber.d("- Sector updated! ID: ${serverSector.id}. Updating local copy...")
-            dao.update(serverSector)
+            Timber.d("- $endpoint updated! ID: ${server.id}. Updating local copy...")
+            dao.daoUpdate(server)
             return
         }
 
@@ -230,32 +244,28 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         val apiKey = Preferences.getApiKey(applicationContext).firstOrNull()
         if (apiKey == null) {
-            Timber.w("Editing not unlocked, local modifications for sector ${localSector.id} will be lost.")
+            Timber.w("Editing not unlocked, local modifications for $endpoint ${local.id} will be lost.")
             return
         }
 
-        Timber.d("- Sector updated locally. ID: ${serverSector.id}. Patching server...")
+        Timber.d("- $endpoint updated locally. ID: ${server.id}. Patching server...")
 
         ktorHttpClient.submitFormWithBinaryData(
-            EndpointUtils.getUrl("sector/${localSector.id}"),
+            EndpointUtils.getUrl("$endpoint/${local.id}"),
             formData = formData {
-                appendUpdate("timestamp", localSector.timestamp, serverSector.timestamp)
-                appendUpdate("displayName", localSector.displayName, serverSector.displayName)
-                appendUpdate("point", localSector.point, serverSector.point)
-                appendUpdate("kidsApt", localSector.kidsApt, serverSector.kidsApt)
-                appendUpdate("sunTime", localSector.sunTime, serverSector.sunTime)
-                appendUpdate("walkingTime", localSector.walkingTime, serverSector.walkingTime)
-                appendUpdate("weight", localSector.weight, serverSector.weight)
-                appendUpdate("zone", localSector.zoneId, serverSector.zoneId)
+                val pairs = local propertiesWith server
+                for ((name, value1, value2) in pairs) {
+                    appendUpdate(name, value1, value2)
+                }
             }
         ) {
             header(HttpHeaders.Authorization, "Bearer $apiKey")
         }.apply {
             if (status == HttpStatusCode.NoContent || status == HttpStatusCode.OK) {
                 // Update successful
-                Timber.d("Patched server with data from sector ${localSector.id}")
+                Timber.d("Patched server with data from $endpoint ${local.id}")
             } else {
-                Timber.e("Could not update server with data from sector ${localSector.id}")
+                Timber.e("Could not update server with data from $endpoint ${local.id}")
                 throw RequestException(status, bodyAsJson())
             }
         }
@@ -286,8 +296,30 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         get(
             EndpointUtils.getUrl("tree")
         ) { data ->
-            data?.let { synchronizeAreas(it) }
-                ?: Timber.d("Tree request didn't have any area.")
+            data?.let { aJson ->
+                synchronize(
+                    aJson,
+                    Area,
+                    serverAreas,
+                    DataTypeInfo.AreaInfo
+                ) { zJson ->
+                    synchronize(
+                        zJson,
+                        Zone,
+                        serverZones,
+                        DataTypeInfo.ZoneInfo
+                    ) { sJson ->
+                        synchronize(
+                            sJson,
+                            Sector,
+                            serverSectors,
+                            DataTypeInfo.SectorInfo
+                        ) { pJson ->
+                            synchronize(pJson, Path, serverPaths, DataTypeInfo.PathInfo) {}
+                        }
+                    }
+                }
+            }
         }
 
         // Synchronize deletions

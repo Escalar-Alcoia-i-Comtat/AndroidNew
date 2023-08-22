@@ -58,6 +58,7 @@ import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
@@ -107,6 +108,7 @@ class SectorViewer : AppCompatActivity() {
             BackHandlerCompat(onBack = ::onBack)
 
             val sector by viewModel.sector.observeAsState()
+            val paths by viewModel.paths.observeAsState()
 
             Scaffold(
                 topBar = {
@@ -128,10 +130,10 @@ class SectorViewer : AppCompatActivity() {
                 }
             ) { paddingValues ->
                 AnimatedContent(
-                    targetState = sector,
+                    targetState = sector to paths,
                     label = "animate-sector-loading"
-                ) { sector ->
-                    if (sector == null) {
+                ) { (sector, paths) ->
+                    if (sector == null || paths == null) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -146,7 +148,7 @@ class SectorViewer : AppCompatActivity() {
                                 .fillMaxSize()
                                 .padding(paddingValues)
                         ) {
-                            Content(sector)
+                            Content(sector, paths)
                         }
                     }
                 }
@@ -155,7 +157,7 @@ class SectorViewer : AppCompatActivity() {
     }
 
     @Composable
-    fun RowScope.Content(sector: Sector) {
+    fun RowScope.Content(sector: Sector, paths: List<Path>) {
         val context = LocalContext.current
         val windowSizeClass = calculateWindowSizeClass(this@SectorViewer)
 
@@ -187,7 +189,7 @@ class SectorViewer : AppCompatActivity() {
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    Text("Paths list")
+                    Text("Paths list: ${paths.size}")
                 }
             }
         }
@@ -237,13 +239,20 @@ class SectorViewer : AppCompatActivity() {
         private val database = AppDatabase.getInstance(application)
         private val dao = database.dataDao()
 
-        private val _sector = MutableLiveData<Sector?>()
+        private val _sector = MutableLiveData<Sector>()
         val sector: LiveData<Sector?> get() = _sector
+
+        private val _paths = MutableLiveData<List<Path>>()
+        val paths: LiveData<List<Path>> get() = _paths
 
         fun loadSector(sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
             val sector = dao.getSector(sectorId)
                 ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
             _sector.postValue(sector)
+
+            val paths = dao.getPathsFromSector(sector.id)
+                ?: throw IllegalArgumentException("Could not find associated paths with sector")
+            _paths.postValue(paths.paths)
         }
     }
 }
