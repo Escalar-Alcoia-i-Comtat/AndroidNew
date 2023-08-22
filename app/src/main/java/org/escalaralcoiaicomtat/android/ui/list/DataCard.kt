@@ -54,6 +54,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.network.NetworkObserver.Companion.rememberNetworkObserver
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
@@ -73,12 +74,22 @@ fun <T: DataEntity> DataCard(
 ) {
     val context = LocalContext.current
 
+    val networkObserver = rememberNetworkObserver()
+    val isNetworkAvailable by networkObserver.isNetworkAvailable.observeAsState()
+
     val filesCrate = FilesCrate.rememberInstance()
 
     var imageFile by remember { mutableStateOf<LocalFile?>(null) }
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     var imageSize by remember { mutableStateOf<IntSize?>(null) }
+
+    var isDownloading by remember { mutableStateOf(false) }
+    var isTogglingFavorite by remember { mutableStateOf(false) }
+
+    val isDownloaded by FilesCrate.getInstance(context)
+        .existsLive(item.imageUUID)
+        .observeAsState()
 
     var isShowingDeleteDialog by remember { mutableStateOf(false) }
     if (isShowingDeleteDialog)
@@ -105,7 +116,10 @@ fun <T: DataEntity> DataCard(
         )
 
     OutlinedCard(
-        modifier = modifier.clickable(onClick = onClick)
+        modifier = modifier.clickable(
+            enabled = imageFile != null || isNetworkAvailable == true,
+            onClick = onClick
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -120,13 +134,6 @@ fun <T: DataEntity> DataCard(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 fontSize = 20.sp
             )
-
-            var isDownloading by remember { mutableStateOf(false) }
-            var isTogglingFavorite by remember { mutableStateOf(false) }
-
-            val isDownloaded by FilesCrate.getInstance(context)
-                .existsLive(item.imageUUID)
-                .observeAsState()
 
             IconButton(
                 enabled = !isDownloading && imageFile != null && isDownloaded != null,
