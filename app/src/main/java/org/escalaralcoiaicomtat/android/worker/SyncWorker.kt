@@ -21,6 +21,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
+import androidx.work.workDataOf
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
@@ -63,6 +64,10 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         private const val UNIQUE_PERIODIC_WORK_NAME = "periodic_sync_worker"
 
         private const val NOTIFICATION_ID = 2
+
+        private const val PROGRESS_STEP = "step"
+        private const val PROGRESS_PROGRESS = "progress"
+        private const val PROGRESS_MAX = "max"
 
         suspend fun synchronize(context: Context): LiveData<WorkInfo> {
             val uuid = UUID.randomUUID()
@@ -138,16 +143,16 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
     override suspend fun getForegroundInfo(): ForegroundInfo = createForegroundInfo()
 
     override suspend fun doWork(): Result {
-        setForeground(
-            createForegroundInfo()
-        )
+        Timber.i("Synchronization started.")
+
+        // setForeground(createForegroundInfo())
 
         return try {
             getTree()
 
             Result.success()
         } catch (e: JSONException) {
-            Timber.e("Got an invalid response from server.", e)
+            Timber.e(e, "Got an invalid response from server.")
 
             Result.retry()
         }
@@ -198,16 +203,19 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         serializer: JsonSerializer<R>,
         serverCache: MutableList<Long>,
         info: DataTypeInfo<R>,
+        step: Step,
         forEach: (JSONObject) -> Unit
     ) = with(info) {
         val array = data.getJSONArray(arrayKey)
             .also { Timber.d("Got ${it.length()} $arrayKey. Serializing and inserting into database.") }
             .apply {
-                serialize(serializer).forEach { server ->
+                val list = serialize(serializer)
+                for ((i, server) in list.withIndex()) {
                     serverCache.add(server.id)
                     val local = dao.daoGet(server.id)
 
                     patch(local, server, info)
+                    setProgress(step, i, list.size)
                 }
             }
         array.map { index ->
@@ -292,42 +300,51 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private suspend fun getTree() {
         Timber.d("Getting data tree...")
+        setProgress(Step.GET_TREE)
         get(
             EndpointUtils.getUrl("tree")
         ) { data ->
             data?.let { aJson ->
+                Timber.d("Data Tree ready.")
                 synchronize(
                     aJson,
                     Area,
                     serverAreas,
-                    DataTypeInfo.AreaInfo
+                    DataTypeInfo.AreaInfo,
+                    Step.SYNC_AREAS
                 ) { zJson ->
                     synchronize(
                         zJson,
                         Zone,
                         serverZones,
-                        DataTypeInfo.ZoneInfo
+                        DataTypeInfo.ZoneInfo,
+                        Step.SYNC_ZONES
                     ) { sJson ->
                         synchronize(
                             sJson,
                             Sector,
                             serverSectors,
-                            DataTypeInfo.SectorInfo
+                            DataTypeInfo.SectorInfo,
+                            Step.SYNC_SECTORS
                         ) { pJson ->
-                            synchronize(pJson, Path, serverPaths, DataTypeInfo.PathInfo) {}
+                            synchronize(pJson, Path, serverPaths, DataTypeInfo.PathInfo, Step.SYNC_PATHS) {}
                         }
                     }
                 }
-            }
+            } ?: Timber.w("Could not get a valid data tree.")
         }
 
         // Synchronize deletions
+        setProgress(Step.DELETE_AREAS)
         synchronizeDeletions(serverAreas, dao::getAllAreas) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted areas from server.") }
+        setProgress(Step.DELETE_ZONES)
         synchronizeDeletions(serverZones, dao::getAllZones) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted zones from server.") }
+        setProgress(Step.DELETE_SECTORS)
         synchronizeDeletions(serverSectors, dao::getAllSectors) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted sectors from server.") }
+        setProgress(Step.DELETE_PATHS)
         synchronizeDeletions(serverPaths, dao::getAllPaths) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted paths from server.") }
     }
@@ -386,5 +403,28 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 this.group = groupId
             }
         notificationManager.createNotificationChannel(channel)
+    }
+
+    private suspend fun setProgress(step: Step, progress: Int? = null, max: Int? = null) {
+        Timber.d("Progress: ${step.name} $progress / $max")
+        setProgress(
+            workDataOf(
+                PROGRESS_STEP to step.name,
+                PROGRESS_PROGRESS to progress,
+                PROGRESS_MAX to max
+            )
+        )
+    }
+
+    enum class Step {
+        GET_TREE,
+        SYNC_AREAS,
+        SYNC_ZONES,
+        SYNC_SECTORS,
+        SYNC_PATHS,
+        DELETE_AREAS,
+        DELETE_ZONES,
+        DELETE_SECTORS,
+        DELETE_PATHS
     }
 }
