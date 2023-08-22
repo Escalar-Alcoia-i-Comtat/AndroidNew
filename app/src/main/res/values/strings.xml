@@ -18,6 +18,7 @@
 
     <string name="settings_category_ui">User Interface</string>
     <string name="settings_category_security">Security</string>
+    <string name="settings_category_advanced">Advanced</string>
 
     <string name="settings_language">Language</string>
     <string name="settings_language_default">System Default</string>
@@ -27,6 +28,8 @@
     <string name="settings_security_lock_api_key">API Key</string>
     <string name="settings_security_lock_unlock">Unlock</string>
     <string name="settings_security_lock_api_key_wrong">Wrong API key</string>
+    <string name="settings_info_version">Application Version</string>
+    <string name="settings_info_build">Application Build Number</string>
 
     <string name="new_area_title">Create New Area</string>
     <string name="new_zone_title">Create New Zone</string>
