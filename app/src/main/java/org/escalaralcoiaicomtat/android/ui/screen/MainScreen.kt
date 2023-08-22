@@ -85,6 +85,7 @@ fun MainScreen(
 
     val currentArea by viewModel.currentArea.observeAsState()
     val currentZone by viewModel.currentZone.observeAsState()
+    val currentSelection by viewModel.currentSelection.observeAsState()
 
     /**
      * Contains all the logic to perform before calling [onBack]. Handles navigation between items.
@@ -143,14 +144,14 @@ fun MainScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         AnimatedContent(
-                            targetState = currentArea,
-                            label = "animate-area-name-change",
+                            targetState = currentSelection,
+                            label = "animate-title-change",
                             transitionSpec = {
                                 fadeIn() togetherWith fadeOut()
                             }
-                        ) { area ->
+                        ) { selection ->
                             Text(
-                                text = area?.displayName ?: stringResource(R.string.app_name)
+                                text = selection?.displayName ?: stringResource(R.string.app_name)
                             )
                         }
                     },

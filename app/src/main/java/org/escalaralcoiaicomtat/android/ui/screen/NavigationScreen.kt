@@ -62,6 +62,8 @@ fun NavigationScreen(
     val zones by dao.getAllZonesLive().observeAsState(initial = emptyList())
     val sectors by dao.getAllSectorsLive().observeAsState(initial = emptyList())
 
+    val currentArea by viewModel.currentArea.observeAsState()
+    val currentZone by viewModel.currentZone.observeAsState()
     val currentSelection by viewModel.currentSelection.observeAsState()
 
     val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
@@ -102,26 +104,32 @@ fun NavigationScreen(
                         onClick = { viewModel.navigateTo(area) },
                         onCreate =  { onCreateZone(area) }
                     )
-                    zones.sorted().filter { it.areaId == area.id }.forEach { zone ->
-                        SideNavigationItem(
-                            label = zone.displayName,
-                            depth = 1,
-                            selected = zone == currentSelection,
-                            showCreate = apiKey != null,
-                            onClick = { viewModel.navigateTo(zone) },
-                            onCreate =  { onCreateSector(zone) }
-                        )
-                        sectors.sorted().filter { it.zoneId == zone.id }.forEach { sector ->
+                    zones.takeIf { currentArea == area }
+                        ?.sorted()
+                        ?.filter { it.areaId == area.id }
+                        ?.forEach { zone ->
                             SideNavigationItem(
-                                label = sector.displayName,
-                                depth = 2,
-                                selected = sector == currentSelection,
+                                label = zone.displayName,
+                                depth = 1,
+                                selected = zone == currentSelection,
                                 showCreate = apiKey != null,
-                                onClick = { viewModel.navigateTo(sector) },
-                                onCreate =  { onCreatePath(sector) }
+                                onClick = { viewModel.navigateTo(zone) },
+                                onCreate = { onCreateSector(zone) }
                             )
+                            sectors.takeIf { currentZone == zone }
+                                ?.sorted()
+                                ?.filter { it.zoneId == zone.id }
+                                ?.forEach { sector ->
+                                    SideNavigationItem(
+                                        label = sector.displayName,
+                                        depth = 2,
+                                        selected = sector == currentSelection,
+                                        showCreate = apiKey != null,
+                                        onClick = { viewModel.navigateTo(sector) },
+                                        onCreate = { onCreatePath(sector) }
+                                    )
+                                }
                         }
-                    }
                 }
             }
         }
