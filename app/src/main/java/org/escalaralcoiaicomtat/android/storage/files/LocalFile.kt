@@ -17,11 +17,13 @@ import java.util.UUID
 
 /**
  * Provides a way of handling files that require additional metadata ([RemoteFileInfo]).
- *
- * @param parent The parent directory where the data and meta files will be stored.
- * @param uuid The UUID of the file. This is usually the file's name.
  */
-class LocalFile(parent: File, uuid: UUID) {
+class LocalFile
+@Deprecated(
+    "Should not be used, please use the builder from parent and UUID.",
+    replaceWith = ReplaceWith("LocalFile(parent, uuid)")
+)
+constructor(private val file: File, private val meta: File) {
     companion object {
         /**
          * Uses [ImageRequest.Builder.data] to set the [file] as data for the builder.
@@ -29,9 +31,15 @@ class LocalFile(parent: File, uuid: UUID) {
         fun ImageRequest.Builder.file(file: LocalFile) = data(file.file)
     }
 
-    private val file = File(parent, "$uuid")
-
-    private val meta = File(parent, "$uuid.meta")
+    /**
+     * @param parent The parent directory where the data and meta files will be stored.
+     * @param uuid The UUID of the file. This is usually the file's name.
+     */
+    @Suppress("Deprecation")
+    constructor(parent: File, uuid: UUID): this(
+        File(parent, "$uuid"),
+        File(parent, "$uuid.meta")
+    )
 
     /**
      * Returns true if both the data and meta file exists.
@@ -94,6 +102,25 @@ class LocalFile(parent: File, uuid: UUID) {
                 }
             }
         }
+
+    fun observer(listener: FileUpdateListener) = observer { event, _ ->
+        if (event != FileObserver.MOVE_SELF) {
+            listener.onAny(this)
+            when (event) {
+                FileObserver.ACCESS -> listener.onAccess(this)
+                FileObserver.ATTRIB -> listener.onAttrib(this)
+                FileObserver.CLOSE_NOWRITE -> listener.onCloseNoWrite(this)
+                FileObserver.CLOSE_WRITE -> listener.onCloseWrite(this)
+                FileObserver.CREATE -> listener.onCreate(this)
+                FileObserver.DELETE -> listener.onDelete(this)
+                FileObserver.DELETE_SELF -> listener.onDeleteSelf(this)
+                FileObserver.MODIFY -> listener.onModify(this)
+                FileObserver.MOVED_FROM -> listener.onMovedFrom(this)
+                FileObserver.MOVED_TO -> listener.onMovedTo(this)
+                FileObserver.OPEN -> listener.onOpen(this)
+            }
+        }
+    }
 
     /**
      * Converts this into a String. Returns the path of the data file.

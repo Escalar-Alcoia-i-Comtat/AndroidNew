@@ -9,7 +9,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
+import org.escalaralcoiaicomtat.android.utils.FileUtils.dirSize
 import org.escalaralcoiaicomtat.android.utils.json
 import timber.log.Timber
 import java.io.File
@@ -130,5 +135,41 @@ class FilesCrate private constructor(context: Context) {
         }
 
         return liveData
+    }
+
+    @Composable
+    fun cacheSize(): LiveData<Long> = MutableLiveData<Long>().apply {
+        DisposableEffect(cachesDir) {
+            @Suppress("Deprecation")
+            val file = LocalFile(cachesDir, cachesDir)
+
+            val observer = object : FileUpdateListener(file) {
+                override fun onAny(file: LocalFile) {
+                    postValue(cachesDir.dirSize())
+                }
+            }
+
+            val fileObserver = file.observer(observer)
+            observers.add(fileObserver)
+            fileObserver.startWatching()
+
+            Timber.d("Started listening for updates on $file")
+
+            onDispose {
+                observers.remove(fileObserver)
+                fileObserver.stopWatching()
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val size = cachesDir.dirSize()
+            postValue(size)
+        }
+    }
+
+    fun cacheClear() = CoroutineScope(Dispatchers.Main).launch {
+        withContext(Dispatchers.IO) {
+            cachesDir.deleteRecursively()
+        }
     }
 }

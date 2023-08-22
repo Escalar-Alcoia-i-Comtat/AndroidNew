@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.ui.pages
 
+import android.text.format.Formatter
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,8 +34,10 @@ import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.BuildConfig
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.ui.dialog.ApiKeyDialog
 import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
+import org.escalaralcoiaicomtat.android.utils.toast
 import java.util.Locale
 
 @Composable
@@ -42,6 +46,8 @@ fun SettingsPage(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+
+    val crate = FilesCrate.rememberInstance()
 
     Text(
         text = stringResource(R.string.settings_category_ui),
@@ -72,12 +78,43 @@ fun SettingsPage(
         modifier = Modifier.clickable { isShowingLanguageDialog = true }
     )
 
+
+    Text(
+        text = stringResource(R.string.settings_category_storage),
+        style = MaterialTheme.typography.labelLarge,
+        fontSize = 22.sp
+    )
+
+    ListItem(
+        leadingContent = {
+            Icon(Icons.Outlined.TextFields, stringResource(R.string.settings_storage_cache_title))
+        },
+        headlineContent = { Text(stringResource(R.string.settings_storage_cache_title)) },
+        supportingContent = {
+            val size by crate.cacheSize().observeAsState()
+
+            Text(
+                stringResource(
+                    R.string.settings_storage_cache_description,
+                    size?.let {
+                        Formatter.formatShortFileSize(context, it)
+                    } ?: stringResource(R.string.state_calculating)
+                )
+            )
+        },
+        modifier = Modifier.clickable {
+            crate.cacheClear().invokeOnCompletion {
+                context.toast(R.string.settings_storage_cache_cleared)
+            }
+        }
+    )
+
+
     Text(
         text = stringResource(R.string.settings_category_security),
         style = MaterialTheme.typography.labelLarge,
         fontSize = 22.sp
     )
-
 
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
     var showingApiKeyDialog by remember { mutableStateOf(false) }

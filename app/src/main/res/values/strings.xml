@@ -8,6 +8,8 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
 
+    <string name="state_calculating">Calculating…</string>
+
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
     <string name="item_settings">Setting</string>
@@ -17,11 +19,15 @@
     <string name="list_item_create">Create New</string>
 
     <string name="settings_category_ui">User Interface</string>
+    <string name="settings_category_storage">Storage</string>
     <string name="settings_category_security">Security</string>
     <string name="settings_category_advanced">Advanced</string>
 
     <string name="settings_language">Language</string>
     <string name="settings_language_default">System Default</string>
+    <string name="settings_storage_cache_title">Cached files</string>
+    <string name="settings_storage_cache_description">Files downloaded temporally. May be removed by the system automatically, but you can tap to remove them now.\nUsed space: %s</string>
+    <string name="settings_storage_cache_cleared">Cleared cache</string>
     <string name="settings_security_lock">Security lock</string>
     <string name="settings_security_lock_locked">Locked</string>
     <string name="settings_security_lock_unlocked">Unlocked</string>

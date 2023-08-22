@@ -1,6 +1,9 @@
 package org.escalaralcoiaicomtat.android.storage.files
 
 open class FileUpdateListener(val path: LocalFile) {
+    /** Any event was called */
+    open fun onAny(file: LocalFile) { }
+
     /** Data was read from a file */
     open fun onAccess(file: LocalFile) { }
 
