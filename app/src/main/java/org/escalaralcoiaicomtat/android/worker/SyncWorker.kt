@@ -39,7 +39,6 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.dao.DataDao
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
-import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
@@ -273,12 +272,12 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     /**
      * Fetches a list of [T] to get all the entries of the database for the selected type. This list
-     * is iterated, and the [DataEntity.id] of each element is searched in [idList]. If it isn't
+     * is iterated, and the [BaseEntity.id] of each element is searched in [idList]. If it isn't
      * present in the list, it's requested to be deleted with [deleteMethod].
      *
      * @return The amount of elements removed.
      */
-    private suspend fun <T : DataEntity> synchronizeDeletions(
+    private suspend fun <T : BaseEntity> synchronizeDeletions(
         idList: List<Long>,
         daoFetch: suspend () -> List<T>,
         deleteMethod: suspend (T) -> Unit
@@ -327,6 +326,10 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             .let { Timber.d("Synchronized $it deleted areas from server.") }
         synchronizeDeletions(serverZones, dao::getAllZones) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted zones from server.") }
+        synchronizeDeletions(serverSectors, dao::getAllSectors) { dao.delete(it) }
+            .let { Timber.d("Synchronized $it deleted sectors from server.") }
+        synchronizeDeletions(serverPaths, dao::getAllPaths) { dao.delete(it) }
+            .let { Timber.d("Synchronized $it deleted paths from server.") }
     }
 
     /**
