@@ -33,7 +33,7 @@ data class Area(
             json.getInstant("timestamp"),
             json.getString("display_name"),
             json.getString("web_url").let(Uri::parse),
-            json.getString("image").let { it.substring(0, it.indexOf('.')) },
+            json.getString("image"),
             json.getBooleanOrNull("is_favorite") ?: false
         )
 
