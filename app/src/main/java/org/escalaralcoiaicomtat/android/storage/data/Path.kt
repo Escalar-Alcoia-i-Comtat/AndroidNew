@@ -6,10 +6,12 @@ import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
-import org.escalaralcoiaicomtat.android.utils.getEnum
+import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
-import org.escalaralcoiaicomtat.android.utils.getSerializable
-import org.escalaralcoiaicomtat.android.utils.getSerializableArray
+import org.escalaralcoiaicomtat.android.utils.getLongOrNull
+import org.escalaralcoiaicomtat.android.utils.getSerializableArrayOrNull
+import org.escalaralcoiaicomtat.android.utils.getSerializableOrNull
+import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
@@ -62,19 +64,19 @@ data class Path(
             json.getString("display_name"),
             json.getLong("sketch_id"),
 
-            json.getLong("height"),
-            json.getString("grade").let(GradeValue::fromString),
-            json.getEnum<Ending>("ending"),
+            json.getLongOrNull("height"),
+            json.getStringOrNull("grade")?.let(GradeValue::fromString),
+            json.getEnumOrNull<Ending>("ending"),
 
-            json.getSerializableArray<PitchInfo, PitchInfo.Companion>("pitches"),
+            json.getSerializableArrayOrNull<PitchInfo, PitchInfo.Companion>("pitches"),
 
-            json.getLong("string_count"),
+            json.getLongOrNull("string_count"),
 
-            json.getLong("parabolt_count"),
-            json.getLong("buril_count"),
-            json.getLong("piton_count"),
-            json.getLong("spit_count"),
-            json.getLong("tensor_count"),
+            json.getLongOrNull("parabolt_count"),
+            json.getLongOrNull("buril_count"),
+            json.getLongOrNull("piton_count"),
+            json.getLongOrNull("spit_count"),
+            json.getLongOrNull("tensor_count"),
 
             json.getBoolean("cracker_required"),
             json.getBoolean("friend_required"),
@@ -84,10 +86,10 @@ data class Path(
             json.getBoolean("stapes_required"),
 
             json.getBoolean("show_description"),
-            json.getString("description"),
+            json.getStringOrNull("description"),
 
-            json.getSerializable<Builder, Builder.Companion>("builder"),
-            json.getSerializableArray<Builder, Builder.Companion>("re_builder"),
+            json.getSerializableOrNull<Builder, Builder.Companion>("builder"),
+            json.getSerializableArrayOrNull<Builder, Builder.Companion>("re_builder"),
 
             json.getLong("sector_id")
         )
