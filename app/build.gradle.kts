@@ -21,7 +21,7 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "SERVER", "\"https://backend.escalaralcoiaicomtat.org\"")
+        buildConfigField("String", "HOSTNAME", "\"backend.escalaralcoiaicomtat.org\"")
     }
 
     buildTypes {
