@@ -1,13 +1,18 @@
 package org.escalaralcoiaicomtat.android.activity
 
+import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
@@ -50,14 +55,30 @@ class MainActivity : AppCompatActivity() {
         SectorViewer.Contract
     ) { }
 
+    private var navController: NavHostController? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    onBack()
+                }
+            }
+        )
 
         setContentThemed {
             val windowSizeClass = calculateWindowSizeClass(this)
 
+            val navController = rememberNavController()
+
+            LaunchedEffect(navController) { this@MainActivity.navController = navController }
+
             MainScreen(
                 widthSizeClass = windowSizeClass.widthSizeClass,
+                navController = navController,
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
                 onCreateArea = { newAreaRequestLauncher.launch(null) },
@@ -79,8 +100,17 @@ class MainActivity : AppCompatActivity() {
                         SectorViewer.Input(it.id)
                     )
                 },
-                onBack = ::finish
+                onBack = ::onBack
             )
+        }
+    }
+
+    private fun onBack() {
+        if (navController?.previousBackStackEntry != null) {
+            navController?.navigateUp()
+        } else {
+            setResult(Activity.RESULT_CANCELED)
+            finish()
         }
     }
 

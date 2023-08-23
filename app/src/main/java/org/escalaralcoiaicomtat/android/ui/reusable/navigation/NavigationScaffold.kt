@@ -1,5 +1,8 @@
 package org.escalaralcoiaicomtat.android.ui.reusable.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -50,6 +53,7 @@ fun NavigationScaffold(
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
     pageContentModifier: Modifier = Modifier,
     pageContentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    pageTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> Pair<EnterTransition, ExitTransition>?)? = null,
     pageContent: @Composable ColumnScope.(NavigationItem, NavBackStackEntry) -> Unit
 ) {
     fun navigate(item: NavigationItem) {
@@ -115,6 +119,12 @@ fun NavigationScaffold(
                                 type = it.navType
                                 nullable = it.nullable
                             }
+                        },
+                        enterTransition = {
+                            pageTransition?.invoke(this)?.first
+                        },
+                        exitTransition = {
+                            pageTransition?.invoke(this)?.second
                         }
                     ) {
                         if (item is NavigationItem) {

@@ -56,7 +56,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
-import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem.ILabel
@@ -72,7 +71,7 @@ object Routes {
         const val ZoneId = "zoneId"
     }
 
-    object NavigationHome: NavigationItem(
+    object NavigationHome : NavigationItem(
         route = "home?$AreaId={$AreaId}&$ZoneId={$ZoneId}",
         root = "home",
         arguments = listOf(
@@ -97,7 +96,7 @@ object Routes {
         }
     }
 
-    object NavigationSettings: NavigationItem(
+    object NavigationSettings : NavigationItem(
         route = "settings",
         label = ILabel { stringResource(R.string.item_settings) },
         activeIcon = Icons.Filled.Settings,
@@ -120,24 +119,19 @@ fun MainScreen(
     onCreatePath: (Sector) -> Unit,
     onSectorView: (Sector) -> Unit,
     onBack: () -> Unit,
-    viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory(navController, onSectorView))
+    viewModel: MainViewModel = viewModel(
+        factory = MainViewModel.Factory(
+            navController,
+            onSectorView
+        )
+    )
 ) {
     val context = LocalContext.current
 
-    val selectionWithCurrentDestination by viewModel.selectionWithCurrentDestination.observeAsState(null to null)
+    val selectionWithCurrentDestination by viewModel.selectionWithCurrentDestination.observeAsState(
+        null to null
+    )
     val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
-
-    /**
-     * Contains all the logic to perform before calling [onBack]. Handles navigation between items.
-     */
-    fun onBackRequested() {
-        when {
-            navController.previousBackStackEntry != null -> navController.navigateUp()
-            else -> onBack()
-        }
-    }
-
-    BackInvokeHandler(onBack = ::onBackRequested)
 
     // Attach the nav controller
     viewModel.Navigation()
@@ -242,7 +236,7 @@ fun MainScreen(
                         enter = slideInHorizontally { -it },
                         exit = slideOutHorizontally { -it }
                     ) {
-                        IconButton(onClick = ::onBackRequested) {
+                        IconButton(onClick = onBack) {
                             Icon(
                                 Icons.Rounded.ChevronLeft,
                                 stringResource(R.string.action_back)
@@ -251,6 +245,50 @@ fun MainScreen(
                     }
                 }
             )
+        },
+        pageTransition = {
+            if (
+                Routes.NavigationHome.equals(initialState.destination) &&
+                Routes.NavigationHome.equals(targetState.destination)
+            ) {
+                // Navigating inside Home
+                val initialAreaId = initialState.arguments?.getString(AreaId)?.toLongOrNull()
+                val initialZoneId = initialState.arguments?.getString(ZoneId)?.toLongOrNull()
+                val targetAreaId = targetState.arguments?.getString(AreaId)?.toLongOrNull()
+                val targetZoneId = targetState.arguments?.getString(ZoneId)?.toLongOrNull()
+
+                when {
+                    (
+                        // Going from Area to Zone
+                        (initialZoneId == null && targetZoneId != null) ||
+                        // Going from root to Area
+                        (initialAreaId == null && targetAreaId != null)
+                    ) -> slideInHorizontally { it } to slideOutHorizontally { -it }
+
+                    (
+                        // Going from Zone to Area
+                        (initialZoneId != null && targetZoneId == null) ||
+                        // Going from Area to root
+                        (initialAreaId != null && targetAreaId == null)
+                    ) -> slideInHorizontally { -it } to slideOutHorizontally { it }
+
+                    else -> null
+                }
+            } else if (
+                Routes.NavigationHome.equals(initialState.destination) &&
+                Routes.NavigationSettings.equals(targetState.destination)
+            ) {
+                // Navigating from Home to Settings
+                slideInHorizontally { it } to slideOutHorizontally { -it }
+            } else if (
+                Routes.NavigationSettings.equals(initialState.destination) &&
+                Routes.NavigationHome.equals(targetState.destination)
+            ) {
+                // Navigating from Settings to Home
+                slideInHorizontally { -it } to slideOutHorizontally { it }
+            } else {
+                null
+            }
         }
     ) { page, entry ->
         when (page) {
@@ -271,6 +309,7 @@ fun MainScreen(
                     viewModel
                 )
             }
+
             Routes.NavigationSettings -> Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -279,6 +318,7 @@ fun MainScreen(
             ) {
                 SettingsPage(onApiKeySubmit)
             }
+
             else -> {}
         }
     }
