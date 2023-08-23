@@ -51,7 +51,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
-import org.escalaralcoiaicomtat.android.ui.logic.compat.BackHandlerCompat
+import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
 import org.escalaralcoiaicomtat.android.ui.reusable.layout.NavigationScaffold
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
@@ -98,7 +98,7 @@ fun MainScreen(
         }
     }
 
-    BackHandlerCompat(onBack = ::onBackRequested)
+    BackInvokeHandler(onBack = ::onBackRequested)
 
     NavigationScaffold(
         items = listOf(

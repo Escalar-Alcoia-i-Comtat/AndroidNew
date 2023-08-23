@@ -64,7 +64,7 @@ import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
-import org.escalaralcoiaicomtat.android.ui.logic.compat.BackHandlerCompat
+import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import timber.log.Timber
@@ -107,7 +107,7 @@ class SectorViewer : AppCompatActivity() {
         viewModel.loadSector(sectorId)
 
         setContentThemed {
-            BackHandlerCompat(onBack = ::onBack)
+            BackInvokeHandler(onBack = ::onBack)
 
             val sector by viewModel.sector.observeAsState()
             val paths by viewModel.paths.observeAsState()

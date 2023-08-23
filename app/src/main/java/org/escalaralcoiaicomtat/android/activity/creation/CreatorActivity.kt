@@ -68,7 +68,7 @@ import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
-import org.escalaralcoiaicomtat.android.ui.logic.compat.BackHandlerCompat
+import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
 import org.escalaralcoiaicomtat.android.utils.await
@@ -148,7 +148,7 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
         Timber.i("Launched ${this::class.simpleName} with extras: $extrasString")
 
         setContentThemed {
-            BackHandlerCompat(onBack = ::onBack)
+            BackInvokeHandler(onBack = ::onBack)
 
             Scaffold(
                 topBar = {
