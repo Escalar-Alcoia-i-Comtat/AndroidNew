@@ -12,7 +12,7 @@
 
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
-    <string name="item_settings">Setting</string>
+    <string name="item_settings">Settings</string>
 
     <string name="list_item_favorite">Favorite</string>
     <string name="list_item_download">Download</string>
