@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.ui.screen
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -32,7 +33,9 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +59,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem.ILabel
@@ -118,7 +122,6 @@ fun MainScreen(
     onCreateSector: (Zone) -> Unit,
     onCreatePath: (Sector) -> Unit,
     onSectorView: (Sector) -> Unit,
-    onBack: () -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModel.Factory(
             navController,
@@ -132,6 +135,26 @@ fun MainScreen(
         null to null
     )
     val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
+
+    var backProgress by remember { mutableStateOf<Float?>(null) }
+
+    fun onBack() {
+        backProgress = null
+
+        if (navController.previousBackStackEntry != null) {
+            navController.navigateUp()
+        } else (context as? Activity)?.apply {
+            setResult(Activity.RESULT_CANCELED)
+            finish()
+        }
+    }
+
+    BackInvokeHandler(
+        onBackStarted = { backProgress = it.progress },
+        onBackProgressed = { backProgress = it.progress },
+        onBackCancelled = { backProgress = null },
+        onBack = ::onBack
+    )
 
     // Attach the nav controller
     viewModel.Navigation()
@@ -236,7 +259,7 @@ fun MainScreen(
                         enter = slideInHorizontally { -it },
                         exit = slideOutHorizontally { -it }
                     ) {
-                        IconButton(onClick = onBack) {
+                        IconButton(onClick = ::onBack) {
                             Icon(
                                 Icons.Rounded.ChevronLeft,
                                 stringResource(R.string.action_back)
@@ -301,6 +324,7 @@ fun MainScreen(
                 NavigationScreen(
                     navController,
                     widthSizeClass,
+                    backProgress,
                     onFavoriteToggle,
                     onCreateArea,
                     onCreateZone,
@@ -336,8 +360,7 @@ fun MainScreen_Preview() {
             onCreateZone = {},
             onCreateSector = {},
             onCreatePath = {},
-            onSectorView = {},
-            onBack = {}
+            onSectorView = {}
         )
     }
 }

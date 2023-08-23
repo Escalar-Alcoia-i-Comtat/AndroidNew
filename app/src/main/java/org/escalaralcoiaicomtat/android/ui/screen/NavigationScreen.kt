@@ -33,6 +33,7 @@ import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.sorted
+import org.escalaralcoiaicomtat.android.ui.modifier.backAnimation
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
@@ -40,6 +41,7 @@ import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 fun NavigationScreen(
     navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
+    backProgress: Float?,
     onFavoriteToggle: (DataEntity) -> Job,
     onCreateArea: () -> Unit,
     onCreateZone: (Area) -> Unit,
@@ -160,7 +162,8 @@ fun NavigationScreen(
                     imageHeight = 270.dp,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .backAnimation(backProgress),
                     onFavoriteToggle,
                     onCreate = { onCreateZone(data) },
                     onClick = { viewModel.navigate(it) },
@@ -177,7 +180,8 @@ fun NavigationScreen(
                     imageHeight = 200.dp,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .backAnimation(backProgress),
                     onFavoriteToggle,
                     onCreate = { onCreateSector(data) },
                     onClick = { viewModel.navigate(it) },
