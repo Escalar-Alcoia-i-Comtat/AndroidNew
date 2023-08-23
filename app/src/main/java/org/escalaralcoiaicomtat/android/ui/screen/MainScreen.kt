@@ -26,6 +26,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -137,6 +139,17 @@ fun MainScreen(
 
     // Attach the nav controller
     viewModel.Navigation(navController)
+
+    // Progress bar shows over everything
+    val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
+
+    AnimatedVisibility(visible = isRunningSync) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(999f)
+        )
+    }
 
     NavigationScaffold(
         items = listOf(

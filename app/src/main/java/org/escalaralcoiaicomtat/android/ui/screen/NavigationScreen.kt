@@ -1,13 +1,7 @@
 package org.escalaralcoiaicomtat.android.ui.screen
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -15,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.PermanentNavigationDrawer
@@ -29,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
@@ -65,9 +57,7 @@ fun NavigationScreen(
     val zones by dao.getAllZonesLive().observeAsState(initial = emptyList())
     val sectors by dao.getAllSectorsLive().observeAsState(initial = emptyList())
 
-    val currentSelection by viewModel.selection.observeAsState()
-
-    val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
+    val selection by viewModel.selection.observeAsState()
 
     PermanentNavigationDrawer(
         drawerContent = {
@@ -77,7 +67,7 @@ fun NavigationScreen(
 
             PermanentDrawerSheet(
                 modifier = Modifier
-                    .width(if (currentSelection != null) 380.dp else 0.dp)
+                    .width(if (selection != null) 380.dp else 0.dp)
                     .padding(top = 12.dp, end = 16.dp)
                     .verticalScroll(rememberScrollState())
                     .animateContentSize()
@@ -110,31 +100,31 @@ fun NavigationScreen(
                     SideNavigationItem(
                         label = area.displayName,
                         depth = 0,
-                        selected = area == currentSelection,
+                        selected = area == selection,
                         showCreate = apiKey != null,
                         onClick = { viewModel.navigate(area) },
                         onCreate = { onCreateZone(area) }
                     )
-                    zones.takeIf { currentSelection == area }
+                    zones.takeIf { selection == area }
                         ?.sorted()
                         ?.filter { it.areaId == area.id }
                         ?.forEach { zone ->
                             SideNavigationItem(
                                 label = zone.displayName,
                                 depth = 1,
-                                selected = zone == currentSelection,
+                                selected = zone == selection,
                                 showCreate = apiKey != null,
                                 onClick = { viewModel.navigate(zone) },
                                 onCreate = { onCreateSector(zone) }
                             )
-                            sectors.takeIf { currentSelection == zone }
+                            sectors.takeIf { selection == zone }
                                 ?.sorted()
                                 ?.filter { it.zoneId == zone.id }
                                 ?.forEach { sector ->
                                     SideNavigationItem(
                                         label = sector.displayName,
                                         depth = 2,
-                                        selected = sector == currentSelection,
+                                        selected = sector == selection,
                                         showCreate = apiKey != null,
                                         onClick = { viewModel.navigate(sector) },
                                         onCreate = { onCreatePath(sector) }
@@ -145,24 +135,9 @@ fun NavigationScreen(
             }
         }
     ) {
-        AnimatedVisibility(visible = isRunningSync) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(999f)
-            )
-        }
-
-        // Areas List
-        AnimatedContent(
-            targetState = currentSelection,
-            label = "animate-areas-navigation",
-            transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } togetherWith
-                    slideOutHorizontally { if (targetState == null) it else -it }
-            }
-        ) { selection ->
-            if (selection == null) {
+        when (val data = selection) {
+            // Areas List
+            null ->
                 DataList(
                     areas,
                     gridCellSize = 400.dp,
@@ -175,19 +150,9 @@ fun NavigationScreen(
                     onClick = { viewModel.navigate(it) },
                     onMove = null // Areas cannot be reordered
                 )
-            }
-        }
-        // Zones List
-        AnimatedContent(
-            targetState = currentSelection,
-            label = "animate-area-navigation",
-            transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } togetherWith
-                    slideOutHorizontally { if (targetState == null) it else -it }
-            }
-        ) { selection ->
-            if (selection is Area) {
-                val areaWithZones by dao.getZonesFromAreaLive(selection.id).observeAsState()
+            // Zones List
+            is Area -> {
+                val areaWithZones by dao.getZonesFromAreaLive(data.id).observeAsState()
 
                 DataList(
                     list = areaWithZones?.zones,
@@ -197,23 +162,14 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp),
                     onFavoriteToggle,
-                    onCreate = { onCreateZone(selection) },
+                    onCreate = { onCreateZone(data) },
                     onClick = { viewModel.navigate(it) },
                     onMove = null // Zones cannot be reordered
                 )
             }
-        }
-        // Sectors List
-        AnimatedContent(
-            targetState = currentSelection,
-            label = "animate-zone-navigation",
-            transitionSpec = {
-                slideInHorizontally { if (targetState == null) -it else it } togetherWith
-                    slideOutHorizontally { if (targetState == null) it else -it }
-            }
-        ) { selection ->
-            if (selection is Zone) {
-                val sectorsFromZone by dao.getSectorsFromZoneLive(selection.id).observeAsState()
+            // Sectors List
+            is Zone -> {
+                val sectorsFromZone by dao.getSectorsFromZoneLive(data.id).observeAsState()
 
                 DataList(
                     list = sectorsFromZone?.sectors,
@@ -223,7 +179,7 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp),
                     onFavoriteToggle,
-                    onCreate = { onCreateSector(selection) },
+                    onCreate = { onCreateSector(data) },
                     onClick = { viewModel.navigate(it) },
                     onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
