@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.ui.reusable.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 
 /**
@@ -28,6 +29,7 @@ open class NavigationItem(
     override fun equals(other: Any?): Boolean {
         if (other is NavDestination) return other.route == route
         if (other is NavigationRoute) return other.route == route
+        if (other is NavBackStackEntry) return other.destination.route == route
         if (javaClass != other?.javaClass) return false
 
         return false

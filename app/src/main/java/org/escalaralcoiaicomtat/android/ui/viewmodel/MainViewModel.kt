@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
@@ -12,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,6 +30,7 @@ import java.time.Instant
 
 class MainViewModel(
     application: Application,
+    private val navController: NavHostController,
     private val onSectorView: (Sector) -> Unit
 ) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
@@ -36,11 +39,19 @@ class MainViewModel(
     private val syncWorkers = SyncWorker.getLive(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
 
-    @Volatile
-    private var navController: NavHostController? = null
-
     private val _selection = MutableLiveData<DataEntity?>()
     val selection: LiveData<DataEntity?> get() = _selection
+
+    private val _currentDestination = MutableLiveData<NavDestination>()
+
+    val selectionWithCurrentDestination = MediatorLiveData<Pair<DataEntity?, NavDestination?>>().apply {
+        addSource(_selection) {
+            value = it to _currentDestination.value
+        }
+        addSource(_currentDestination) {
+            value = _selection.value to it
+        }
+    }
 
     fun load(areaId: Long?, zoneId: Long?) = viewModelScope.launch(Dispatchers.IO) {
         if (zoneId != null) {
@@ -55,16 +66,11 @@ class MainViewModel(
     }
 
     @Composable
-    fun Navigation(navController: NavHostController) {
+    fun Navigation() {
         DisposableEffect(navController) {
-            val listener = NavController.OnDestinationChangedListener { controller, _, _ ->
-                val backStack = controller.currentBackStack.value
-                backStack.forEach { entry ->
-                    Timber.i("Route: ${entry.destination.route}")
-                }
+            val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+                _currentDestination.postValue(destination)
             }
-
-            this@MainViewModel.navController = navController
 
             navController.addOnDestinationChangedListener(listener)
 
@@ -123,11 +129,12 @@ class MainViewModel(
 
     companion object {
         fun Factory(
+            navController: NavHostController,
             onSectorView: (Sector) -> Unit
         ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                MainViewModel(application, onSectorView)
+                MainViewModel(application, navController, onSectorView)
             }
         }
     }

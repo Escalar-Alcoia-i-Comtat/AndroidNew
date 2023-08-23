@@ -44,6 +44,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
@@ -109,6 +110,7 @@ object Routes {
 )
 @Composable
 fun MainScreen(
+    navController: NavHostController = rememberNavController(),
     widthSizeClass: WindowWidthSizeClass,
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
@@ -118,13 +120,12 @@ fun MainScreen(
     onCreatePath: (Sector) -> Unit,
     onSectorView: (Sector) -> Unit,
     onBack: () -> Unit,
-    viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory(onSectorView))
+    viewModel: MainViewModel = viewModel(factory = MainViewModel.Factory(navController, onSectorView))
 ) {
     val context = LocalContext.current
 
-    val navController = rememberNavController()
-
-    val currentSelection by viewModel.selection.observeAsState()
+    val selectionWithCurrentDestination by viewModel.selectionWithCurrentDestination.observeAsState(null to null)
+    val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
 
     /**
      * Contains all the logic to perform before calling [onBack]. Handles navigation between items.
@@ -139,7 +140,7 @@ fun MainScreen(
     BackInvokeHandler(onBack = ::onBackRequested)
 
     // Attach the nav controller
-    viewModel.Navigation(navController)
+    viewModel.Navigation()
 
     // Progress bar shows over everything
     val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
@@ -180,62 +181,73 @@ fun MainScreen(
             // Do not show on tablets
             if (widthSizeClass == WindowWidthSizeClass.Expanded) return@NavigationScaffold
 
-            AnimatedVisibility(
-                // Only show in home view
-                visible = Routes.NavigationHome.equals(navController.currentDestination),
-                enter = slideInVertically { -it },
-                exit = slideOutVertically { -it }
-            ) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        AnimatedContent(
-                            targetState = currentSelection,
-                            label = "animate-title-change",
-                            transitionSpec = {
-                                if (
-                                // Going back from area
-                                    (targetState == null && initialState is Area) ||
-                                    // Going back from zone to area
-                                    (targetState is Area && initialState is Zone) ||
-                                    // Going back from sector to zone
-                                    (targetState is Zone && initialState is Sector)
-                                ) {
-                                    slideInVertically { it } + fadeIn() togetherWith
-                                        slideOutVertically { -it } + fadeOut()
-                                } else {
-                                    // Going forward
-                                    slideInVertically { -it } + fadeIn() togetherWith
-                                        slideOutVertically { it } + fadeOut()
-                                }.using(
-                                    // Disable clipping since the faded slide-in/out should
-                                    // be displayed out of bounds.
-                                    SizeTransform(clip = false)
-                                )
-                            }
-                        ) { selection ->
-                            Text(
-                                text = selection?.displayName ?: stringResource(R.string.app_name),
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+            CenterAlignedTopAppBar(
+                title = {
+                    AnimatedContent(
+                        targetState = selectionWithCurrentDestination,
+                        label = "animate-title-change",
+                        transitionSpec = {
+                            val initialData = initialState.first
+                            val targetData = targetState.first
+
+                            val initialDestination = initialState.second
+                            val targetDestination = targetState.second
+
+                            if (Routes.NavigationHome.equals(targetDestination)) {
+                                // Going to Home
+                                slideInHorizontally { -it } + fadeIn() togetherWith
+                                    slideOutHorizontally { it } + fadeOut()
+                            } else if (Routes.NavigationHome.equals(initialDestination)) {
+                                // Going to Home
+                                slideInHorizontally { it } + fadeIn() togetherWith
+                                    slideOutHorizontally { -it } + fadeOut()
+                            } else if (
+                            // Going back from area
+                                (targetData == null && initialData is Area) ||
+                                // Going back from zone to area
+                                (targetData is Area && initialData is Zone) ||
+                                // Going back from sector to zone
+                                (targetData is Zone && initialData is Sector)
+                            ) {
+                                slideInVertically { it } + fadeIn() togetherWith
+                                    slideOutVertically { -it } + fadeOut()
+                            } else {
+                                // Going forward
+                                slideInVertically { -it } + fadeIn() togetherWith
+                                    slideOutVertically { it } + fadeOut()
+                            }.using(
+                                // Disable clipping since the faded slide-in/out should
+                                // be displayed out of bounds.
+                                SizeTransform(clip = false)
                             )
                         }
-                    },
-                    navigationIcon = {
-                        AnimatedVisibility(
-                            visible = currentSelection != null,
-                            enter = slideInHorizontally { -it },
-                            exit = slideOutHorizontally { -it }
-                        ) {
-                            IconButton(onClick = ::onBackRequested) {
-                                Icon(
-                                    Icons.Rounded.ChevronLeft,
-                                    stringResource(R.string.action_back)
-                                )
-                            }
+                    ) { (selection, entry) ->
+                        Text(
+                            text = when {
+                                Routes.NavigationSettings.equals(entry) -> stringResource(R.string.item_settings)
+                                selection != null -> selection.displayName
+                                else -> stringResource(R.string.app_name)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
+                navigationIcon = {
+                    AnimatedVisibility(
+                        visible = Routes.NavigationHome.equals(currentBackStackEntry) && currentSelection != null,
+                        enter = slideInHorizontally { -it },
+                        exit = slideOutHorizontally { -it }
+                    ) {
+                        IconButton(onClick = ::onBackRequested) {
+                            Icon(
+                                Icons.Rounded.ChevronLeft,
+                                stringResource(R.string.action_back)
+                            )
                         }
                     }
-                )
-            }
+                }
+            )
         }
     ) { page, entry ->
         when (page) {
@@ -274,7 +286,7 @@ fun MainScreen(
 fun MainScreen_Preview() {
     AppTheme {
         MainScreen(
-            WindowWidthSizeClass.Compact,
+            widthSizeClass = WindowWidthSizeClass.Compact,
             onApiKeySubmit = { CoroutineScope(Dispatchers.IO).launch { } },
             onFavoriteToggle = { CoroutineScope(Dispatchers.IO).launch { } },
             onCreateArea = {},
