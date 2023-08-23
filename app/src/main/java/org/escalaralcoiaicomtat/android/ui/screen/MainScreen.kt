@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -37,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -147,11 +149,31 @@ fun MainScreen(
                             targetState = currentSelection,
                             label = "animate-title-change",
                             transitionSpec = {
-                                fadeIn() togetherWith fadeOut()
+                                if (
+                                    // Going back from area
+                                    (targetState == null && initialState is Area) ||
+                                    // Going back from zone to area
+                                    (targetState is Area && initialState is Zone) ||
+                                    // Going back from sector to zone
+                                    (targetState is Zone && initialState is Sector)
+                                ) {
+                                    slideInVertically { it } + fadeIn() togetherWith
+                                        slideOutVertically { -it } + fadeOut()
+                                } else {
+                                    // Going forward
+                                    slideInVertically { -it } + fadeIn() togetherWith
+                                        slideOutVertically { it } + fadeOut()
+                                }.using(
+                                    // Disable clipping since the faded slide-in/out should
+                                    // be displayed out of bounds.
+                                    SizeTransform(clip = false)
+                                )
                             }
                         ) { selection ->
                             Text(
-                                text = selection?.displayName ?: stringResource(R.string.app_name)
+                                text = selection?.displayName ?: stringResource(R.string.app_name),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
                             )
                         }
                     },
