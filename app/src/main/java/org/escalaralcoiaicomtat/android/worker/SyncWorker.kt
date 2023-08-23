@@ -150,6 +150,8 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         return try {
             getTree()
 
+            Preferences.markAsSynchronized(applicationContext)
+
             Result.success()
         } catch (e: JSONException) {
             Timber.e(e, "Got an invalid response from server.")
