@@ -10,8 +10,10 @@ import androidx.navigation.NavType
  */
 open class NavigationRoute(
     val route: String,
-    val arguments: List<Argument<*>> = emptyList()
+    val arguments: List<Argument<*>> = emptyList(),
+    val root: String = route
 ) {
+
     data class Argument<T>(
         val name: String,
         val navType: NavType<T>,

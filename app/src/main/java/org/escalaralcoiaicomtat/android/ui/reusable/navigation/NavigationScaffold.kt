@@ -14,16 +14,18 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import timber.log.Timber
 
 /**
  * Creates an Scaffold with support with navigation.
@@ -51,13 +53,8 @@ fun NavigationScaffold(
     pageContent: @Composable ColumnScope.(NavigationItem, NavBackStackEntry) -> Unit
 ) {
     fun navigate(item: NavigationItem) {
-        navController.navigate(item.route) {
-            // Pop up to the start destination of the graph to
-            // avoid building up a large stack of destinations
-            // on the back stack as users select items
-            popUpTo(navController.graph.findStartDestination().id) {
-                saveState = true
-            }
+        Timber.i("Navigating to ${item.root}")
+        navController.navigate(item.root) {
             // Avoid multiple copies of the same destination when
             // re-selecting the same item
             launchSingleTop = true
@@ -65,6 +62,8 @@ fun NavigationScaffold(
             restoreState = true
         }
     }
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
 
     Scaffold(
         modifier = modifier,
@@ -78,7 +77,7 @@ fun NavigationScaffold(
         bottomBar = {
             if (widthSizeClass == WindowWidthSizeClass.Compact) {
                 NavigationBar(
-                    navController.currentDestination?.route,
+                    backStackEntry?.destination?.route,
                     items.filterIsInstance<NavigationItem>(),
                     alwaysShowLabel,
                     ::navigate
@@ -93,7 +92,7 @@ fun NavigationScaffold(
         ) {
             if (widthSizeClass != WindowWidthSizeClass.Compact) {
                 NavigationRail(
-                    currentRoute = navController.currentDestination?.route,
+                    currentRoute = backStackEntry?.destination?.route,
                     items = items.filterIsInstance<NavigationItem>(),
                     alwaysShowLabel = alwaysShowLabel,
                     header = header,

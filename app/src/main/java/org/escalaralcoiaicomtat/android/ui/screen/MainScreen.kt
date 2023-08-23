@@ -73,6 +73,7 @@ object Routes {
 
     object NavigationHome: NavigationItem(
         route = "home?$AreaId={$AreaId}&$ZoneId={$ZoneId}",
+        root = "home",
         arguments = listOf(
             // Use String instead of Int for id since Int is not nullable in Java
             Argument(AreaId, NavType.StringType, true),

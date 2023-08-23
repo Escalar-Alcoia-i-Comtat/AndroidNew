@@ -14,11 +14,12 @@ import androidx.navigation.NavDestination
  */
 open class NavigationItem(
     route: String,
+    root: String = route,
     arguments: List<Argument<*>> = emptyList(),
     val label: ILabel,
     val activeIcon: ImageVector,
     val defaultIcon: ImageVector
-): NavigationRoute(route, arguments) {
+): NavigationRoute(route, arguments, root) {
     fun interface ILabel {
         @Composable
         operator fun invoke(): String
