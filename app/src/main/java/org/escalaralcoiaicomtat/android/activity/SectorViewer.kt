@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -186,7 +187,7 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
-        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) {
+        if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -202,23 +203,41 @@ class SectorViewer : AppCompatActivity() {
         imageFile?.let { file ->
             val zoomState = rememberZoomState()
 
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .clipToBounds()
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .file(file)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = sector.displayName,
+                Box(
                     modifier = Modifier
-                        .zoomable(zoomState, enableOneFingerZoom = false)
-                        .fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .clipToBounds()
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .file(file)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = sector.displayName,
+                        modifier = Modifier
+                            .zoomable(zoomState, enableOneFingerZoom = false)
+                            .fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxHeight(.35f)
+                    ) {
+                        itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
+                            PathItem(path)
+
+                            if (index < paths.lastIndex) Divider()
+                        }
+                    }
+                }
             }
         } ?: Box(
             contentAlignment = Alignment.Center,
