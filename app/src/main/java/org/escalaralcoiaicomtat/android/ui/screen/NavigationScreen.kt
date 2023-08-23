@@ -2,7 +2,7 @@ package org.escalaralcoiaicomtat.android.ui.screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -30,6 +30,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
@@ -44,6 +46,7 @@ import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
 @Composable
 fun NavigationScreen(
+    navController: NavHostController,
     widthSizeClass: WindowWidthSizeClass,
     onFavoriteToggle: (DataEntity) -> Job,
     onCreateArea: () -> Unit,
@@ -62,9 +65,7 @@ fun NavigationScreen(
     val zones by dao.getAllZonesLive().observeAsState(initial = emptyList())
     val sectors by dao.getAllSectorsLive().observeAsState(initial = emptyList())
 
-    val currentArea by viewModel.currentArea.observeAsState()
-    val currentZone by viewModel.currentZone.observeAsState()
-    val currentSelection by viewModel.currentSelection.observeAsState()
+    val currentSelection by viewModel.selection.observeAsState()
 
     val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
 
@@ -74,23 +75,33 @@ fun NavigationScreen(
             if (widthSizeClass != WindowWidthSizeClass.Expanded)
                 return@PermanentNavigationDrawer
 
-            val visible = currentSelection != null
-
-            val width by animateDpAsState(
-                targetValue = if (visible) 380.dp else 0.dp,
-                label = "drawer width animation"
-            )
-
             PermanentDrawerSheet(
                 modifier = Modifier
-                    .width(width)
+                    .width(if (currentSelection != null) 380.dp else 0.dp)
                     .padding(top = 12.dp, end = 16.dp)
                     .verticalScroll(rememberScrollState())
+                    .animateContentSize()
             ) {
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.item_home)) },
                     selected = false,
-                    onClick = { viewModel.clear() },
+                    onClick = {
+                        navController.navigate(
+                            Routes.NavigationHome.createRoute()
+                        ) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // re-selecting the same item
+                            launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
+                            restoreState = true
+                        }
+                    },
                     modifier = Modifier.padding(bottom = 12.dp),
                     icon = { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.action_back)) }
                 )
@@ -101,10 +112,10 @@ fun NavigationScreen(
                         depth = 0,
                         selected = area == currentSelection,
                         showCreate = apiKey != null,
-                        onClick = { viewModel.navigateTo(area) },
-                        onCreate =  { onCreateZone(area) }
+                        onClick = { viewModel.navigate(area) },
+                        onCreate = { onCreateZone(area) }
                     )
-                    zones.takeIf { currentArea == area }
+                    zones.takeIf { /* todo - currentArea == area */ true }
                         ?.sorted()
                         ?.filter { it.areaId == area.id }
                         ?.forEach { zone ->
@@ -113,10 +124,10 @@ fun NavigationScreen(
                                 depth = 1,
                                 selected = zone == currentSelection,
                                 showCreate = apiKey != null,
-                                onClick = { viewModel.navigateTo(zone) },
+                                onClick = { viewModel.navigate(zone) },
                                 onCreate = { onCreateSector(zone) }
                             )
-                            sectors.takeIf { currentZone == zone }
+                            sectors.takeIf { /* todo - currentZone == zone */ true }
                                 ?.sorted()
                                 ?.filter { it.zoneId == zone.id }
                                 ?.forEach { sector ->
@@ -125,7 +136,7 @@ fun NavigationScreen(
                                         depth = 2,
                                         selected = sector == currentSelection,
                                         showCreate = apiKey != null,
-                                        onClick = { viewModel.navigateTo(sector) },
+                                        onClick = { viewModel.navigate(sector) },
                                         onCreate = { onCreatePath(sector) }
                                     )
                                 }
@@ -161,7 +172,7 @@ fun NavigationScreen(
                         .padding(top = 12.dp),
                     onFavoriteToggle,
                     onCreateArea,
-                    onClick = { viewModel.navigateTo(it) },
+                    onClick = { viewModel.navigate(it) },
                     onMove = null // Areas cannot be reordered
                 )
             }
@@ -187,7 +198,7 @@ fun NavigationScreen(
                         .padding(top = 12.dp),
                     onFavoriteToggle,
                     onCreate = { onCreateZone(selection) },
-                    onClick = { viewModel.navigateTo(it) },
+                    onClick = { viewModel.navigate(it) },
                     onMove = null // Zones cannot be reordered
                 )
             }
@@ -213,7 +224,7 @@ fun NavigationScreen(
                         .padding(top = 12.dp),
                     onFavoriteToggle,
                     onCreate = { onCreateSector(selection) },
-                    onClick = { viewModel.navigateTo(it) },
+                    onClick = { viewModel.navigate(it) },
                     onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
             }

@@ -13,13 +13,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationRail(
-    currentPage: Int,
+    currentRoute: String?,
     items: List<NavigationItem?>,
     modifier: Modifier = Modifier,
     alwaysShowLabel: Boolean = false,
     header: @Composable (ColumnScope.() -> Unit)? = null,
     windowInsets: WindowInsets = NavigationRailDefaults.windowInsets,
-    onItemSelected: suspend (index: Int) -> Unit
+    onItemSelected: suspend (NavigationItem) -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -28,13 +28,13 @@ fun NavigationRail(
         header = header,
         windowInsets = windowInsets
     ) {
-        items.filterNotNull().forEachIndexed { index, item ->
+        items.filterNotNull().forEach { item ->
             NavigationRailItem(
-                selected = index == currentPage,
-                onClick = { scope.launch { onItemSelected(index) } },
+                selected = item.route == currentRoute,
+                onClick = { scope.launch { onItemSelected(item) } },
                 icon = {
                     Icon(
-                        imageVector = if (index == currentPage) item.activeIcon else item.defaultIcon,
+                        imageVector = if (item.route == currentRoute) item.activeIcon else item.defaultIcon,
                         contentDescription = item.label()
                     )
                 },

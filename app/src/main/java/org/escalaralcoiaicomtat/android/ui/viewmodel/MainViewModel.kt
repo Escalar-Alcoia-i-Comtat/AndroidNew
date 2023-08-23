@@ -1,15 +1,18 @@
 package org.escalaralcoiaicomtat.android.ui.viewmodel
 
 import android.app.Application
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
@@ -17,6 +20,8 @@ import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.ui.screen.Routes
+import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
 import java.time.Instant
@@ -31,57 +36,63 @@ class MainViewModel(
     private val syncWorkers = SyncWorker.getLive(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
 
-    private val _currentArea = MutableLiveData<Area?>()
-    val currentArea: LiveData<Area?> get() = _currentArea
+    @Volatile
+    private var navController: NavHostController? = null
 
-    private val _currentZone = MutableLiveData<Zone?>()
-    val currentZone: LiveData<Zone?> get() = _currentZone
+    private val _selection = MutableLiveData<DataEntity?>()
+    val selection: LiveData<DataEntity?> get() = _selection
 
-    val currentSelection = MediatorLiveData<DataEntity?>().apply {
-        addSource(currentArea) {
-            if (value is Area && it == null)
-                value = null
-            else if (it != null)
-                value = it
-        }
-        addSource(currentZone) {
-            if (value is Zone && it == null)
-                value = currentArea.value
-            else if (it != null)
-                value = it
+    fun load(areaId: Long?, zoneId: Long?) = viewModelScope.launch(Dispatchers.IO) {
+        if (zoneId != null) {
+            Timber.d("Loading zone $zoneId...")
+            _selection.postValue(dao.getZone(zoneId))
+        } else if (areaId != null) {
+            Timber.d("Loading area $areaId...")
+            _selection.postValue(dao.getArea(areaId))
+        } else {
+            _selection.postValue(null)
         }
     }
 
-    /**
-     * Sets all currents to null.
-     */
-    fun clear() {
-        _currentZone.postValue(null)
-        _currentArea.postValue(null)
-    }
-
-    fun <E: DataEntity> navigateTo(entity: E?) = viewModelScope.launch(Dispatchers.IO) {
-        if (entity == null) return@launch clear()
-        when (entity) {
-            is Area -> {
-                _currentZone.postValue(null)
-                _currentArea.postValue(entity)
-            }
-
-            is Zone -> {
-                _currentZone.postValue(entity)
-                if (_currentArea.value?.id != entity.areaId) {
-                    // If the change modifies areas, search for the correct one, and replace currentArea
-                    val area = dao.getArea(entity.areaId)
-                    _currentArea.postValue(area)
+    @Composable
+    fun Navigation(navController: NavHostController) {
+        DisposableEffect(navController) {
+            val listener = NavController.OnDestinationChangedListener { controller, _, _ ->
+                val backStack = controller.currentBackStack.value
+                backStack.forEach { entry ->
+                    Timber.i("Route: ${entry.destination.route}")
                 }
             }
 
-            is Sector -> onSectorView(entity)
+            this@MainViewModel.navController = navController
 
-            else -> {
-                throw IllegalArgumentException("Cannot navigate to unknown type ${entity::class.simpleName}")
+            navController.addOnDestinationChangedListener(listener)
+
+            onDispose {
+                navController.removeOnDestinationChangedListener(listener)
             }
+        }
+    }
+
+    fun navigate(target: DataEntity?) {
+        val navController = navController ?: return
+        val currentEntry = navController.currentBackStackEntry
+        val currentEntryArgs = currentEntry?.arguments
+
+        when (target) {
+            is Area -> navController.navigate(
+                Routes.NavigationHome.createRoute(areaId = target.id)
+            )
+            is Zone -> navController.navigate(
+                Routes.NavigationHome.createRoute(
+                    areaId = currentEntryArgs?.getString(AreaId)?.toLongOrNull(),
+                    zoneId = target.id
+                )
+            )
+            is Sector -> onSectorView(target)
+            else -> navController.navigate(
+                Routes.NavigationHome.createRoute()
+            )
         }
     }
 
@@ -89,11 +100,11 @@ class MainViewModel(
      * Moves the sector at index [from] to index [to].
      */
     fun moveSector(from: Int, to: Int) = viewModelScope.launch(Dispatchers.IO) {
+        val zone = selection.value ?: return@launch Timber.w("Tried to move sector while not in zone")
+
         Timber.d("Moving sector from $from to $to")
-        // Only move if currentZone is not null
-        val currentZone = currentZone.value ?: return@launch
         // Get a list of all the sectors in the zone
-        val sectors = dao.getSectorsFromZone(currentZone.id)?.sectors ?: return@launch
+        val sectors = dao.getSectorsFromZone(zone.id)?.sectors ?: return@launch
         // Sort the sectors by current weight, and make sure the list is mutable
         val sortedSectors = sectors.sortedBy { it.weight }.toMutableList()
         // Move the desired item

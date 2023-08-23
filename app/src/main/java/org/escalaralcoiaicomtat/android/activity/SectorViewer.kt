@@ -5,12 +5,12 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -64,12 +64,12 @@ import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
-import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import timber.log.Timber
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+@OptIn(
+    ExperimentalMaterial3Api::class,
     ExperimentalMaterial3WindowSizeClassApi::class
 )
 class SectorViewer : AppCompatActivity() {
@@ -106,9 +106,12 @@ class SectorViewer : AppCompatActivity() {
 
         viewModel.loadSector(sectorId)
 
-        setContentThemed {
-            BackInvokeHandler(onBack = ::onBack)
+        onBackPressedDispatcher.addCallback(this) {
+            setResult(Activity.RESULT_CANCELED)
+            finish()
+        }
 
+        setContentThemed {
             val sector by viewModel.sector.observeAsState()
             val paths by viewModel.paths.observeAsState()
 
@@ -119,7 +122,10 @@ class SectorViewer : AppCompatActivity() {
                             title = { Text(sector?.displayName ?: "") },
                             navigationIcon = {
                                 IconButton(
-                                    onClick = ::onBack
+                                    onClick = {
+                                        setResult(Activity.RESULT_CANCELED)
+                                        finish()
+                                    }
                                 ) {
                                     Icon(
                                         Icons.Rounded.ChevronLeft,
@@ -227,11 +233,6 @@ class SectorViewer : AppCompatActivity() {
         ) {
             CircularProgressIndicator(progress)
         }
-    }
-
-    private fun onBack() {
-        setResult(Activity.RESULT_CANCELED)
-        finish()
     }
 
     class Model(application: Application) : AndroidViewModel(application) {

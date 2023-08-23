@@ -9,21 +9,21 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationBar(
-    currentPage: Int,
+    currentRoute: String?,
     items: List<NavigationItem?>,
     alwaysShowLabel: Boolean,
-    onItemSelected: suspend (index: Int) -> Unit
+    onItemSelected: suspend (NavigationItem) -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
     androidx.compose.material3.NavigationBar {
-        items.filterNotNull().forEachIndexed { index, item ->
+        items.filterNotNull().forEach { item ->
             NavigationBarItem(
-                selected = index == currentPage,
-                onClick = { scope.launch { onItemSelected(index) } },
+                selected = item.route == currentRoute,
+                onClick = { scope.launch { onItemSelected(item) } },
                 icon = {
                     Icon(
-                        imageVector = if (index == currentPage) item.activeIcon else item.defaultIcon,
+                        imageVector = if (item.route == currentRoute) item.activeIcon else item.defaultIcon,
                         contentDescription = item.label()
                     )
                 },

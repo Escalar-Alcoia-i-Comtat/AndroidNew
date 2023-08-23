@@ -10,14 +10,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -44,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,16 +55,54 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
-import org.escalaralcoiaicomtat.android.ui.reusable.layout.NavigationScaffold
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
+import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem.ILabel
+import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationScaffold
+import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
+import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.ZoneId
 import org.escalaralcoiaicomtat.android.ui.theme.AppTheme
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
-private const val PAGES_COUNT = 2
+object Routes {
+    object Arguments {
+        const val AreaId = "areaId"
+        const val ZoneId = "zoneId"
+    }
+
+    object NavigationHome: NavigationItem(
+        route = "home?$AreaId={$AreaId}&$ZoneId={$ZoneId}",
+        arguments = listOf(
+            // Use String instead of Int for id since Int is not nullable in Java
+            Argument(AreaId, NavType.StringType, true),
+            Argument(ZoneId, NavType.StringType, true)
+        ),
+        label = ILabel { stringResource(R.string.item_home) },
+        activeIcon = Icons.Filled.Home,
+        defaultIcon = Icons.Outlined.Home
+    ) {
+        /**
+         * Creates the route for navigating to the given ids.
+         */
+        fun createRoute(areaId: Long? = null, zoneId: Long? = null): String {
+            val params = mutableMapOf<String, Long?>()
+            areaId?.let { params[AreaId] = it }
+            zoneId?.let { params[ZoneId] = it }
+            return "home" + (params
+                .takeIf { it.isNotEmpty() }
+                ?.let { "?" + it.toList().joinToString("&") { (k, v) -> "$k=$v" } } ?: "")
+        }
+    }
+
+    object NavigationSettings: NavigationItem(
+        route = "settings",
+        label = ILabel { stringResource(R.string.item_settings) },
+        activeIcon = Icons.Filled.Settings,
+        defaultIcon = Icons.Outlined.Settings
+    )
+}
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun MainScreen(
@@ -81,41 +119,32 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
-    val pagerState = rememberPagerState(
-        initialPage = 0
-    ) { PAGES_COUNT }
+    val navController = rememberNavController()
 
-    val currentArea by viewModel.currentArea.observeAsState()
-    val currentZone by viewModel.currentZone.observeAsState()
-    val currentSelection by viewModel.currentSelection.observeAsState()
+    val currentSelection by viewModel.selection.observeAsState()
 
     /**
      * Contains all the logic to perform before calling [onBack]. Handles navigation between items.
      */
     fun onBackRequested() {
         when {
-            currentZone != null -> viewModel.navigateTo(currentArea)
-            currentArea != null -> viewModel.navigateTo(null)
+            navController.previousBackStackEntry != null -> navController.navigateUp()
             else -> onBack()
         }
     }
 
     BackInvokeHandler(onBack = ::onBackRequested)
 
+    // Attach the nav controller
+    viewModel.Navigation(navController)
+
     NavigationScaffold(
         items = listOf(
-            NavigationItem(
-                { stringResource(R.string.item_home) },
-                Icons.Filled.Home,
-                Icons.Outlined.Home
-            ),
-            NavigationItem(
-                { stringResource(R.string.item_settings) },
-                Icons.Filled.Settings,
-                Icons.Outlined.Settings
-            ),
+            Routes.NavigationHome,
+            Routes.NavigationSettings
         ),
-        pagerState = pagerState,
+        initialRoute = Routes.NavigationHome.createRoute(),
+        navController = navController,
         widthSizeClass = widthSizeClass,
         header = {
             val icon = remember {
@@ -139,7 +168,7 @@ fun MainScreen(
 
             AnimatedVisibility(
                 // Only show in home view
-                visible = pagerState.currentPage == 0,
+                visible = Routes.NavigationHome.equals(navController.currentDestination),
                 enter = slideInVertically { -it },
                 exit = slideOutVertically { -it }
             ) {
@@ -150,7 +179,7 @@ fun MainScreen(
                             label = "animate-title-change",
                             transitionSpec = {
                                 if (
-                                    // Going back from area
+                                // Going back from area
                                     (targetState == null && initialState is Area) ||
                                     // Going back from zone to area
                                     (targetState is Area && initialState is Zone) ||
@@ -179,31 +208,41 @@ fun MainScreen(
                     },
                     navigationIcon = {
                         AnimatedVisibility(
-                            visible = currentArea != null,
+                            visible = currentSelection != null,
                             enter = slideInHorizontally { -it },
                             exit = slideOutHorizontally { -it }
                         ) {
                             IconButton(onClick = ::onBackRequested) {
-                                Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.action_back))
+                                Icon(
+                                    Icons.Rounded.ChevronLeft,
+                                    stringResource(R.string.action_back)
+                                )
                             }
                         }
                     }
                 )
             }
         }
-    ) { page ->
+    ) { page, entry ->
         when (page) {
-            0 -> NavigationScreen(
-                widthSizeClass,
-                onFavoriteToggle,
-                onCreateArea,
-                onCreateZone,
-                onCreateSector,
-                onCreatePath,
-                viewModel
-            )
+            Routes.NavigationHome -> {
+                val areaId = entry.arguments?.getString(AreaId)?.toLongOrNull()
+                val zoneId = entry.arguments?.getString(ZoneId)?.toLongOrNull()
 
-            1 -> Column(
+                viewModel.load(areaId, zoneId)
+
+                NavigationScreen(
+                    navController,
+                    widthSizeClass,
+                    onFavoriteToggle,
+                    onCreateArea,
+                    onCreateZone,
+                    onCreateSector,
+                    onCreatePath,
+                    viewModel
+                )
+            }
+            Routes.NavigationSettings -> Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
@@ -211,8 +250,7 @@ fun MainScreen(
             ) {
                 SettingsPage(onApiKeySubmit)
             }
-
-            else -> Text("Page $page")
+            else -> {}
         }
     }
 }
