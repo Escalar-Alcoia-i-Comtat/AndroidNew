@@ -36,4 +36,7 @@ open class FileUpdateListener(val path: LocalFile) {
 
     /** A file or directory was opened */
     open fun onOpen(file: LocalFile) { }
+
+    /** A file or directory has been moved */
+    open fun onMoveSelf(file: LocalFile) { }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.FileObserver
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -85,57 +86,10 @@ class FilesCrate private constructor(context: Context) {
     private val observers = mutableStateListOf<FileObserver>()
 
     @Composable
-    fun existsLive(uuid: UUID): LiveData<Boolean> = existsLive(permanent(uuid))
+    fun existsLive(uuid: UUID): State<Boolean> = permanent(uuid).existsLive()
 
     @Composable
-    fun existsLiveCache(uuid: UUID): LiveData<Boolean> = existsLive(cache(uuid))
-
-    @Composable
-    fun existsLive(
-        path: LocalFile
-    ): LiveData<Boolean> {
-        val liveData = MutableLiveData(path.exists())
-
-        DisposableEffect(path) {
-            val observer = object : FileUpdateListener(path) {
-                override fun onCreate(file: LocalFile) { liveData.postValue(file.exists()) }
-                override fun onModify(file: LocalFile) { liveData.postValue(file.exists()) }
-                override fun onDelete(file: LocalFile) { liveData.postValue(file.exists()) }
-                override fun onMovedFrom(file: LocalFile) { liveData.postValue(file.exists()) }
-                override fun onMovedTo(file: LocalFile) { liveData.postValue(file.exists()) }
-            }
-
-            val fileObserver = path.observer { event, _ ->
-                Timber.d("Got update ($event) for path: $path")
-                if (event == FileObserver.MOVE_SELF) return@observer
-
-                when (event) {
-                    FileObserver.ACCESS -> observer.onAccess(path)
-                    FileObserver.ATTRIB -> observer.onAttrib(path)
-                    FileObserver.CLOSE_NOWRITE -> observer.onCloseNoWrite(path)
-                    FileObserver.CLOSE_WRITE -> observer.onCloseWrite(path)
-                    FileObserver.CREATE -> observer.onCreate(path)
-                    FileObserver.DELETE -> observer.onDelete(path)
-                    FileObserver.DELETE_SELF -> observer.onDeleteSelf(path)
-                    FileObserver.MODIFY -> observer.onModify(path)
-                    FileObserver.MOVED_FROM -> observer.onMovedFrom(path)
-                    FileObserver.MOVED_TO -> observer.onMovedTo(path)
-                    FileObserver.OPEN -> observer.onOpen(path)
-                }
-            }
-            observers.add(fileObserver)
-            fileObserver.startWatching()
-
-            Timber.d("Started listening for updates on $path (${path.exists()})")
-
-            onDispose {
-                observers.remove(fileObserver)
-                fileObserver.stopWatching()
-            }
-        }
-
-        return liveData
-    }
+    fun existsLiveCache(uuid: UUID): State<Boolean> = cache(uuid).existsLive()
 
     @Composable
     fun cacheSize(): LiveData<Long> = MutableLiveData<Long>().apply {
@@ -150,14 +104,14 @@ class FilesCrate private constructor(context: Context) {
             }
 
             val fileObserver = file.observer(observer)
-            observers.add(fileObserver)
-            fileObserver.startWatching()
+            observers.addAll(fileObserver)
+            fileObserver.forEach(FileObserver::startWatching)
 
             Timber.d("Started listening for updates on $file")
 
             onDispose {
-                observers.remove(fileObserver)
-                fileObserver.stopWatching()
+                observers.removeAll(fileObserver)
+                fileObserver.forEach(FileObserver::stopWatching)
             }
         }
 

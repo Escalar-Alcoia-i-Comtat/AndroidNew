@@ -2,6 +2,12 @@ package org.escalaralcoiaicomtat.android.storage.files
 
 import android.os.Build
 import android.os.FileObserver
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import coil.request.ImageRequest
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.ByteReadChannel
@@ -10,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
 import org.escalaralcoiaicomtat.android.utils.json
+import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -25,6 +32,9 @@ class LocalFile
 )
 constructor(private val file: File, private val meta: File) {
     companion object {
+        @Volatile
+        private var states: Map<String, List<MutableState<Boolean>>> = emptyMap()
+
         /**
          * Uses [ImageRequest.Builder.data] to set the [file] as data for the builder.
          */
@@ -36,7 +46,7 @@ constructor(private val file: File, private val meta: File) {
      * @param uuid The UUID of the file. This is usually the file's name.
      */
     @Suppress("Deprecation")
-    constructor(parent: File, uuid: UUID): this(
+    constructor(parent: File, uuid: UUID) : this(
         File(parent, "$uuid"),
         File(parent, "$uuid.meta")
     )
@@ -77,6 +87,11 @@ constructor(private val file: File, private val meta: File) {
         if (!target.file.exists() || !target.meta.exists())
             throw IOException("The file was not copied successfully.")
 
+        synchronized(states) {
+            states[file.path]?.forEach { it.value = file.exists() }
+            states[target.file.path]?.forEach { it.value = target.file.exists() }
+        }
+
         return target
     }
 
@@ -88,37 +103,45 @@ constructor(private val file: File, private val meta: File) {
      * @param listener Will get called when a file event is received into [FileObserver].
      */
     @Suppress("DEPRECATION")
-    fun observer(listener: (event: Int, path: File?) -> Unit): FileObserver =
+    private fun observer(listener: (event: Int, path: File?) -> Unit): Set<FileObserver> =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            object : FileObserver(listOf(file, meta)) {
-                override fun onEvent(event: Int, path: String?) {
-                    listener(event, path?.let { File(it) })
+            setOf(
+                object : FileObserver(listOf(file, meta)) {
+                    override fun onEvent(event: Int, path: String?) {
+                        listener(event, path?.let { File(it) })
+                    }
                 }
-            }
+            )
         } else {
-            object : FileObserver(file.path) {
-                override fun onEvent(event: Int, path: String?) {
-                    listener(event, path?.let { File(it) })
+            setOf(
+                object : FileObserver(file.path) {
+                    override fun onEvent(event: Int, path: String?) {
+                        listener(event, path?.let { File(it) })
+                    }
+                },
+                object : FileObserver(meta.path) {
+                    override fun onEvent(event: Int, path: String?) {
+                        listener(event, path?.let { File(it) })
+                    }
                 }
-            }
+            )
         }
 
     fun observer(listener: FileUpdateListener) = observer { event, _ ->
-        if (event != FileObserver.MOVE_SELF) {
-            listener.onAny(this)
-            when (event) {
-                FileObserver.ACCESS -> listener.onAccess(this)
-                FileObserver.ATTRIB -> listener.onAttrib(this)
-                FileObserver.CLOSE_NOWRITE -> listener.onCloseNoWrite(this)
-                FileObserver.CLOSE_WRITE -> listener.onCloseWrite(this)
-                FileObserver.CREATE -> listener.onCreate(this)
-                FileObserver.DELETE -> listener.onDelete(this)
-                FileObserver.DELETE_SELF -> listener.onDeleteSelf(this)
-                FileObserver.MODIFY -> listener.onModify(this)
-                FileObserver.MOVED_FROM -> listener.onMovedFrom(this)
-                FileObserver.MOVED_TO -> listener.onMovedTo(this)
-                FileObserver.OPEN -> listener.onOpen(this)
-            }
+        listener.onAny(this)
+        when (event) {
+            FileObserver.ACCESS -> listener.onAccess(this)
+            FileObserver.ATTRIB -> listener.onAttrib(this)
+            FileObserver.CLOSE_NOWRITE -> listener.onCloseNoWrite(this)
+            FileObserver.CLOSE_WRITE -> listener.onCloseWrite(this)
+            FileObserver.CREATE -> listener.onCreate(this)
+            FileObserver.DELETE -> listener.onDelete(this)
+            FileObserver.DELETE_SELF -> listener.onDeleteSelf(this)
+            FileObserver.MODIFY -> listener.onModify(this)
+            FileObserver.MOVE_SELF -> listener.onMoveSelf(this)
+            FileObserver.MOVED_FROM -> listener.onMovedFrom(this)
+            FileObserver.MOVED_TO -> listener.onMovedTo(this)
+            FileObserver.OPEN -> listener.onOpen(this)
         }
     }
 
@@ -163,5 +186,43 @@ constructor(private val file: File, private val meta: File) {
 
         dataBytes.copyAndClose(file.writeChannel())
         meta.writeText(metaData.toJson().toString(), charset)
+    }
+
+    @Composable
+    fun existsLive(): State<Boolean> = remember { mutableStateOf(exists()) }.apply {
+        DisposableEffect(this) {
+            val fileObserver = observer(
+                object : FileUpdateListener(this@LocalFile) {
+                    override fun onAny(file: LocalFile) {
+                        Timber.d("File updated (${file.exists()}): $file")
+                        value = file.exists()
+                    }
+                }
+            )
+
+            Timber.d("Started watching for $file")
+            fileObserver.forEach(FileObserver::startWatching)
+
+            synchronized(states) {
+                val map = states.toMutableMap()
+                val list = map[file.path]?.toMutableList() ?: arrayListOf()
+                list.add(this@apply)
+                map[file.path] = list
+                states = map
+            }
+
+            onDispose {
+                Timber.d("Stopped watching for $file")
+                fileObserver.forEach(FileObserver::stopWatching)
+
+                synchronized(states) {
+                    val map = states.toMutableMap()
+                    val list = map[file.path]?.toMutableList() ?: arrayListOf()
+                    list.remove(this@apply)
+                    map[file.path] = list
+                    states = map
+                }
+            }
+        }
     }
 }

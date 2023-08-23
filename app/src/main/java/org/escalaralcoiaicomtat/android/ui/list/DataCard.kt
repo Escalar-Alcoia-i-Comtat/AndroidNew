@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.DownloadForOffline
 import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
@@ -89,7 +88,6 @@ fun <T: DataEntity> DataCard(
 
     val isDownloaded by FilesCrate.getInstance(context)
         .existsLive(item.imageUUID)
-        .observeAsState()
 
     var isShowingDeleteDialog by remember { mutableStateOf(false) }
     if (isShowingDeleteDialog)
@@ -136,10 +134,10 @@ fun <T: DataEntity> DataCard(
             )
 
             IconButton(
-                enabled = !isDownloading && imageFile != null && isDownloaded != null,
+                enabled = !isDownloading && imageFile != null,
                 onClick = {
                     // If clicked, isDownloaded is not null
-                    if (isDownloaded == true) {
+                    if (isDownloaded) {
                         isShowingDeleteDialog = true
                     } else {
                         isDownloading = true
@@ -164,9 +162,7 @@ fun <T: DataEntity> DataCard(
                 }
             ) {
                 Icon(
-                    if (isDownloaded == null)
-                        Icons.Rounded.DownloadForOffline
-                    else if (isDownloaded == true)
+                    if (isDownloaded)
                         Icons.Rounded.DownloadDone
                     else if (isDownloading)
                         Icons.Rounded.Downloading
