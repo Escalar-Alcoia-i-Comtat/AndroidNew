@@ -193,12 +193,15 @@ fun MainScreen(
                             val initialDestination = initialState.second
                             val targetDestination = targetState.second
 
-                            if (Routes.NavigationHome.equals(targetDestination)) {
+                            if (Routes.NavigationSettings.equals(initialDestination)) {
                                 // Going to Home
                                 slideInHorizontally { -it } + fadeIn() togetherWith
                                     slideOutHorizontally { it } + fadeOut()
-                            } else if (Routes.NavigationHome.equals(initialDestination)) {
-                                // Going to Home
+                            } else if (
+                                Routes.NavigationHome.equals(initialDestination) &&
+                                !Routes.NavigationHome.equals(targetDestination)
+                            ) {
+                                // Going from Home
                                 slideInHorizontally { it } + fadeIn() togetherWith
                                     slideOutHorizontally { -it } + fadeOut()
                             } else if (
