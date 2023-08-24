@@ -49,7 +49,7 @@ fun LazyItemScope.PathItem(
             )
             Text(
                 text = path.grade?.displayName ?: "",
-                color = path.grade.color.color,
+                color = path.grade.color.current,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
