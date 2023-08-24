@@ -277,8 +277,6 @@ class SectorViewer : AppCompatActivity() {
                         PathItem(path) {
                             selectedPath = path
                         }
-
-                        if (index < paths.lastIndex) Divider()
                     }
                 }
             } else {
