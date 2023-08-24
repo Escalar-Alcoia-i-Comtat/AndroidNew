@@ -13,7 +13,7 @@ data class ColorGroup(
     constructor(colors: LightDarkColor, onColors: LightDarkColor) :
         this(colors.light, onColors.light, colors.dark, onColors.dark)
 
-    val color: Color
+    val current: Color
         @Composable
         get() = if (isSystemInDarkTheme())
             dark

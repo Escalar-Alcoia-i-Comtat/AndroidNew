@@ -72,6 +72,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
+import org.escalaralcoiaicomtat.android.storage.type.color
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
@@ -294,6 +295,22 @@ class SectorViewer : AppCompatActivity() {
                     Column(
                         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
                     ) {
+                        path.grade?.let { grade ->
+                            CardWithIconAndTitle(
+                                iconRes = R.drawable.climbing_shoes,
+                                title = stringResource(R.string.path_view_grade_title),
+                                message = stringResource(R.string.path_view_grade_message),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = grade.displayName,
+                                    color = grade.color.current,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
                         path.ropeLength?.let { ropeLength ->
                             CardWithIconAndTitle(
                                 iconRes = R.drawable.rope,
