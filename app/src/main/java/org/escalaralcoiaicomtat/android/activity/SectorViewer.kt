@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -270,10 +271,10 @@ class SectorViewer : AppCompatActivity() {
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight(.35f)
                 ) {
-                    itemsIndexed(
+                    items(
                         items = paths,
-                        key = { _, path -> path.id }
-                    ) { index, path ->
+                        key = { path -> path.id }
+                    ) { path ->
                         PathItem(path) {
                             selectedPath = path
                         }
