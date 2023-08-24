@@ -281,9 +281,7 @@ class SectorViewer : AppCompatActivity() {
             } else {
                 OutlinedCard(
                     shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                    modifier = Modifier
-                        .fillMaxHeight(.4f)
-                        .verticalScroll(rememberScrollState())
+                    modifier = Modifier.fillMaxHeight(.5f)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -299,9 +297,9 @@ class SectorViewer : AppCompatActivity() {
                         path.ropeLength?.let { ropeLength ->
                             CardWithIconAndTitle(
                                 iconRes = R.drawable.rope,
-                                title = stringResource(R.string.path_view_strings_height_title),
+                                title = stringResource(R.string.path_view_height_title),
                                 message = stringResource(
-                                    R.string.path_view_strings_height_message,
+                                    R.string.path_view_height_message,
                                     path.height!!,
                                     ropeLength
                                 ),
@@ -318,6 +316,16 @@ class SectorViewer : AppCompatActivity() {
                                     R.string.path_view_strings_count_message,
                                     stringCount
                                 ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                        path.description?.takeIf { path.showDescription }?.let { description ->
+                            CardWithIconAndTitle(
+                                iconRes = R.drawable.baseline_description,
+                                title = stringResource(R.string.path_view_description),
+                                message = description,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
