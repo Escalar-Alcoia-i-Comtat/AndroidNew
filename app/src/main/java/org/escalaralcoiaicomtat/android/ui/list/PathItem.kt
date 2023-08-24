@@ -24,10 +24,11 @@ import java.time.Instant
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 fun LazyItemScope.PathItem(path: Path) {
-    OutlinedCard(modifier = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-        .animateItemPlacement()
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .animateItemPlacement()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -44,7 +45,7 @@ fun LazyItemScope.PathItem(path: Path) {
             Text(
                 text = path.grade?.displayName ?: "",
                 color = path.grade.color.color,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .padding(end = 8.dp)
