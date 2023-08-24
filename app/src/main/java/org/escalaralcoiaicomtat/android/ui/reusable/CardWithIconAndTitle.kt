@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.ui.reusable
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +21,8 @@ fun CardWithIconAndTitle(
     @DrawableRes iconRes: Int,
     title: String,
     message: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    extra: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     OutlinedCard(modifier) {
         Row(
@@ -47,6 +49,7 @@ fun CardWithIconAndTitle(
                     text = message,
                     style = MaterialTheme.typography.bodySmall
                 )
+                extra?.invoke(this)
             }
         }
     }
