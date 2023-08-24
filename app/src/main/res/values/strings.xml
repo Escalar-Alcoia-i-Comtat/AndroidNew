@@ -7,6 +7,7 @@
     <string name="action_remove">Remove</string>
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
 
     <string name="state_calculating">Calculating…</string>
 
@@ -88,4 +89,16 @@
     <string name="notification_downloading_message">Downloading file from server</string>
     <string name="notification_sync_title">Running Synchronization…</string>
     <string name="notification_sync_message">Synchronizing device\'s data with server\'s.</string>
+
+    <string name="path_view_strings_count_title">Strings Count</string>
+    <string name="path_view_strings_count_message">This path has %d anchors installed. Make sure to bring enough. It\'s always recommended to bring more strings than necessary.</string>
+    <string name="path_view_strings_height_title">Height</string>
+    <string name="path_view_strings_height_message">This path is %d meters high. It\'t recommended to bring a %d meters rope.</string>
+
+    <!-- CREDITS -->
+    <string name="credit_icons8">%s icon by %s</string>
+    <string name="credit_icons8_anchor">Climbing Anchor</string>
+    <string name="credit_icons8_anchor_link" translatable="false">https://icons8.com/icon/9175/climbing-anchor</string>
+    <string name="credit_icons8_rope">Rope</string>
+    <string name="credit_icons8_rope_link" translatable="false">https://icons8.com/icon/6059/rope</string>
 </resources>

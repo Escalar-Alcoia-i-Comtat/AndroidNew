@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,12 +23,16 @@ import org.escalaralcoiaicomtat.android.storage.type.color
 import java.time.Instant
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
-fun LazyItemScope.PathItem(path: Path) {
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+fun LazyItemScope.PathItem(
+    path: Path,
+    onClick: () -> Unit = {}
+) {
     OutlinedCard(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .animateItemPlacement()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -87,7 +92,7 @@ fun PathItem_Preview() {
                     reBuilder = null,
                     sectorId = 0
                 )
-            )
+            ) {}
         }
     }
 }

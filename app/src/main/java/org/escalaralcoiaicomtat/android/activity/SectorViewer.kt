@@ -11,6 +11,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,12 +23,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -46,6 +53,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -65,13 +73,14 @@ import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
+import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import timber.log.Timber
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3WindowSizeClassApi::class
+    ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalFoundationApi::class
 )
 class SectorViewer : AppCompatActivity() {
     companion object {
@@ -228,15 +237,7 @@ class SectorViewer : AppCompatActivity() {
                 }
 
                 if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxHeight(.35f)
-                    ) {
-                        itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
-                            PathItem(path)
-
-                            if (index < paths.lastIndex) Divider()
-                        }
-                    }
+                    BottomPathsView(paths)
                 }
             }
         } ?: Box(
@@ -251,6 +252,80 @@ class SectorViewer : AppCompatActivity() {
                 )
         ) {
             CircularProgressIndicator(progress)
+        }
+    }
+
+    @Composable
+    fun BottomPathsView(paths: List<Path>) {
+        var selectedPath by remember { mutableStateOf<Path?>(null) }
+
+        AnimatedContent(
+            targetState = selectedPath,
+            label = "paths-list"
+        ) { path ->
+            if (path == null) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxHeight(.35f)
+                ) {
+                    itemsIndexed(
+                        items = paths,
+                        key = { _, path -> path.id }
+                    ) { index, path ->
+                        PathItem(path) {
+                            selectedPath = path
+                        }
+
+                        if (index < paths.lastIndex) Divider()
+                    }
+                }
+            } else {
+                OutlinedCard(
+                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                    modifier = Modifier
+                        .fillMaxHeight(.4f)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        IconButton(onClick = { selectedPath = null }) {
+                            Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    ) {
+                        path.ropeLength?.let { ropeLength ->
+                            CardWithIconAndTitle(
+                                iconRes = R.drawable.rope,
+                                title = stringResource(R.string.path_view_strings_height_title),
+                                message = stringResource(
+                                    R.string.path_view_strings_height_message,
+                                    path.height!!,
+                                    ropeLength
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                        path.stringCount?.let { stringCount ->
+                            CardWithIconAndTitle(
+                                iconRes = R.drawable.climbing_anchor,
+                                title = stringResource(R.string.path_view_strings_count_title),
+                                message = stringResource(
+                                    R.string.path_view_strings_count_message,
+                                    stringCount
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 

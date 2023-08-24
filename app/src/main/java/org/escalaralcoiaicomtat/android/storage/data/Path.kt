@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.storage.data
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
@@ -93,6 +94,18 @@ data class Path(
 
             json.getLong("sector_id")
         )
+    }
+
+    @Ignore
+    val ropeLength: Long? = height?.let {
+        val minLength = it * 2
+        val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)
+        for (length in standardLengths) {
+            if (minLength < length) {
+                return@let length
+            }
+        }
+        minLength
     }
 
     override fun toJson(): JSONObject = jsonOf(
