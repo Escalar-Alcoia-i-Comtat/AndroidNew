@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -30,11 +32,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -75,10 +80,13 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
+import org.escalaralcoiaicomtat.android.storage.type.GradeValue
+import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
+import org.escalaralcoiaicomtat.android.ui.reusable.DropdownChip
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import timber.log.Timber
 
@@ -129,6 +137,49 @@ class SectorViewer : AppCompatActivity() {
             val sector by viewModel.sector.observeAsState()
             val paths by viewModel.paths.observeAsState()
 
+            val filters = remember { mutableStateListOf<Filter>() }
+
+            var showingFiltersModal by remember { mutableStateOf(false) }
+            if (showingFiltersModal) {
+                ModalBottomSheet(
+                    onDismissRequest = { showingFiltersModal = false },
+                    windowInsets = WindowInsets.safeDrawing
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        val gradeFilter = filters.filterIsInstance<Filter.Grade>().firstOrNull()
+
+                        Text(
+                            text = stringResource(R.string.filter_grade_title),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        DropdownChip(
+                            label = stringResource(R.string.filter_grade_from),
+                            options = SportsGrade.entries.map {
+                                DropdownChip.Option(
+                                    text = { it.displayName },
+                                    highlighted = gradeFilter?.grades?.contains(it) ?: false
+                                )
+                            },
+                            active = gradeFilter != null,
+                            onSelected = { index ->
+                                val newList = (gradeFilter?.grades ?: emptyList()).toMutableList()
+                                newList.add(SportsGrade.entries[index])
+
+                                filters.removeIf { it is Filter.Grade }
+                                filters.add(
+                                    Filter.Grade(newList)
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
             Scaffold(
                 topBar = {
                     AnimatedVisibility(visible = sector != null) {
@@ -144,6 +195,21 @@ class SectorViewer : AppCompatActivity() {
                                     Icon(
                                         Icons.Rounded.ChevronLeft,
                                         stringResource(R.string.action_back)
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton(
+                                    onClick = { showingFiltersModal = true }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.FilterList,
+                                        stringResource(R.string.action_filter),
+                                        tint = if (filters.isEmpty()) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        }
                                     )
                                 }
                             }
@@ -294,7 +360,9 @@ class SectorViewer : AppCompatActivity() {
                         }
                     }
                     Column(
-                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
                     ) {
                         path.grade?.let { grade ->
                             CardWithIconAndTitle(
@@ -376,5 +444,11 @@ class SectorViewer : AppCompatActivity() {
                 ?: throw IllegalArgumentException("Could not find associated paths with sector")
             _paths.postValue(paths.paths.sorted())
         }
+    }
+
+    sealed class Filter {
+        data class Grade(
+            val grades: List<GradeValue>
+        ) : Filter()
     }
 }
