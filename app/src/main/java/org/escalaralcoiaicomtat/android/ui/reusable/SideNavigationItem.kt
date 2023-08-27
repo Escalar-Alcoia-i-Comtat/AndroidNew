@@ -36,7 +36,7 @@ fun SideNavigationItem(
             )
         },
         selected = selected,
-        onClick = onClick,
+        onClick = onClick.takeIf { !selected } ?: {},
         badge = {
             if (showCreate) {
                 IconButton(
