@@ -95,9 +95,37 @@
     <string name="path_view_strings_count_message">This path has %d anchors installed. Make sure to bring enough. It\'s always recommended to bring more strings than necessary.</string>
     <string name="path_view_height_title">Height</string>
     <string name="path_view_height_message">This path is %d meters high. It\'t recommended to bring a %d meters rope.</string>
+    <string name="path_view_count_title">Installed safes</string>
+    <string name="path_view_count_message">Here\'s more information about the safes installed in the path:\n%s</string>
     <string name="path_view_description">More Information</string>
     <string name="path_view_grade_title">Grade</string>
     <string name="path_view_grade_message">The grade of this path is:</string>
+
+    <plurals name="safe_type_parabolt">
+        <item quantity="one">%d Parabolt</item>
+        <item quantity="few">%d Parabolts</item>
+        <item quantity="many">Parabolts</item>
+    </plurals>
+    <plurals name="safe_type_buril">
+        <item quantity="one">%d Buril</item>
+        <item quantity="few">%d Burils</item>
+        <item quantity="many">Burils</item>
+    </plurals>
+    <plurals name="safe_type_piton">
+        <item quantity="one">%d Piton</item>
+        <item quantity="few">%d Pitons</item>
+        <item quantity="many">Pitons</item>
+    </plurals>
+    <plurals name="safe_type_spit">
+        <item quantity="one">%d Spit</item>
+        <item quantity="few">%d Spits</item>
+        <item quantity="many">Spits</item>
+    </plurals>
+    <plurals name="safe_type_tensor">
+        <item quantity="one">%d Tensor</item>
+        <item quantity="few">%d Tensors</item>
+        <item quantity="many">Tensors</item>
+    </plurals>
 
     <string name="filter_grade_title">Grade</string>
     <string name="filter_grade_from">From</string>
@@ -109,4 +137,8 @@
     <string name="credit_icons8_anchor_link" translatable="false">https://icons8.com/icon/9175/climbing-anchor</string>
     <string name="credit_icons8_rope">Rope</string>
     <string name="credit_icons8_rope_link" translatable="false">https://icons8.com/icon/6059/rope</string>
+    <string name="credit_icons8_climbing_helmet">Climbing Helmet</string>
+    <string name="credit_icons8_climbing_helmet_link" translatable="false">https://icons8.com/icon/6041/climbing-helmet</string>
+    <string name="credit_icons8_quickdraw">Quickdraw</string>
+    <string name="credit_icons8_quickdraw_link" translatable="false">https://icons8.com/icon/6021/quickdraw</string>
 </resources>

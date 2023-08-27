@@ -267,14 +267,35 @@ class SectorViewer : AppCompatActivity() {
         }
 
         if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
-                    PathItem(path)
+                var selectedPath by remember { mutableStateOf<Path?>(null) }
+                
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
+                        PathItem(path) {
+                            selectedPath = path
+                        }
 
-                    if (index < paths.lastIndex) Divider()
+                        if (index < paths.lastIndex) Divider()
+                    }
+                }
+
+                AnimatedContent(
+                    targetState = selectedPath,
+                    label = "animate-bottom-path-info"
+                ) { path ->
+                    if (path != null) {
+                        PathInformation(
+                            path,
+                            Modifier.weight(1f)
+                        ) {
+                            selectedPath = null
+                        }
+                    }
                 }
             }
         }
@@ -347,79 +368,104 @@ class SectorViewer : AppCompatActivity() {
                     }
                 }
             } else {
-                OutlinedCard(
-                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                    modifier = Modifier.fillMaxHeight(.5f)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        IconButton(onClick = { selectedPath = null }) {
-                            Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
-                        }
-                    }
-                    Column(
+                PathInformation(path, Modifier.fillMaxHeight(.5f)) { selectedPath = null }
+            }
+        }
+    }
+
+    @Composable
+    fun PathInformation(path: Path, modifier: Modifier = Modifier, onDismissRequested: () -> Unit) {
+        OutlinedCard(
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            modifier = modifier
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onDismissRequested) {
+                    Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                path.grade?.let { grade ->
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.climbing_shoes,
+                        title = stringResource(R.string.path_view_grade_title),
+                        message = stringResource(R.string.path_view_grade_message),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        path.grade?.let { grade ->
-                            CardWithIconAndTitle(
-                                iconRes = R.drawable.climbing_shoes,
-                                title = stringResource(R.string.path_view_grade_title),
-                                message = stringResource(R.string.path_view_grade_message),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = grade.displayName,
-                                    color = grade.color.current,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                        path.ropeLength?.let { ropeLength ->
-                            CardWithIconAndTitle(
-                                iconRes = R.drawable.rope,
-                                title = stringResource(R.string.path_view_height_title),
-                                message = stringResource(
-                                    R.string.path_view_height_message,
-                                    path.height!!,
-                                    ropeLength
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                        path.stringCount?.let { stringCount ->
-                            CardWithIconAndTitle(
-                                iconRes = R.drawable.climbing_anchor,
-                                title = stringResource(R.string.path_view_strings_count_title),
-                                message = stringResource(
-                                    R.string.path_view_strings_count_message,
-                                    stringCount
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                        path.description?.takeIf { path.showDescription }?.let { description ->
-                            CardWithIconAndTitle(
-                                iconRes = R.drawable.baseline_description,
-                                title = stringResource(R.string.path_view_description),
-                                message = description,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
+                        Text(
+                            text = grade.displayName,
+                            color = grade.color.current,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center
+                        )
                     }
+                }
+                path.ropeLength?.let { ropeLength ->
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.rope,
+                        title = stringResource(R.string.path_view_height_title),
+                        message = stringResource(
+                            R.string.path_view_height_message,
+                            path.height!!,
+                            ropeLength
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                path.stringCount?.let { stringCount ->
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.quickdraw,
+                        title = stringResource(R.string.path_view_strings_count_title),
+                        message = stringResource(
+                            R.string.path_view_strings_count_message,
+                            stringCount
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                if (path.anyCount) {
+                    val list = StringBuilder()
+                    path.parabolts?.let { list.appendLine(it.text) }
+                    path.burils?.let { list.appendLine(it.text) }
+                    path.pitons?.let { list.appendLine(it.text) }
+                    path.spits?.let { list.appendLine(it.text) }
+                    path.tensors?.let { list.appendLine(it.text) }
+
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.climbing_anchor,
+                        title = stringResource(R.string.path_view_count_title),
+                        message = stringResource(
+                            R.string.path_view_count_message,
+                            list.toString()
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                path.description?.takeIf { path.showDescription }?.let { description ->
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.baseline_description,
+                        title = stringResource(R.string.path_view_description),
+                        message = description,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
             }
         }

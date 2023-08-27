@@ -3,10 +3,12 @@ package org.escalaralcoiaicomtat.android.storage.data
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
+import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
@@ -107,6 +109,39 @@ data class Path(
         }
         minLength
     }
+
+    /**
+     * Checks whether any of the count variables ([paraboltCount], [burilCount], [pitonCount],
+     * [spitCount], [tensorCount]) is not null.
+     */
+    @Ignore
+    val anyCount: Boolean = paraboltCount != null || burilCount != null || pitonCount != null ||
+        spitCount != null || tensorCount != null
+
+    @Ignore
+    val parabolts: SafesCount? = paraboltCount
+        ?.takeIf { it > 0 }
+        ?.let { SafesCount(it, R.plurals.safe_type_parabolt) }
+
+    @Ignore
+    val burils: SafesCount? = burilCount
+        ?.takeIf { it > 0 }
+        ?.let { SafesCount(it, R.plurals.safe_type_buril) }
+
+    @Ignore
+    val pitons: SafesCount? = pitonCount
+        ?.takeIf { it > 0 }
+        ?.let { SafesCount(it, R.plurals.safe_type_piton) }
+
+    @Ignore
+    val spits: SafesCount? = spitCount
+        ?.takeIf { it > 0 }
+        ?.let { SafesCount(it, R.plurals.safe_type_spit) }
+
+    @Ignore
+    val tensors: SafesCount? = tensorCount
+        ?.takeIf { it > 0 }
+        ?.let { SafesCount(it, R.plurals.safe_type_tensor) }
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
