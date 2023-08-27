@@ -134,8 +134,12 @@ class SectorViewer : AppCompatActivity() {
         viewModel.loadSector(sectorId)
 
         onBackPressedDispatcher.addCallback(this) {
-            setResult(Activity.RESULT_CANCELED)
-            finish()
+            if (viewModel.selectionIndex.value != null) {
+                viewModel.selectionIndex.postValue(null)
+            } else {
+                setResult(Activity.RESULT_CANCELED)
+                finish()
+            }
         }
 
         setContentThemed {
@@ -275,14 +279,14 @@ class SectorViewer : AppCompatActivity() {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                var selectedPath by remember { mutableStateOf<Int?>(null) }
+                val selectedPath by viewModel.selectionIndex.observeAsState()
 
                 LazyColumn(
                     modifier = Modifier.weight(1f)
                 ) {
                     itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
                         PathItem(path) {
-                            selectedPath = index
+                            viewModel.selectionIndex.postValue(index)
                         }
                     }
                 }
@@ -318,16 +322,14 @@ class SectorViewer : AppCompatActivity() {
                             onNextRequested = if (selectedIndex >= paths.size)
                                 null
                             else {
-                                { selectedPath = selectedIndex + 1 }
+                                { viewModel.selectionIndex.postValue(selectedIndex + 1) }
                             },
                             onPreviousRequested = if (selectedIndex <= 0)
                                 null
                             else {
-                                { selectedPath = selectedIndex - 1 }
+                                { viewModel.selectionIndex.postValue(selectedIndex - 1) }
                             },
-                        ) {
-                            selectedPath = null
-                        }
+                        ) { viewModel.selectionIndex.postValue(null) }
                     }
                 }
             }
@@ -381,10 +383,10 @@ class SectorViewer : AppCompatActivity() {
 
     @Composable
     fun BottomPathsView(paths: List<Path>) {
-        var selectedPath by remember { mutableStateOf<Int?>(null) }
+        val selectionIndex by viewModel.selectionIndex.observeAsState()
 
         AnimatedContent(
-            targetState = selectedPath,
+            targetState = selectionIndex,
             label = "paths-list"
         ) { selectedIndex ->
             val path = selectedIndex?.let(paths::get)
@@ -397,7 +399,7 @@ class SectorViewer : AppCompatActivity() {
                         key = { _, path -> path.id }
                     ) { index, path ->
                         PathItem(path) {
-                            selectedPath = index
+                            viewModel.selectionIndex.postValue(index)
                         }
                     }
                 }
@@ -408,14 +410,14 @@ class SectorViewer : AppCompatActivity() {
                     onNextRequested = if (selectedIndex >= paths.size)
                         null
                     else {
-                        { selectedPath = selectedIndex + 1 }
+                        { viewModel.selectionIndex.postValue(selectedIndex + 1) }
                     },
                     onPreviousRequested = if (selectedIndex <= 0)
                         null
                     else {
-                        { selectedPath = selectedIndex - 1 }
+                        { viewModel.selectionIndex.postValue(selectedIndex - 1) }
                     },
-                ) { selectedPath = null }
+                ) { viewModel.selectionIndex.postValue(null) }
             }
         }
     }
@@ -569,6 +571,8 @@ class SectorViewer : AppCompatActivity() {
 
         private val _paths = MutableLiveData<List<Path>>()
         val paths: LiveData<List<Path>> get() = _paths
+
+        val selectionIndex: MutableLiveData<Int?> = MutableLiveData(null)
 
         fun loadSector(sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
             val sector = dao.getSector(sectorId)
