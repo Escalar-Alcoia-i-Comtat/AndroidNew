@@ -97,6 +97,8 @@
     <string name="path_view_height_message">This path is %d meters high. It\'t recommended to bring a %d meters rope.</string>
     <string name="path_view_count_title">Installed safes</string>
     <string name="path_view_count_message">Here\'s more information about the safes installed in the path:\n%s</string>
+    <string name="path_view_required_title">Required Material</string>
+    <string name="path_view_required_message">This path requires some extra material to be used together with the already installed on the wall, if any. This is:\n%s</string>
     <string name="path_view_description">More Information</string>
     <string name="path_view_grade_title">Grade</string>
     <string name="path_view_grade_message">The grade of this path is:</string>
@@ -127,6 +129,13 @@
         <item quantity="many">Tensors</item>
     </plurals>
 
+    <string name="required_type_cracker">Crackers</string>
+    <string name="required_type_friend">Friends</string>
+    <string name="required_type_lanyard">Lanyards</string>
+    <string name="required_type_nail">Nails</string>
+    <string name="required_type_piton">Pitons</string>
+    <string name="required_type_stapes">Stapes</string>
+
     <string name="filter_grade_title">Grade</string>
     <string name="filter_grade_from">From</string>
     <string name="filter_grade_up_to">Up to</string>
@@ -141,4 +150,6 @@
     <string name="credit_icons8_climbing_helmet_link" translatable="false">https://icons8.com/icon/6041/climbing-helmet</string>
     <string name="credit_icons8_quickdraw">Quickdraw</string>
     <string name="credit_icons8_quickdraw_link" translatable="false">https://icons8.com/icon/6021/quickdraw</string>
+    <string name="credit_icons8_energy_absorber">Energy Absorber</string>
+    <string name="credit_icons8_energy_absorber_link" translatable="false">https://icons8.com/icon/6030/energy-absorber</string>
 </resources>

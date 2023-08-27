@@ -457,6 +457,27 @@ class SectorViewer : AppCompatActivity() {
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
+                if (path.anyRequired) {
+                    val list = StringBuilder()
+                    path.cracker?.let { list.appendLine(it.text) }
+                    path.friend?.let { list.appendLine(it.text) }
+                    path.lanyard?.let { list.appendLine(it.text) }
+                    path.nail?.let { list.appendLine(it.text) }
+                    path.piton?.let { list.appendLine(it.text) }
+                    path.stapes?.let { list.appendLine(it.text) }
+
+                    CardWithIconAndTitle(
+                        iconRes = R.drawable.energy_absorber,
+                        title = stringResource(R.string.path_view_required_title),
+                        message = stringResource(
+                            R.string.path_view_required_message,
+                            list.toString()
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
                 path.description?.takeIf { path.showDescription }?.let { description ->
                     CardWithIconAndTitle(
                         iconRes = R.drawable.baseline_description,

@@ -8,6 +8,7 @@ import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
+import org.escalaralcoiaicomtat.android.storage.type.RequiredMaterial
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
@@ -142,6 +143,32 @@ data class Path(
     val tensors: SafesCount? = tensorCount
         ?.takeIf { it > 0 }
         ?.let { SafesCount(it, R.plurals.safe_type_tensor) }
+
+    /**
+     * Returns true if any of [crackerRequired], [friendRequired], [lanyardRequired], [nailRequired],
+     * [pitonRequired] or [stapesRequired] is true.
+     */
+    @Ignore
+    val anyRequired: Boolean = crackerRequired || friendRequired || lanyardRequired ||
+        nailRequired || pitonRequired || stapesRequired
+
+    @Ignore
+    val cracker: RequiredMaterial? = RequiredMaterial(R.string.required_type_cracker).takeIf { crackerRequired }
+
+    @Ignore
+    val friend: RequiredMaterial? = RequiredMaterial(R.string.required_type_friend).takeIf { friendRequired }
+
+    @Ignore
+    val lanyard: RequiredMaterial? = RequiredMaterial(R.string.required_type_lanyard).takeIf { lanyardRequired }
+
+    @Ignore
+    val nail: RequiredMaterial? = RequiredMaterial(R.string.required_type_nail).takeIf { nailRequired }
+
+    @Ignore
+    val piton: RequiredMaterial? = RequiredMaterial(R.string.required_type_piton).takeIf { pitonRequired }
+
+    @Ignore
+    val stapes: RequiredMaterial? = RequiredMaterial(R.string.required_type_stapes).takeIf { stapesRequired }
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
