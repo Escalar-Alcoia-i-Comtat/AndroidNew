@@ -19,7 +19,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,16 +30,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -277,17 +275,15 @@ class SectorViewer : AppCompatActivity() {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                var selectedPath by remember { mutableStateOf<Path?>(null) }
-                
+                var selectedPath by remember { mutableStateOf<Int?>(null) }
+
                 LazyColumn(
                     modifier = Modifier.weight(1f)
                 ) {
                     itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
                         PathItem(path) {
-                            selectedPath = path
+                            selectedPath = index
                         }
-
-                        if (index < paths.lastIndex) Divider()
                     }
                 }
 
@@ -300,7 +296,7 @@ class SectorViewer : AppCompatActivity() {
                             slideInVertically { -it } togetherWith slideOutVertically { it }
                         } else if (initialState != null && targetState != null) {
                             // moving from one path to another
-                            if (initialState!!.sketchId < targetState!!.sketchId) {
+                            if (initialState!! < targetState!!) {
                                 // moving from left to right
                                 slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
                             } else {
@@ -311,11 +307,24 @@ class SectorViewer : AppCompatActivity() {
                             fadeIn() togetherWith fadeOut()
                         }
                     }
-                ) { path ->
+                ) { selectedIndex ->
+                    val path = selectedIndex?.let(paths::get)
                     if (path != null) {
                         PathInformation(
                             path,
-                            Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            onNextRequested = if (selectedIndex >= paths.size)
+                                null
+                            else {
+                                { selectedPath = selectedIndex + 1 }
+                            },
+                            onPreviousRequested = if (selectedIndex <= 0)
+                                null
+                            else {
+                                { selectedPath = selectedIndex - 1 }
+                            },
                         ) {
                             selectedPath = null
                         }
@@ -372,41 +381,76 @@ class SectorViewer : AppCompatActivity() {
 
     @Composable
     fun BottomPathsView(paths: List<Path>) {
-        var selectedPath by remember { mutableStateOf<Path?>(null) }
+        var selectedPath by remember { mutableStateOf<Int?>(null) }
 
         AnimatedContent(
             targetState = selectedPath,
             label = "paths-list"
-        ) { path ->
+        ) { selectedIndex ->
+            val path = selectedIndex?.let(paths::get)
             if (path == null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight(.35f)
                 ) {
-                    items(
+                    itemsIndexed(
                         items = paths,
-                        key = { path -> path.id }
-                    ) { path ->
+                        key = { _, path -> path.id }
+                    ) { index, path ->
                         PathItem(path) {
-                            selectedPath = path
+                            selectedPath = index
                         }
                     }
                 }
             } else {
-                PathInformation(path, Modifier.fillMaxHeight(.5f)) { selectedPath = null }
+                PathInformation(
+                    path,
+                    modifier = Modifier.fillMaxHeight(.5f),
+                    onNextRequested = if (selectedIndex >= paths.size)
+                        null
+                    else {
+                        { selectedPath = selectedIndex + 1 }
+                    },
+                    onPreviousRequested = if (selectedIndex <= 0)
+                        null
+                    else {
+                        { selectedPath = selectedIndex - 1 }
+                    },
+                ) { selectedPath = null }
             }
         }
     }
 
     @Composable
-    fun PathInformation(path: Path, modifier: Modifier = Modifier, onDismissRequested: () -> Unit) {
+    fun PathInformation(
+        path: Path,
+        modifier: Modifier = Modifier,
+        onPreviousRequested: (() -> Unit)?,
+        onNextRequested: (() -> Unit)?,
+        onDismissRequested: () -> Unit
+    ) {
         OutlinedCard(
             shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
             modifier = modifier
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                onPreviousRequested?.let { function ->
+                    IconButton(onClick = function) {
+                        Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.action_previous))
+                    }
+                }
+                onNextRequested?.let { function ->
+                    IconButton(onClick = function) {
+                        Icon(Icons.Rounded.ChevronRight, stringResource(R.string.action_next))
+                    }
+                }
+                Text(
+                    text = path.displayName,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall
+                )
                 IconButton(onClick = onDismissRequested) {
                     Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
                 }

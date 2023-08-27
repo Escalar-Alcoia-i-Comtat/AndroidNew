@@ -9,6 +9,8 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
     <string name="action_filter">Filter</string>
+    <string name="action_previous">Previous</string>
+    <string name="action_next">Next</string>
 
     <string name="state_calculating">Calculating…</string>
 
