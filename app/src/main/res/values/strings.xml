@@ -103,30 +103,30 @@
     <string name="path_view_grade_title">Grade</string>
     <string name="path_view_grade_message">The grade of this path is:</string>
 
+    <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
-        <item quantity="few">%d Parabolts</item>
-        <item quantity="many">Parabolts</item>
+        <item quantity="other">%d Parabolts</item>
     </plurals>
+    <string name="safe_type_buril">Burils</string>
     <plurals name="safe_type_buril">
         <item quantity="one">%d Buril</item>
         <item quantity="few">%d Burils</item>
-        <item quantity="many">Burils</item>
     </plurals>
+    <string name="safe_type_piton">Pitons</string>
     <plurals name="safe_type_piton">
         <item quantity="one">%d Piton</item>
         <item quantity="few">%d Pitons</item>
-        <item quantity="many">Pitons</item>
     </plurals>
+    <string name="safe_type_spit">Spits</string>
     <plurals name="safe_type_spit">
         <item quantity="one">%d Spit</item>
         <item quantity="few">%d Spits</item>
-        <item quantity="many">Spits</item>
     </plurals>
+    <string name="safe_type_tensor">Tensors</string>
     <plurals name="safe_type_tensor">
         <item quantity="one">%d Tensor</item>
         <item quantity="few">%d Tensors</item>
-        <item quantity="many">Tensors</item>
     </plurals>
 
     <string name="required_type_cracker">Crackers</string>

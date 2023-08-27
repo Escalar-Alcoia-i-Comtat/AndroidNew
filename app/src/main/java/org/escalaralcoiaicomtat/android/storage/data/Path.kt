@@ -122,27 +122,27 @@ data class Path(
     @Ignore
     val parabolts: SafesCount? = paraboltCount
         ?.takeIf { it > 0 }
-        ?.let { SafesCount(it, R.plurals.safe_type_parabolt) }
+        ?.let { SafesCount(it, R.plurals.safe_type_parabolt, R.string.safe_type_parabolt) }
 
     @Ignore
     val burils: SafesCount? = burilCount
         ?.takeIf { it > 0 }
-        ?.let { SafesCount(it, R.plurals.safe_type_buril) }
+        ?.let { SafesCount(it, R.plurals.safe_type_buril, R.string.safe_type_buril) }
 
     @Ignore
     val pitons: SafesCount? = pitonCount
         ?.takeIf { it > 0 }
-        ?.let { SafesCount(it, R.plurals.safe_type_piton) }
+        ?.let { SafesCount(it, R.plurals.safe_type_piton, R.string.safe_type_piton) }
 
     @Ignore
     val spits: SafesCount? = spitCount
         ?.takeIf { it > 0 }
-        ?.let { SafesCount(it, R.plurals.safe_type_spit) }
+        ?.let { SafesCount(it, R.plurals.safe_type_spit, R.string.safe_type_spit) }
 
     @Ignore
     val tensors: SafesCount? = tensorCount
         ?.takeIf { it > 0 }
-        ?.let { SafesCount(it, R.plurals.safe_type_tensor) }
+        ?.let { SafesCount(it, R.plurals.safe_type_tensor, R.string.safe_type_tensor) }
 
     /**
      * Returns true if any of [crackerRequired], [friendRequired], [lanyardRequired], [nailRequired],
