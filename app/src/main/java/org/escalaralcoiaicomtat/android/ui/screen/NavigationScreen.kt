@@ -107,7 +107,7 @@ fun NavigationScreen(
                         onClick = { viewModel.navigate(area) },
                         onCreate = { onCreateZone(area) }
                     )
-                    zones.takeIf { selection == area }
+                    zones.takeIf { selection == area || (selection as? Zone)?.areaId == area.id }
                         ?.sorted()
                         ?.filter { it.areaId == area.id }
                         ?.forEach { zone ->
