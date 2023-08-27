@@ -91,8 +91,8 @@
     <string name="notification_sync_title">Running Synchronization…</string>
     <string name="notification_sync_message">Synchronizing device\'s data with server\'s.</string>
 
-    <string name="path_view_strings_count_title">Strings Count</string>
-    <string name="path_view_strings_count_message">This path has %d anchors installed. Make sure to bring enough. It\'s always recommended to bring more strings than necessary.</string>
+    <string name="path_view_quickdraw_count_title">Quickdraw Count</string>
+    <string name="path_view_quickdraw_count_message">This path has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</string>
     <string name="path_view_height_title">Height</string>
     <string name="path_view_height_message">This path is %d meters high. It\'t recommended to bring a %d meters rope.</string>
     <string name="path_view_count_title">Installed safes</string>

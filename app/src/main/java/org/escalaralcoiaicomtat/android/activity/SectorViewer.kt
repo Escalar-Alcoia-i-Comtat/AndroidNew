@@ -427,9 +427,9 @@ class SectorViewer : AppCompatActivity() {
                 path.stringCount?.takeIf { it > 0 }?.let { stringCount ->
                     CardWithIconAndTitle(
                         iconRes = R.drawable.quickdraw,
-                        title = stringResource(R.string.path_view_strings_count_title),
+                        title = stringResource(R.string.path_view_quickdraw_count_title),
                         message = stringResource(
-                            R.string.path_view_strings_count_message,
+                            R.string.path_view_quickdraw_count_message,
                             stringCount
                         ),
                         modifier = Modifier
