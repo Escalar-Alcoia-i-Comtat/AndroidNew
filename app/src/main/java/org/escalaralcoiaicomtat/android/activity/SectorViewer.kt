@@ -439,11 +439,11 @@ class SectorViewer : AppCompatActivity() {
                 }
                 if (path.anyCount) {
                     val list = StringBuilder()
-                    path.parabolts?.let { list.appendLine(it.text) }
-                    path.burils?.let { list.appendLine(it.text) }
-                    path.pitons?.let { list.appendLine(it.text) }
-                    path.spits?.let { list.appendLine(it.text) }
-                    path.tensors?.let { list.appendLine(it.text) }
+                    path.parabolts?.let { list.appendLine("- ${it.text}") }
+                    path.burils?.let { list.appendLine("- ${it.text}") }
+                    path.pitons?.let { list.appendLine("- ${it.text}") }
+                    path.spits?.let { list.appendLine("- ${it.text}") }
+                    path.tensors?.let { list.appendLine("- ${it.text}") }
 
                     CardWithIconAndTitle(
                         iconRes = R.drawable.climbing_anchor,
@@ -459,12 +459,12 @@ class SectorViewer : AppCompatActivity() {
                 }
                 if (path.anyRequired) {
                     val list = StringBuilder()
-                    path.cracker?.let { list.appendLine(it.text) }
-                    path.friend?.let { list.appendLine(it.text) }
-                    path.lanyard?.let { list.appendLine(it.text) }
-                    path.nail?.let { list.appendLine(it.text) }
-                    path.piton?.let { list.appendLine(it.text) }
-                    path.stapes?.let { list.appendLine(it.text) }
+                    path.cracker?.let { list.appendLine("- ${it.text}") }
+                    path.friend?.let { list.appendLine("- ${it.text}") }
+                    path.lanyard?.let { list.appendLine("- ${it.text}") }
+                    path.nail?.let { list.appendLine("- ${it.text}") }
+                    path.piton?.let { list.appendLine("- ${it.text}") }
+                    path.stapes?.let { list.appendLine("- ${it.text}") }
 
                     CardWithIconAndTitle(
                         iconRes = R.drawable.energy_absorber,
