@@ -6,7 +6,7 @@ import org.escalaralcoiaicomtat.android.utils.letIf
 import java.util.UUID
 
 object EndpointUtils {
-    private val server: Uri by lazy { Uri.parse("https://${BuildConfig.HOSTNAME}") }
+    private val server: Uri by lazy { Uri.parse("${BuildConfig.PROTOCOL}://${BuildConfig.HOSTNAME}") }
 
     fun getUrl(endpoint: String) = server.buildUpon()
         .let {
