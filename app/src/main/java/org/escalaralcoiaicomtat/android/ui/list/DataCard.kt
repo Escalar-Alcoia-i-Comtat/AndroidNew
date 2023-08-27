@@ -1,7 +1,6 @@
 package org.escalaralcoiaicomtat.android.ui.list
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -62,7 +61,6 @@ import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import timber.log.Timber
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun <T: DataEntity> DataCard(
     item: T,
