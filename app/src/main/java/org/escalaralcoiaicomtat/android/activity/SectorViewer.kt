@@ -11,6 +11,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -286,7 +293,24 @@ class SectorViewer : AppCompatActivity() {
 
                 AnimatedContent(
                     targetState = selectedPath,
-                    label = "animate-bottom-path-info"
+                    label = "animate-bottom-path-info",
+                    transitionSpec = {
+                        if (targetState == null || initialState == null) {
+                            // moving from open to closed, or from closed to open
+                            slideInVertically { -it } togetherWith slideOutVertically { it }
+                        } else if (initialState != null && targetState != null) {
+                            // moving from one path to another
+                            if (initialState!!.sketchId < targetState!!.sketchId) {
+                                // moving from left to right
+                                slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                            } else {
+                                // moving from right to left
+                                slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                            }
+                        } else {
+                            fadeIn() togetherWith fadeOut()
+                        }
+                    }
                 ) { path ->
                     if (path != null) {
                         PathInformation(
