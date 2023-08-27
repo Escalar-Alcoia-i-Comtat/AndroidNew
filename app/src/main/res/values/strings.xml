@@ -111,22 +111,22 @@
     <string name="safe_type_buril">Burils</string>
     <plurals name="safe_type_buril">
         <item quantity="one">%d Buril</item>
-        <item quantity="few">%d Burils</item>
+        <item quantity="other">%d Burils</item>
     </plurals>
     <string name="safe_type_piton">Pitons</string>
     <plurals name="safe_type_piton">
         <item quantity="one">%d Piton</item>
-        <item quantity="few">%d Pitons</item>
+        <item quantity="other">%d Pitons</item>
     </plurals>
     <string name="safe_type_spit">Spits</string>
     <plurals name="safe_type_spit">
         <item quantity="one">%d Spit</item>
-        <item quantity="few">%d Spits</item>
+        <item quantity="other">%d Spits</item>
     </plurals>
     <string name="safe_type_tensor">Tensors</string>
     <plurals name="safe_type_tensor">
         <item quantity="one">%d Tensor</item>
-        <item quantity="few">%d Tensors</item>
+        <item quantity="other">%d Tensors</item>
     </plurals>
 
     <string name="required_type_cracker">Crackers</string>
