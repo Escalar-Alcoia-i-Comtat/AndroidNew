@@ -424,7 +424,7 @@ class SectorViewer : AppCompatActivity() {
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
-                path.stringCount?.let { stringCount ->
+                path.stringCount?.takeIf { it > 0 }?.let { stringCount ->
                     CardWithIconAndTitle(
                         iconRes = R.drawable.quickdraw,
                         title = stringResource(R.string.path_view_strings_count_title),
