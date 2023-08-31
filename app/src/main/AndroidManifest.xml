@@ -43,6 +43,9 @@
         <activity
             android:name=".activity.creation.NewSectorActivity"
             android:parentActivityName=".activity.MainActivity" />
+        <activity
+            android:name=".activity.creation.NewPathActivity"
+            android:parentActivityName=".activity.SectorViewer" />
 
         <!-- Support for Language selection on older versions -->
         <service

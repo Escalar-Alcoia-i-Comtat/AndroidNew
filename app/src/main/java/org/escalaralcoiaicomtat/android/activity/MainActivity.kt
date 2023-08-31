@@ -18,6 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.activity.creation.CreatorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewAreaActivity
+import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewSectorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewZoneActivity
 import org.escalaralcoiaicomtat.android.network.EndpointUtils
@@ -45,6 +46,10 @@ class MainActivity : AppCompatActivity() {
 
     private val newSectorRequestLauncher = registerForActivityResult(
         NewSectorActivity.Contract
+    ) { }
+
+    private val newPathRequestLauncher = registerForActivityResult(
+        NewPathActivity.Contract
     ) { }
 
     private val sectorViewerRequestLauncher = registerForActivityResult(
@@ -76,7 +81,9 @@ class MainActivity : AppCompatActivity() {
                     )
                 },
                 onCreatePath = {
-                    /* TODO */
+                    newPathRequestLauncher.launch(
+                        CreatorActivity.Input(it)
+                    )
                 },
                 onSectorView = {
                     sectorViewerRequestLauncher.launch(

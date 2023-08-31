@@ -44,11 +44,14 @@
     <string name="new_area_title">Create New Area</string>
     <string name="new_zone_title">Create New Zone</string>
     <string name="new_sector_title">Create New Sector</string>
+    <string name="new_path_title">Create New Path</string>
 
     <string name="creation_step_compressing">Compressing image…</string>
     <string name="creation_step_uploading">Uploading… %f %</string>
     <string name="creation_step_finishing">Finishing…</string>
     <string name="creation_error_toast">Could not create. Check logcat</string>
+
+    <string name="assert_number_fail">Please, introduce a valid number.</string>
 
     <string name="form_parent">Parent</string>
     <string name="form_display_name">Display Name</string>
@@ -61,11 +64,30 @@
     <string name="form_sun_time">Sun Time</string>
     <string name="form_kids_apt">Kids Apt</string>
     <string name="form_walking_time">Walking Time</string>
+    <string name="form_sketch_id">Sketch ID</string>
+    <string name="form_height">Height</string>
+    <string name="form_grade">Grade</string>
+    <string name="form_ending">Ending</string>
+    <string name="form_string_count">Quickdraw Count</string>
+    <string name="form_count_unknown">Unknown amount</string>
+    <string name="form_count_unknown_support">Toggle box for setting unknown amount.</string>
 
     <string name="sun_time_none">None</string>
     <string name="sun_time_morning">Morning</string>
     <string name="sun_time_afternoon">Afternoon</string>
     <string name="sun_time_day">Day</string>
+
+    <string name="ending_none">None</string>
+    <string name="ending_plate">Plate</string>
+    <string name="ending_plate_ring">Plate Ring</string>
+    <string name="ending_plate_lanyard">Plate Lanyard</string>
+    <string name="ending_plate_carabiner">Plate Carabiner</string>
+    <string name="ending_chain_ring">Chain Ring</string>
+    <string name="ending_chain_carabiner">Chain Carabiner</string>
+    <string name="ending_piton">Piton</string>
+    <string name="ending_lanyard">Lanyard</string>
+    <string name="ending_walking">Walking</string>
+    <string name="ending_rappel">Rappel</string>
 
     <string name="icon_label_default">Default</string>
     <string name="icon_label_parking">Parking</string>

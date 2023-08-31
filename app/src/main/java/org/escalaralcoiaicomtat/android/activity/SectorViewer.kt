@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -35,6 +34,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
@@ -53,6 +53,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
@@ -79,7 +80,10 @@ import kotlinx.coroutines.withContext
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.activity.creation.CreatorActivity
+import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
@@ -118,6 +122,8 @@ class SectorViewer : AppCompatActivity() {
     }
 
     private val viewModel: Model by viewModels()
+
+    private val newPathLauncher = registerForActivityResult(NewPathActivity.Contract) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -191,38 +197,60 @@ class SectorViewer : AppCompatActivity() {
 
             Scaffold(
                 topBar = {
-                    AnimatedVisibility(visible = sector != null) {
-                        TopAppBar(
-                            title = { Text(sector?.displayName ?: "") },
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = {
-                                        setResult(Activity.RESULT_CANCELED)
-                                        finish()
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.ChevronLeft,
-                                        stringResource(R.string.action_back)
-                                    )
-                                }
-                            },
-                            actions = {
-                                IconButton(
-                                    onClick = { showingFiltersModal = true }
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.FilterList,
-                                        stringResource(R.string.action_filter),
-                                        tint = if (filters.isEmpty()) {
-                                            MaterialTheme.colorScheme.onSurface
-                                        } else {
-                                            MaterialTheme.colorScheme.primary
+                    val apiKey by Preferences.getApiKey(this).collectAsState(initial = null)
+
+                    AnimatedContent(
+                        targetState = sector,
+                        label = "action-bar-visibility"
+                    ) { sector ->
+                        if (sector != null) {
+                            TopAppBar(
+                                title = { Text(sector.displayName) },
+                                navigationIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            setResult(Activity.RESULT_CANCELED)
+                                            finish()
                                         }
-                                    )
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.ChevronLeft,
+                                            stringResource(R.string.action_back)
+                                        )
+                                    }
+                                },
+                                actions = {
+                                    if (apiKey != null) {
+                                        IconButton(
+                                            onClick = {
+                                                newPathLauncher.launch(
+                                                    CreatorActivity.Input(sector)
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Rounded.Add,
+                                                stringResource(R.string.action_create)
+                                            )
+                                        }
+                                    }
+
+                                    IconButton(
+                                        onClick = { showingFiltersModal = true }
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.FilterList,
+                                            stringResource(R.string.action_filter),
+                                            tint = if (filters.isEmpty()) {
+                                                MaterialTheme.colorScheme.onSurface
+                                            } else {
+                                                MaterialTheme.colorScheme.primary
+                                            }
+                                        )
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             ) { paddingValues ->
