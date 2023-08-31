@@ -14,6 +14,8 @@
 
     <string name="state_calculating">Calculating…</string>
 
+    <string name="search">Search…</string>
+
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
     <string name="item_settings">Settings</string>
@@ -45,6 +47,8 @@
     <string name="new_zone_title">Create New Zone</string>
     <string name="new_sector_title">Create New Sector</string>
     <string name="new_path_title">Create New Path</string>
+
+    <string name="new_element_choose_title">Choose a parent</string>
 
     <string name="creation_step_compressing">Compressing image…</string>
     <string name="creation_step_uploading">Uploading… %f %</string>

@@ -27,6 +27,7 @@ import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
 import java.time.Instant
+import kotlin.reflect.KClass
 
 class MainViewModel(
     application: Application,
@@ -43,6 +44,9 @@ class MainViewModel(
     val selection: LiveData<DataEntity?> get() = _selection
 
     private val _currentDestination = MutableLiveData<NavDestination>()
+
+    val creationOptionsList = MutableLiveData<List<DataEntity>>()
+    val pendingCreateOperation = MutableLiveData<(DataEntity) -> Unit>()
 
     val selectionWithCurrentDestination = MediatorLiveData<Pair<DataEntity?, NavDestination?>>().apply {
         addSource(_selection) {
@@ -81,7 +85,6 @@ class MainViewModel(
     }
 
     fun navigate(target: DataEntity?) {
-        val navController = navController ?: return
         val currentEntry = navController.currentBackStackEntry
         val currentEntryArgs = currentEntry?.arguments
 
@@ -125,6 +128,36 @@ class MainViewModel(
             }
         // Update the database entries
         dao.update(*updatedSectors.toTypedArray())
+    }
+
+    /**
+     * Updates [creationOptionsList] with the desired options to select the parent to create a new
+     * child from.
+     *
+     * Once loaded, will set the value of [creationOptionsList] to a list of all the elements
+     * stored in the database with type [type].
+     *
+     * @param type The parent element type of the new element.
+     *
+     * @throws IllegalArgumentException When [type] is not valid.
+     */
+    fun <T: DataEntity> createChooser(type: KClass<T>, operation: (T) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+        val list = when(type) {
+            Area::class -> dao.getAllAreas()
+            Zone::class -> dao.getAllZones()
+            Sector::class -> dao.getAllSectors()
+            else -> throw IllegalArgumentException("Could not select as parent ${type.simpleName}")
+        }
+        pendingCreateOperation.postValue {
+            @Suppress("UNCHECKED_CAST")
+            operation(it as T)
+        }
+        creationOptionsList.postValue(list)
+    }
+
+    fun dismissChooser() {
+        pendingCreateOperation.postValue(null)
+        creationOptionsList.postValue(null)
     }
 
     companion object {

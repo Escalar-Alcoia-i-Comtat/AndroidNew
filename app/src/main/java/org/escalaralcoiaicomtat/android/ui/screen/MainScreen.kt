@@ -12,11 +12,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -28,12 +31,17 @@ import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -181,6 +189,53 @@ fun MainScreen(
         )
     }
 
+    val creationOptionsList by viewModel.creationOptionsList.observeAsState()
+    creationOptionsList?.let { list ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissChooser,
+            title = { Text(text = stringResource(R.string.new_element_choose_title)) },
+            text = {
+                Column {
+                    var search by remember { mutableStateOf("") }
+
+                    OutlinedTextField(
+                        value = search,
+                        onValueChange = { search = it },
+                        label = { Text(stringResource(R.string.search)) },
+                        leadingIcon = {
+                            Icon(Icons.Rounded.Search, stringResource(R.string.search))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(
+                            items = list.filter { it.displayName.contains(search, true) },
+                            key = { it.id },
+                            contentType = { it::class.simpleName }
+                        ) { data ->
+                            ListItem(
+                                headlineContent = { Text(data.displayName) },
+                                modifier = Modifier.clickable {
+                                    viewModel.pendingCreateOperation.value?.invoke(data)
+                                }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = viewModel::dismissChooser
+                ) {
+                    Text(stringResource(R.string.action_close))
+                }
+            }
+        )
+    }
+
     NavigationScaffold(
         items = listOf(
             Routes.NavigationHome,
@@ -290,19 +345,25 @@ fun MainScreen(
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.LocationCity,
                             text = stringResource(R.string.new_area_title)
-                        ) { /* todo */ },
+                        ) { onCreateArea() },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
-                        ) { /* todo */ },
+                        ) {
+                            viewModel.createChooser(Area::class, onCreateZone)
+                        },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
-                        ) { /* todo */ },
+                        ) {
+                            viewModel.createChooser(Zone::class, onCreateSector)
+                        },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
-                        ) { /* todo */ }
+                        ) {
+                            viewModel.createChooser(Sector::class, onCreatePath)
+                        }
                     ),
                     toggled = toggled,
                     onToggle = { toggled = !toggled }
@@ -324,16 +385,16 @@ fun MainScreen(
                     (
                         // Going from Area to Zone
                         (initialZoneId == null && targetZoneId != null) ||
-                        // Going from root to Area
-                        (initialAreaId == null && targetAreaId != null)
-                    ) -> slideInHorizontally { it } to slideOutHorizontally { -it }
+                            // Going from root to Area
+                            (initialAreaId == null && targetAreaId != null)
+                        ) -> slideInHorizontally { it } to slideOutHorizontally { -it }
 
                     (
                         // Going from Zone to Area
                         (initialZoneId != null && targetZoneId == null) ||
-                        // Going from Area to root
-                        (initialAreaId != null && targetAreaId == null)
-                    ) -> slideInHorizontally { -it } to slideOutHorizontally { it }
+                            // Going from Area to root
+                            (initialAreaId != null && targetAreaId == null)
+                        ) -> slideInHorizontally { -it } to slideOutHorizontally { it }
 
                     else -> null
                 }
