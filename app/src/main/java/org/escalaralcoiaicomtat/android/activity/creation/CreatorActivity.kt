@@ -73,6 +73,7 @@ import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
 import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
+import org.escalaralcoiaicomtat.android.utils.letIf
 import org.escalaralcoiaicomtat.android.utils.toMap
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
@@ -141,6 +142,8 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
             }
         }
 
+    protected open val isScrollable: Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -183,7 +186,7 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
                             modifier = Modifier
                                 .widthIn(max = 1000.dp)
                                 .fillMaxSize()
-                                .verticalScroll(rememberScrollState()),
+                                .letIf(isScrollable) { it.verticalScroll(rememberScrollState()) },
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Content()
