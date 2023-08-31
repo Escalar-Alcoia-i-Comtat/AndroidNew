@@ -68,6 +68,8 @@
     <string name="form_height">Height</string>
     <string name="form_grade">Grade</string>
     <string name="form_ending">Ending</string>
+    <string name="form_ending_info">Info</string>
+    <string name="form_ending_inclination">Inclination</string>
     <string name="form_string_count">Quickdraw Count</string>
     <string name="form_count_title">Safes Count</string>
     <string name="form_count_unknown">Unknown amount</string>
@@ -89,6 +91,14 @@
     <string name="ending_lanyard">Lanyard</string>
     <string name="ending_walking">Walking</string>
     <string name="ending_rappel">Rappel</string>
+
+    <string name="ending_info_rappel">Rappel</string>
+    <string name="ending_info_equipped">Equipped</string>
+    <string name="ending_info_clean">Clean</string>
+
+    <string name="ending_inclination_vertical">Vertical</string>
+    <string name="ending_inclination_diagonal">Diagonal</string>
+    <string name="ending_inclination_horizontal">Horizontal</string>
 
     <string name="icon_label_default">Default</string>
     <string name="icon_label_parking">Parking</string>
