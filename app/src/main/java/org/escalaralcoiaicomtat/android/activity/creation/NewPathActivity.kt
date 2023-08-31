@@ -191,7 +191,8 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
                             } else {
                                 onValueChange(null)
                             }
-                        }
+                        },
+                        modifier = Modifier.tooltipAnchor()
                     )
                 }
             },
