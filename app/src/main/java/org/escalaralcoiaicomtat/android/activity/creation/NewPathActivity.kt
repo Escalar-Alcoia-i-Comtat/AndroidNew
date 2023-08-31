@@ -272,6 +272,10 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         }
 
         PitchesEditor(pitches)
+
+        // TODO: builder
+        // TODO: re-builders
+        // TODO: description & showDescription
     }
 
     @Composable
@@ -675,6 +679,8 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
             append("displayName", displayName.value!!)
             append("sketchId", sketchId.value!!)
+
+            // todo - missing fields
         }
 
         @UiThread
