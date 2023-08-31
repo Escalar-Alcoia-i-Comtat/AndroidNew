@@ -78,7 +78,15 @@ fun <T : Any> FormDropdown(
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(toString(option)) },
+                    text = {
+                        Text(
+                            text = toString(option),
+                            color = if (selection == option)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
+                        )
+                    },
                     onClick = {
                         onSelectionChanged(option)
                         expanded = false
