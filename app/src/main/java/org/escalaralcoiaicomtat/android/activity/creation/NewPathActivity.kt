@@ -4,15 +4,26 @@ import android.app.Application
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,17 +35,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import io.ktor.client.request.forms.FormBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.files.LocalFile
+import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
@@ -55,14 +71,54 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         Model.Factory(parentId!!, ::onBack)
     }
 
+    override val isScrollable: Boolean = false
+
     @Composable
     override fun ColumnScope.Content() {
         val sector by model.sector.observeAsState()
 
-        sector?.let { Editor(it) } ?: Box(
+        sector?.let { SplitView(it) } ?: Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) { CircularProgressIndicator() }
+    }
+
+    @Composable
+    fun SplitView(sector: Sector) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val progress by model.sectorImageProgress.observeAsState()
+            val image by model.sectorImage.observeAsState()
+
+            image?.let {
+                AsyncImage(
+                    model = ImageRequest.Builder(this@NewPathActivity)
+                        .file(it)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = sector.displayName,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                )
+            } ?: run {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    progress?.let { CircularProgressIndicator(it) } ?: CircularProgressIndicator()
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Editor(sector)
+            }
+        }
     }
 
     @Composable
@@ -159,11 +215,21 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             valueAssertion = ValueAssertion.NUMBER
         )
 
-        CountField(paraboltCount, model.paraboltCount::setValue, R.string.safe_type_parabolt)
-        CountField(burilCount, model.burilCount::setValue, R.string.safe_type_buril)
-        CountField(pitonCount, model.pitonCount::setValue, R.string.safe_type_piton)
-        CountField(spitCount, model.spitCount::setValue, R.string.safe_type_spit)
-        CountField(tensorCount, model.tensorCount::setValue, R.string.safe_type_tensor)
+        OutlinedCard {
+            Text(
+                text = stringResource(R.string.form_count_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+
+            CountField(paraboltCount, model.paraboltCount::setValue, R.string.safe_type_parabolt)
+            CountField(burilCount, model.burilCount::setValue, R.string.safe_type_buril)
+            CountField(pitonCount, model.pitonCount::setValue, R.string.safe_type_piton)
+            CountField(spitCount, model.spitCount::setValue, R.string.safe_type_spit)
+            CountField(tensorCount, model.tensorCount::setValue, R.string.safe_type_tensor)
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 
     @Composable
@@ -177,7 +243,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             value = count.takeIf { isKnown },
             onValueChange = { onValueChange(it.takeIf { it.isNotBlank() }) },
             label = stringResource(label),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
             enabled = isKnown,
             keyboardType = KeyboardType.Number,
             valueAssertion = ValueAssertion.NUMBER,
@@ -235,10 +301,20 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
                         (paths.paths.maxOf { it.sketchId } + 1).toString()
                     )
                 }
+
+                // Load sector image
+                sector.fetchImage(application, null) { c, m ->
+                    sectorImageProgress.postValue(m.toFloat() / c)
+                }.collect {
+                    sectorImage.postValue(it)
+                }
             }
         }
 
         val sector = MutableLiveData<Sector>()
+
+        val sectorImage = MutableLiveData<LocalFile>()
+        val sectorImageProgress = MutableLiveData<Float>()
 
         override val creatorEndpoint: String = "path"
 

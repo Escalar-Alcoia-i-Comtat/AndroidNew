@@ -69,6 +69,7 @@
     <string name="form_grade">Grade</string>
     <string name="form_ending">Ending</string>
     <string name="form_string_count">Quickdraw Count</string>
+    <string name="form_count_title">Safes Count</string>
     <string name="form_count_unknown">Unknown amount</string>
     <string name="form_count_unknown_support">Toggle box for setting unknown amount.</string>
 
