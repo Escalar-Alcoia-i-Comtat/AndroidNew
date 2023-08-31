@@ -38,7 +38,6 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -235,6 +234,7 @@ class SectorViewer : AppCompatActivity() {
                                         }
                                     }
 
+                                    /* todo - filter
                                     IconButton(
                                         onClick = { showingFiltersModal = true }
                                     ) {
@@ -247,7 +247,7 @@ class SectorViewer : AppCompatActivity() {
                                                 MaterialTheme.colorScheme.primary
                                             }
                                         )
-                                    }
+                                    }*/
                                 }
                             )
                         }
