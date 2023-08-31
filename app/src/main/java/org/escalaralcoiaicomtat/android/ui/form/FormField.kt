@@ -22,7 +22,7 @@ import org.escalaralcoiaicomtat.android.utils.letIfNotNull
 fun FormField(
     value: String?,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String?,
     modifier: Modifier = Modifier,
     maxLines: Int = 1,
     enabled: Boolean = true,
@@ -52,7 +52,7 @@ fun FormField(
     OutlinedTextField(
         value = value ?: "",
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { if (label != null) Text(label) },
         modifier = modifier
             .letIfNotNull(thisFocusRequester, Modifier::focusRequester),
         keyboardOptions = KeyboardOptions(

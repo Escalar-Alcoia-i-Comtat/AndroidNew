@@ -24,7 +24,7 @@ fun <T : Any> FormDropdown(
     selection: T?,
     onSelectionChanged: (T) -> Unit,
     options: List<T>,
-    label: String,
+    label: String?,
     modifier: Modifier = Modifier,
     toString: @Composable (T) -> String = { it.toString() }
 ) {
@@ -33,9 +33,13 @@ fun <T : Any> FormDropdown(
     val foregroundColor = if (expanded)
         MaterialTheme.colorScheme.primary
     else
-        MaterialTheme.colorScheme.onSurface
+        MaterialTheme.colorScheme.onSurface.copy(alpha = .8f)
 
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
+    ) {
         OutlinedTextField(
             value = selection?.let { toString(it) } ?: "",
             onValueChange = { },
@@ -52,7 +56,7 @@ fun <T : Any> FormDropdown(
                 disabledTextColor = foregroundColor,
                 disabledTrailingIconColor = foregroundColor,
             ),
-            label = { Text(label) },
+            label = { if (label != null) Text(label) },
             interactionSource = remember { MutableInteractionSource() }
                 .also { interactionSource ->
                     LaunchedEffect(interactionSource) {
@@ -66,7 +70,9 @@ fun <T : Any> FormDropdown(
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
             },
-            modifier = modifier.menuAnchor()
+            modifier = modifier.menuAnchor(),
+            maxLines = 1,
+            singleLine = true
         )
 
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
