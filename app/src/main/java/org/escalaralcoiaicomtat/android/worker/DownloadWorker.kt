@@ -53,7 +53,7 @@ class DownloadWorker(appContext: Context, workerParams: WorkerParameters) :
             context: Context,
             remoteFileInfo: RemoteFileInfo,
             imageWidth: Int?,
-            progress: suspend (current: Int, max: Int) -> Unit
+            progress: (suspend (current: Int, max: Int) -> Unit)?
         ): LocalFile {
             val workManager = WorkManager.getInstance(context)
 
@@ -126,7 +126,7 @@ class DownloadWorker(appContext: Context, workerParams: WorkerParameters) :
                             info.state.isFinished.toString()
                         )
 
-                        progress(current, maximum)
+                        progress?.invoke(current, maximum)
                     } else {
                         Timber.d("Work updated (count=${list.size}). Finished: ${info.state.isFinished}")
                     }

@@ -62,7 +62,7 @@ abstract class DataEntity : BaseEntity() {
     suspend fun fetchImage(
         context: Context,
         imageWidth: Int?,
-        progress: suspend (current: Int, max: Int) -> Unit
+        progress: (suspend (current: Int, max: Int) -> Unit)?
     ): Flow<LocalFile> = channelFlow {
         val local = fetchLocalImageInfo(context)
         if (local != null) {
