@@ -231,8 +231,7 @@ class NewZoneActivity : CreatorActivity<NewZoneActivity.Model>(R.string.new_zone
                         ) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.action_remove))
                         }
-                    },
-                    modifier = Modifier.animateItemPlacement()
+                    }
                 )
             }
         )
