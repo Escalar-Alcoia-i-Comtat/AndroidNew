@@ -212,7 +212,7 @@ class NewZoneActivity : CreatorActivity<NewZoneActivity.Model>(R.string.new_zone
                     Icon(Icons.Rounded.Add, stringResource(R.string.action_add))
                 }
             },
-            rowContent = { point ->
+            rowContent = { _, point ->
                 ListItem(
                     leadingContent = {
                         PointOptions.valueOf(point.icon)?.let { pointData ->

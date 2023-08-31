@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.ui.form
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,7 +8,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Divider
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,23 +20,50 @@ import androidx.compose.ui.unit.dp
 fun <T: Any> FormListCreator(
     list: List<T>,
     inputContent: @Composable RowScope.() -> Unit,
-    rowContent: @Composable LazyItemScope.(item: T) -> Unit,
-    modifier: Modifier = Modifier
+    rowContent: @Composable LazyItemScope.(index: Int, item: T) -> Unit,
+    modifier: Modifier = Modifier,
+    inputHeadline: (@Composable RowScope.() -> Unit)? = null,
+    rowHeadline: (@Composable RowScope.() -> Unit)? = null
 ) {
     OutlinedCard(modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
         ) {
-            inputContent()
+            if (inputHeadline != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    inputHeadline()
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                inputContent()
+            }
         }
+        Divider()
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 200.dp)
                 .padding(bottom = 8.dp)
         ) {
-            items(list, itemContent = rowContent)
+            if (rowHeadline != null) {
+                item(key = "headline") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        rowHeadline()
+                    }
+                }
+            }
+            itemsIndexed(list, itemContent = rowContent)
         }
     }
 }
