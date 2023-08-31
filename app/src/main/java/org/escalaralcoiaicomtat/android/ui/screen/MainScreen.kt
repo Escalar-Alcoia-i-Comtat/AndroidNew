@@ -21,7 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocationCity
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.PinDrop
+import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +36,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -55,12 +61,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
+import org.escalaralcoiaicomtat.android.ui.reusable.ActionsFloatingActionButton
+import org.escalaralcoiaicomtat.android.ui.reusable.FloatingActionButtonAction
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem.ILabel
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationScaffold
@@ -135,6 +144,8 @@ fun MainScreen(
         null to null
     )
     val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
+
+    val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
 
     var backProgress by remember { mutableStateOf<Float?>(null) }
 
@@ -268,6 +279,35 @@ fun MainScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (apiKey != null) {
+                var toggled by remember { mutableStateOf(false) }
+
+                ActionsFloatingActionButton(
+                    icon = Icons.Rounded.Add,
+                    actions = listOf(
+                        FloatingActionButtonAction(
+                            icon = Icons.Outlined.LocationCity,
+                            text = stringResource(R.string.new_area_title)
+                        ) { /* todo */ },
+                        FloatingActionButtonAction(
+                            icon = Icons.Outlined.Map,
+                            text = stringResource(R.string.new_zone_title)
+                        ) { /* todo */ },
+                        FloatingActionButtonAction(
+                            icon = Icons.Outlined.PinDrop,
+                            text = stringResource(R.string.new_sector_title)
+                        ) { /* todo */ },
+                        FloatingActionButtonAction(
+                            icon = Icons.Outlined.Route,
+                            text = stringResource(R.string.new_path_title)
+                        ) { /* todo */ }
+                    ),
+                    toggled = toggled,
+                    onToggle = { toggled = !toggled }
+                )
+            }
         },
         pageTransition = {
             if (
