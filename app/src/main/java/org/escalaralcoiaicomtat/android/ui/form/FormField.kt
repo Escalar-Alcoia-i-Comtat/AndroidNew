@@ -49,10 +49,16 @@ fun FormField(
         }
     }
 
+    val supportingTextValue = when {
+        isError && valueAssertion.errorString != null -> stringResource(valueAssertion.errorString)
+        supportingText != null -> supportingText
+        else -> null
+    }
+
     OutlinedTextField(
         value = value ?: "",
         onValueChange = onValueChange,
-        label = { if (label != null) Text(label) },
+        label = label?.let { { Text(it) } },
         modifier = modifier
             .letIfNotNull(thisFocusRequester, Modifier::focusRequester),
         keyboardOptions = KeyboardOptions(
@@ -77,12 +83,6 @@ fun FormField(
         leadingIcon = leadingContent,
         trailingIcon = trailingContent,
         isError = isError,
-        supportingText = {
-            if (isError && valueAssertion.errorString != null) {
-                Text(text = stringResource(valueAssertion.errorString))
-            } else if (supportingText != null) {
-                Text(text = supportingText)
-            }
-        }
+        supportingText = supportingTextValue?.let { { Text(it) } }
     )
 }

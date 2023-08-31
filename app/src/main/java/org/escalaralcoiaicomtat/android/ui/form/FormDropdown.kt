@@ -56,7 +56,7 @@ fun <T : Any> FormDropdown(
                 disabledTextColor = foregroundColor,
                 disabledTrailingIconColor = foregroundColor,
             ),
-            label = { if (label != null) Text(label) },
+            label = label?.let { { Text(it) } },
             interactionSource = remember { MutableInteractionSource() }
                 .also { interactionSource ->
                     LaunchedEffect(interactionSource) {
