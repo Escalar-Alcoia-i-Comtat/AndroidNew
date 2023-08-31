@@ -65,6 +65,7 @@
     <string name="form_kids_apt">Kids Apt</string>
     <string name="form_walking_time">Walking Time</string>
     <string name="form_sketch_id">Sketch ID</string>
+    <string name="form_sketch_id_short">ID</string>
     <string name="form_height">Height</string>
     <string name="form_grade">Grade</string>
     <string name="form_ending">Ending</string>
@@ -74,6 +75,7 @@
     <string name="form_count_title">Safes Count</string>
     <string name="form_count_unknown">Unknown amount</string>
     <string name="form_count_unknown_support">Toggle box for setting unknown amount.</string>
+    <string name="form_pitches_title">Pitches Information</string>
 
     <string name="sun_time_none">None</string>
     <string name="sun_time_morning">Morning</string>

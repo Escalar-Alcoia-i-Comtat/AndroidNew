@@ -3,6 +3,8 @@ package org.escalaralcoiaicomtat.android.activity.creation
 import android.app.Application
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
+import androidx.annotation.UiThread
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -17,11 +19,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.SupervisorAccount
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltipBox
@@ -29,12 +34,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -47,21 +60,30 @@ import coil.request.ImageRequest
 import io.ktor.client.request.forms.FormBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
+import org.burnoutcrew.reorderable.ItemPosition
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
+import org.escalaralcoiaicomtat.android.storage.type.ArtificialGrade
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
+import org.escalaralcoiaicomtat.android.storage.type.EndingInclination
+import org.escalaralcoiaicomtat.android.storage.type.EndingInfo
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
+import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.ui.form.FormDropdown
 import org.escalaralcoiaicomtat.android.ui.form.FormField
+import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
 import timber.log.Timber
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path_title) {
     object Contract : ResultContract<NewPathActivity>(NewPathActivity::class)
 
@@ -72,6 +94,8 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
     }
 
     override val isScrollable: Boolean = false
+
+    override val maxWidth: Int = 1200
 
     @Composable
     override fun ColumnScope.Content() {
@@ -92,16 +116,24 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             val image by model.sectorImage.observeAsState()
 
             image?.let {
-                AsyncImage(
-                    model = ImageRequest.Builder(this@NewPathActivity)
-                        .file(it)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = sector.displayName,
+                Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
-                )
+                        .clipToBounds()
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(this@NewPathActivity)
+                            .file(it)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = sector.displayName,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zoomable(rememberZoomState()),
+                        contentScale = ContentScale.Inside
+                    )
+                }
             } ?: run {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     progress?.let { CircularProgressIndicator(it) } ?: CircularProgressIndicator()
@@ -113,7 +145,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f)
+                    .weight(2f)
                     .verticalScroll(rememberScrollState())
             ) {
                 Editor(sector)
@@ -123,12 +155,16 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
     @Composable
     fun Editor(sector: Sector) {
+        val localDensity = LocalDensity.current
+
         val displayName by model.displayName.observeAsState()
         val sketchId by model.sketchId.observeAsState()
 
         val height by model.height.observeAsState()
         val grade by model.grade.observeAsState()
         val ending by model.ending.observeAsState()
+
+        val pitches = model.pitches
 
         val stringCount by model.stringCount.observeAsState()
         val paraboltCount by model.paraboltCount.observeAsState()
@@ -215,11 +251,17 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             valueAssertion = ValueAssertion.NUMBER
         )
 
-        OutlinedCard {
+        OutlinedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
             Text(
                 text = stringResource(R.string.form_count_title),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             )
 
             CountField(paraboltCount, model.paraboltCount::setValue, R.string.safe_type_parabolt)
@@ -230,6 +272,271 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+
+        var addButtonWidth by remember { mutableStateOf(0.dp) }
+        var deleteButtonWidth by remember { mutableStateOf(0.dp) }
+
+        FormListCreator(
+            list = pitches,
+            reorderableState = { state ->
+                rememberReorderableLazyListState(
+                    listState = state,
+                    onMove = model::movePitch
+                )
+            },
+            title = stringResource(R.string.form_pitches_title),
+            inputHeadline = {
+                Text(
+                    text = stringResource(R.string.form_grade),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_height),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending_info),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending_inclination),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = "",
+                    modifier = Modifier.width(addButtonWidth)
+                )
+            },
+            inputContent = {
+                var pitchGrade by remember { mutableStateOf<GradeValue?>(null) }
+                var pitchHeight by remember { mutableStateOf<String?>(null) }
+                var pitchEnding by remember { mutableStateOf<Ending?>(null) }
+                var pitchEndingInfo by remember { mutableStateOf<EndingInfo?>(null) }
+                var pitchEndingInclination by remember { mutableStateOf<EndingInclination?>(null) }
+
+                FormDropdown(
+                    selection = pitchGrade,
+                    onSelectionChanged = { value ->
+                        pitchGrade = value.takeUnless { pitchGrade == it }
+                    },
+                    options = listOf(
+                        *SportsGrade.entries.toTypedArray(),
+                        *ArtificialGrade.entries.toTypedArray()
+                    ),
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { it.displayName }
+
+                FormField(
+                    value = pitchHeight,
+                    onValueChange = { pitchHeight = it.takeIf { it.isNotBlank() } },
+                    label = null,
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Number,
+                    valueAssertion = ValueAssertion.NUMBER
+                )
+
+                FormDropdown(
+                    selection = pitchEnding,
+                    onSelectionChanged = { value ->
+                        pitchEnding = value.takeUnless { pitchEnding == it }
+                    },
+                    options = Ending.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                FormDropdown(
+                    selection = pitchEndingInfo,
+                    onSelectionChanged = { value ->
+                        pitchEndingInfo = value.takeUnless { pitchEndingInfo == it }
+                    },
+                    options = EndingInfo.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                FormDropdown(
+                    selection = pitchEndingInclination,
+                    onSelectionChanged = { value ->
+                        pitchEndingInclination = value.takeUnless { pitchEndingInclination == it }
+                    },
+                    options = EndingInclination.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                IconButton(
+                    onClick = {
+                        val pitchInfo = PitchInfo(
+                            0U,
+                            pitchGrade,
+                            pitchHeight?.toUIntOrNull(),
+                            pitchEnding,
+                            pitchEndingInfo,
+                            pitchEndingInclination
+                        )
+                        model.pitches.add(pitchInfo)
+
+                        // Clear all fields
+                        pitchGrade = null
+                        pitchHeight = null
+                        pitchEnding = null
+                        pitchEndingInfo = null
+                        pitchEndingInclination = null
+                    },
+                    enabled = pitchGrade != null ||
+                        (pitchHeight != null && pitchHeight?.toUIntOrNull() != null) ||
+                        pitchEnding != null ||
+                        pitchEndingInfo != null ||
+                        pitchEndingInclination != null,
+                    modifier = Modifier.onGloballyPositioned {
+                        addButtonWidth = with(localDensity) { it.size.width.toDp() }
+                    }
+                ) {
+                    Icon(Icons.Rounded.Add, stringResource(R.string.action_add))
+                }
+            },
+            rowHeadline = {
+                Text(
+                    text = stringResource(R.string.form_sketch_id_short),
+                    modifier = Modifier.width(32.dp),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_grade),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_height),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending_info),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = stringResource(R.string.form_ending_inclination),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = "",
+                    modifier = Modifier.width(deleteButtonWidth)
+                )
+            },
+            rowContent = { index, item ->
+                Text(
+                    text = (index + 1).toString(),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.width(32.dp),
+                    textAlign = TextAlign.Center
+                )
+
+                FormDropdown(
+                    selection = item.gradeValue,
+                    onSelectionChanged = { value ->
+                        model.modifyPitch(
+                            index,
+                            value,
+                            { it.gradeValue },
+                            { i, v -> i.copy(gradeValue = v) })
+                    },
+                    options = listOf(
+                        *SportsGrade.entries.toTypedArray(),
+                        *ArtificialGrade.entries.toTypedArray()
+                    ),
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { it.displayName }
+
+                FormField(
+                    value = item.height?.toString(),
+                    onValueChange = { value ->
+                        val newValue = value.toUIntOrNull() ?: return@FormField
+                        model.modifyPitch(
+                            index,
+                            newValue,
+                            { it.height },
+                            { i, v -> i.copy(height = v) })
+                    },
+                    label = null,
+                    modifier = Modifier.weight(1f),
+                    keyboardType = KeyboardType.Number,
+                    valueAssertion = ValueAssertion.NUMBER
+                )
+
+                FormDropdown(
+                    selection = item.ending,
+                    onSelectionChanged = { value ->
+                        model.modifyPitch(
+                            index,
+                            value,
+                            { it.ending },
+                            { i, v -> i.copy(ending = v) })
+                    },
+                    options = Ending.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                FormDropdown(
+                    selection = item.info,
+                    onSelectionChanged = { value ->
+                        model.modifyPitch(
+                            index,
+                            value,
+                            { it.info },
+                            { i, v -> i.copy(info = v) })
+                    },
+                    options = EndingInfo.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                FormDropdown(
+                    selection = item.inclination,
+                    onSelectionChanged = { value ->
+                        model.modifyPitch(
+                            index,
+                            value,
+                            { it.inclination },
+                            { i, v -> i.copy(inclination = v) })
+                    },
+                    options = EndingInclination.entries,
+                    label = null,
+                    modifier = Modifier.weight(1f)
+                ) { stringResource(it.displayName) }
+
+                IconButton(
+                    onClick = {
+                        model.pitches.removeAt(index)
+                    },
+                    modifier = Modifier.onGloballyPositioned {
+                        deleteButtonWidth = with(localDensity) { it.size.width.toDp() }
+                    }
+                ) {
+                    Icon(Icons.Outlined.DeleteForever, stringResource(R.string.action_remove))
+                }
+            }
+        )
     }
 
     @Composable
@@ -243,7 +550,9 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             value = count.takeIf { isKnown },
             onValueChange = { onValueChange(it.takeIf { it.isNotBlank() }) },
             label = stringResource(label),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
             enabled = isKnown,
             keyboardType = KeyboardType.Number,
             valueAssertion = ValueAssertion.NUMBER,
@@ -325,7 +634,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         val grade = MutableLiveData<GradeValue>()
         val ending = MutableLiveData<Ending>()
 
-        // todo val pitches = MutableLiveData<Void>()
+        val pitches = mutableStateListOf<PitchInfo>()
 
         val stringCount = MutableLiveData<String>()
 
@@ -361,6 +670,32 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
             append("displayName", displayName.value!!)
             append("sketchId", sketchId.value!!)
+        }
+
+        @UiThread
+        fun <T> modifyPitch(
+            index: Int,
+            value: T,
+            property: (PitchInfo) -> T,
+            copy: (item: PitchInfo, value: T?) -> PitchInfo
+        ) {
+            val item = pitches.removeAt(index)
+            pitches.add(
+                index,
+                if (property(item) == value)
+                    copy(item, null)
+                else
+                    copy(item, value)
+            )
+        }
+
+        fun movePitch(from: ItemPosition, to: ItemPosition) {
+            try {
+                Timber.d("Moving pitch from ${from.index} to ${to.index}")
+                pitches.add(to.index, pitches.removeAt(from.index))
+            } catch (_: IndexOutOfBoundsException) {
+                Timber.w("Could not move pitch from ${from.index} to ${to.index}: Out of bounds")
+            }
         }
     }
 }

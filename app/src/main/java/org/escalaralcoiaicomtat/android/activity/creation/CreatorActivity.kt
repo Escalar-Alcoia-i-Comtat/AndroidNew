@@ -90,8 +90,6 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
     companion object {
         const val EXTRA_PARENT_ID: String = "parentId"
         const val EXTRA_PARENT_NAME: String = "parentName"
-
-        const val MAX_WIDTH: Int = 1200
     }
 
     data class Input(
@@ -146,6 +144,8 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
 
     protected open val isScrollable: Boolean = true
 
+    protected open val maxWidth: Int = 1000
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -186,7 +186,7 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
                     ) {
                         Column(
                             modifier = Modifier
-                                .widthIn(max = MAX_WIDTH.dp)
+                                .widthIn(max = maxWidth.dp)
                                 .fillMaxSize()
                                 .letIf(isScrollable) { it.verticalScroll(rememberScrollState()) },
                             horizontalAlignment = Alignment.CenterHorizontally
