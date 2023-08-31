@@ -155,8 +155,6 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
     @Composable
     fun Editor(sector: Sector) {
-        val localDensity = LocalDensity.current
-
         val displayName by model.displayName.observeAsState()
         val sketchId by model.sketchId.observeAsState()
 
@@ -272,6 +270,13 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
             Spacer(modifier = Modifier.height(8.dp))
         }
+
+        PitchesEditor(pitches)
+    }
+
+    @Composable
+    fun PitchesEditor(pitches: MutableList<PitchInfo>) {
+        val localDensity = LocalDensity.current
 
         var addButtonWidth by remember { mutableStateOf(0.dp) }
         var deleteButtonWidth by remember { mutableStateOf(0.dp) }
