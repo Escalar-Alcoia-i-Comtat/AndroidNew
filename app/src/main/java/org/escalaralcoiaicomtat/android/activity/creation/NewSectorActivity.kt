@@ -27,6 +27,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
 import org.escalaralcoiaicomtat.android.ui.form.FormCheckbox
@@ -37,14 +39,11 @@ import org.escalaralcoiaicomtat.android.ui.form.SizeMode
 import org.escalaralcoiaicomtat.android.utils.appendSerializable
 import timber.log.Timber
 
-class NewSectorActivity : CreatorActivity<NewSectorActivity.Model>(R.string.new_sector_title) {
+class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>(R.string.new_sector_title) {
 
     object Contract : ResultContract<NewSectorActivity>(NewSectorActivity::class)
 
-    private val parentName: String? by extras()
-    private val parentId: Long? by extras()
-
-    override val model: Model by viewModels { Model.Factory(parentId!!) }
+    override val model: Model by viewModels { Model.Factory(parentId!!, elementId, ::onBack) }
 
     @Composable
     override fun ColumnScope.Content() {
@@ -130,18 +129,26 @@ class NewSectorActivity : CreatorActivity<NewSectorActivity.Model>(R.string.new_
 
     class Model(
         application: Application,
-        private val zoneId: Long
-    ) : CreatorModel(application) {
+        zoneId: Long,
+        sectorId: Long?,
+        override val whenNotFound: suspend () -> Unit
+    ) : CreatorModel<Zone, Sector>(application, zoneId, sectorId) {
         companion object {
-            fun Factory(zoneId: Long): ViewModelProvider.Factory = viewModelFactory {
+            fun Factory(
+                zoneId: Long,
+                sectorId: Long?,
+                whenNotFound: () -> Unit
+            ): ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                    Model(application, zoneId)
+                    Model(application, zoneId, sectorId, whenNotFound)
                 }
             }
         }
 
         override val creatorEndpoint: String = "sector"
+
+        override val hasParent: Boolean = true
 
         val displayName = MutableLiveData("")
         val kidsApt = MutableLiveData(false)
@@ -165,8 +172,22 @@ class NewSectorActivity : CreatorActivity<NewSectorActivity.Model>(R.string.new_
             addSource(longitude) { value = checkRequirements() }
         }
 
+        override suspend fun fill(child: Sector) {
+            displayName.postValue(child.displayName)
+            kidsApt.postValue(child.kidsApt)
+            sunTime.postValue(child.sunTime)
+            walkingTime.postValue(child.walkingTime?.toString())
+            latitude.postValue(child.point?.latitude?.toString())
+            longitude.postValue(child.point?.longitude?.toString())
+            weight.postValue(child.weight)
+        }
+
+        override suspend fun fetchParent(parentId: Long): Zone? = dao.getZone(parentId)
+
+        override suspend fun fetchChild(childId: Long): Sector? = dao.getSector(childId)
+
         override fun FormBuilder.getFormData() {
-            Timber.i("Creating a new sector for zone #${zoneId.toInt()}")
+            Timber.i("Creating a new sector for zone #$parentId")
 
             append("displayName", displayName.value!!)
             appendSerializable("point", LatLng(latitude.value!!, longitude.value!!))
@@ -176,7 +197,7 @@ class NewSectorActivity : CreatorActivity<NewSectorActivity.Model>(R.string.new_
                 ?.takeIf { it.isNotBlank() }
                 ?.toLongOrNull()
                 ?.let { append("walkingTime", it) }
-            append("zone", zoneId)
+            append("zone", parentId!!)
         }
     }
 }

@@ -14,8 +14,10 @@ import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.creation.CreatorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewAreaActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
@@ -31,6 +33,8 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
+import org.escalaralcoiaicomtat.android.utils.toast
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
@@ -38,19 +42,55 @@ class MainActivity : AppCompatActivity() {
 
     private val newAreaRequestLauncher = registerForActivityResult(
         NewAreaActivity.Contract
-    ) { }
+    ) { throwable ->
+        when (throwable) {
+            null -> toast(R.string.creation_success)
+            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
+            else -> {
+                Timber.e(throwable, "Creation failed.")
+                toast(R.string.creation_error_toast)
+            }
+        }
+    }
 
     private val newZoneRequestLauncher = registerForActivityResult(
         NewZoneActivity.Contract
-    ) { }
+    ) { throwable ->
+        when (throwable) {
+            null -> toast(R.string.creation_success)
+            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
+            else -> {
+                Timber.e(throwable, "Creation failed.")
+                toast(R.string.creation_error_toast)
+            }
+        }
+    }
 
     private val newSectorRequestLauncher = registerForActivityResult(
         NewSectorActivity.Contract
-    ) { }
+    ) { throwable ->
+        when (throwable) {
+            null -> toast(R.string.creation_success)
+            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
+            else -> {
+                Timber.e(throwable, "Creation failed.")
+                toast(R.string.creation_error_toast)
+            }
+        }
+    }
 
     private val newPathRequestLauncher = registerForActivityResult(
         NewPathActivity.Contract
-    ) { }
+    ) { throwable ->
+        when (throwable) {
+            null -> toast(R.string.creation_success)
+            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
+            else -> {
+                Timber.e(throwable, "Creation failed.")
+                toast(R.string.creation_error_toast)
+            }
+        }
+    }
 
     private val sectorViewerRequestLauncher = registerForActivityResult(
         SectorViewer.Contract
@@ -72,17 +112,17 @@ class MainActivity : AppCompatActivity() {
                 onCreateArea = { newAreaRequestLauncher.launch(null) },
                 onCreateZone = {
                     newZoneRequestLauncher.launch(
-                        CreatorActivity.Input(it)
+                        CreatorActivity.Input.fromParent(it)
                     )
                 },
                 onCreateSector = {
                     newSectorRequestLauncher.launch(
-                        CreatorActivity.Input(it)
+                        CreatorActivity.Input.fromParent(it)
                     )
                 },
                 onCreatePath = {
                     newPathRequestLauncher.launch(
-                        CreatorActivity.Input(it)
+                        CreatorActivity.Input.fromParent(it)
                     )
                 },
                 onSectorView = {

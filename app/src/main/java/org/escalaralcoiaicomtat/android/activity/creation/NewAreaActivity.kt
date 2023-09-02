@@ -4,6 +4,9 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Build
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
@@ -21,21 +24,36 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
+import kotlinx.coroutines.CancellationException
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
+import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 
-class NewAreaActivity : CreatorActivity<NewAreaActivity.Model>(R.string.new_area_title) {
-    object Contract : ActivityResultContract<Void?, Boolean>() {
+class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>(R.string.new_area_title) {
+    object Contract : ActivityResultContract<Void?, Throwable?>() {
         override fun createIntent(context: Context, input: Void?): Intent =
             Intent(context, NewAreaActivity::class.java)
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Boolean =
-            resultCode == Activity.RESULT_OK
+        override fun parseResult(resultCode: Int, intent: Intent?): Throwable? =
+            when (resultCode) {
+                Activity.RESULT_OK -> null
+                Activity.RESULT_CANCELED -> CancellationException("User pressed back.")
+                else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                }
+            }
     }
 
-    override val model: Model by viewModels()
+    override val model: Model by viewModels { Model.Factory(elementId, ::onBack) }
 
     @Composable
     override fun ColumnScope.Content() {
@@ -67,8 +85,26 @@ class NewAreaActivity : CreatorActivity<NewAreaActivity.Model>(R.string.new_area
         }
     }
 
-    class Model(application: Application) : CreatorModel(application) {
+    class Model(
+        application: Application,
+        zoneId: Long?,
+        override val whenNotFound: suspend () -> Unit
+    ) : CreatorModel<BaseEntity, Zone>(application, null, zoneId) {
+        companion object {
+            fun Factory(
+                zoneId: Long?,
+                whenNotFound: () -> Unit
+            ): ViewModelProvider.Factory = viewModelFactory {
+                initializer {
+                    val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
+                    Model(application, zoneId, whenNotFound)
+                }
+            }
+        }
+
         override val creatorEndpoint: String = "area"
+
+        override val hasParent: Boolean = false
 
         val displayName = MutableLiveData("")
         val webUrl = MutableLiveData("")
@@ -78,6 +114,17 @@ class NewAreaActivity : CreatorActivity<NewAreaActivity.Model>(R.string.new_area
             addSource(webUrl) { value = it.isNotBlank() }
             addSource(image) { value = it != null }
         }
+
+        override suspend fun fill(child: Zone) {
+            displayName.postValue(child.displayName)
+            webUrl.postValue(child.webUrl.toString())
+            child.fetchImage(getApplication(), null, null).collect {
+                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
+                image.postValue(bitmap)
+            }
+        }
+
+        override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
 
         override fun FormBuilder.getFormData() {
             append("displayName", displayName.value!!)

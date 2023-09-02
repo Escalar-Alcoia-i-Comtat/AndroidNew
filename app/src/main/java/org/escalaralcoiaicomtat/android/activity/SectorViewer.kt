@@ -223,7 +223,7 @@ class SectorViewer : AppCompatActivity() {
                                         IconButton(
                                             onClick = {
                                                 newPathLauncher.launch(
-                                                    CreatorActivity.Input(sector)
+                                                    CreatorActivity.Input.fromParent(sector)
                                                 )
                                             }
                                         ) {

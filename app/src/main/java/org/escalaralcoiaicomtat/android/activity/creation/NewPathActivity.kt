@@ -65,7 +65,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
@@ -74,13 +73,12 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import io.ktor.client.request.forms.FormBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.burnoutcrew.reorderable.ItemPosition
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile
 import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
@@ -104,13 +102,11 @@ import org.escalaralcoiaicomtat.android.utils.appendULong
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path_title) {
+class NewPathActivity : CreatorActivity<Sector, Path, NewPathActivity.Model>(R.string.new_path_title) {
     object Contract : ResultContract<NewPathActivity>(NewPathActivity::class)
 
-    private val parentId: Long? by extras()
-
     override val model: Model by viewModels {
-        Model.Factory(parentId!!, ::onBack)
+        Model.Factory(parentId!!, elementId, ::onBack)
     }
 
     override val isScrollable: Boolean = false
@@ -119,7 +115,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
     @Composable
     override fun ColumnScope.Content() {
-        val sector by model.sector.observeAsState()
+        val sector by model.parent.observeAsState()
 
         sector?.let { SplitView(it) } ?: Box(
             modifier = Modifier.fillMaxSize(),
@@ -884,50 +880,23 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
     class Model(
         application: Application,
-        private val sectorId: Long,
-        whenSectorNotFound: () -> Unit
-    ) : CreatorModel(application) {
+        sectorId: Long,
+        pathId: Long?,
+        override val whenNotFound: suspend () -> Unit
+    ) : CreatorModel<Sector, Path>(application, sectorId, pathId) {
         companion object {
             fun Factory(
                 sectorId: Long,
+                pathId: Long?,
                 whenSectorNotFound: () -> Unit
             ): ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val application =
                         this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                    Model(application, sectorId, whenSectorNotFound)
+                    Model(application, sectorId, pathId, whenSectorNotFound)
                 }
             }
         }
-
-        init {
-            viewModelScope.launch(Dispatchers.IO) {
-                val sector = dao.getSector(sectorId)
-                if (sector == null) {
-                    Timber.e("Could not get a valid sector with id $sectorId")
-                    whenSectorNotFound()
-                    return@launch
-                }
-                this@Model.sector.postValue(sector)
-
-                // initialize sketchId as the last one of the sector's paths
-                val paths = dao.getPathsFromSector(sectorId)
-                if (paths != null) {
-                    this@Model.sketchId.postValue(
-                        (paths.paths.maxOf { it.sketchId } + 1).toString()
-                    )
-                }
-
-                // Load sector image
-                sector.fetchImage(application, null) { c, m ->
-                    sectorImageProgress.postValue(m.toFloat() / c)
-                }.collect {
-                    sectorImage.postValue(it)
-                }
-            }
-        }
-
-        val sector = MutableLiveData<Sector>()
 
         val sectorImage = MutableLiveData<LocalFile>()
         val sectorImageProgress = MutableLiveData<Float>()
@@ -964,6 +933,57 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         val builder = MutableLiveData<Builder>()
         val reBuilders = MutableLiveData<List<Builder>>()
 
+        override val hasParent: Boolean = true
+
+        override suspend fun init(parent: Sector) {
+            // initialize sketchId as the last one of the sector's paths
+            val paths = dao.getPathsFromSector(parent.id)
+            if (paths != null) {
+                this@Model.sketchId.postValue(
+                    (paths.paths.maxOf { it.sketchId } + 1).toString()
+                )
+            }
+
+            // Load sector image
+            parent.fetchImage(getApplication(), null) { c, m ->
+                sectorImageProgress.postValue(m.toFloat() / c)
+            }.collect {
+                sectorImage.postValue(it)
+            }
+        }
+
+        override suspend fun fill(child: Path) {
+            displayName.postValue(child.displayName)
+            sketchId.postValue(child.sketchId.toString())
+
+            height.postValue(child.height?.toString())
+            grade.postValue(child.grade)
+            ending.postValue(child.ending)
+
+            child.pitches?.let(pitches::addAll)
+
+            stringCount.postValue(child.stringCount?.toString())
+
+            paraboltCount.postValue(child.paraboltCount?.toString())
+            burilCount.postValue(child.burilCount?.toString())
+            pitonCount.postValue(child.pitonCount?.toString())
+            spitCount.postValue(child.spitCount?.toString())
+            tensorCount.postValue(child.tensorCount?.toString())
+
+            crackerRequired.postValue(child.crackerRequired)
+            friendRequired.postValue(child.friendRequired)
+            lanyardRequired.postValue(child.lanyardRequired)
+            nailRequired.postValue(child.nailRequired)
+            pitonRequired.postValue(child.pitonRequired)
+            stapesRequired.postValue(child.stapesRequired)
+
+            showDescription.postValue(child.showDescription)
+            description.postValue(child.description)
+
+            builder.postValue(child.builder)
+            reBuilders.postValue(child.reBuilder)
+        }
+
         private fun checkRequirements(): Boolean {
             return displayName.value != null && sketchId.value != null
         }
@@ -973,8 +993,12 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             addSource(sketchId) { value = checkRequirements() }
         }
 
+        override suspend fun fetchParent(parentId: Long): Sector? = dao.getSector(parentId)
+
+        override suspend fun fetchChild(childId: Long): Path? = dao.getPath(childId)
+
         override fun FormBuilder.getFormData() {
-            Timber.i("Creating a new path for sector #${sectorId}")
+            Timber.i("Creating a new path for sector #$parentId")
 
             append("displayName", displayName.value!!)
             append("sketchId", sketchId.value!!)
@@ -1005,6 +1029,8 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
             builder.value?.let { appendSerializable("builder", it) }
             reBuilders.value?.let { appendSerializableList("reBuilders", it) }
+
+            append("sector", parentId!!)
         }
 
         @UiThread

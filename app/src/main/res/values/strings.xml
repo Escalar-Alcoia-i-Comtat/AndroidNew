@@ -55,6 +55,8 @@
     <string name="creation_step_uploading">Uploading… %f %</string>
     <string name="creation_step_finishing">Finishing…</string>
     <string name="creation_error_toast">Could not create. Check logcat</string>
+    <string name="creation_error_cancelled_toast">Creation Cancelled</string>
+    <string name="creation_success">Created successfully</string>
 
     <string name="assert_number_fail">Please, introduce a valid number.</string>
 

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
@@ -55,6 +56,7 @@ import io.ktor.client.request.header
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -67,6 +69,7 @@ import org.escalaralcoiaicomtat.android.network.bodyAsJson
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
@@ -84,32 +87,63 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
-abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
+abstract class CreatorActivity<
+    ParentType : BaseEntity?,
+    ChildType : BaseEntity,
+    Model : CreatorActivity.CreatorModel<ParentType, ChildType>
+    >(
     @StringRes private val titleRes: Int
 ) : AppCompatActivity() {
     companion object {
         const val EXTRA_PARENT_ID: String = "parentId"
         const val EXTRA_PARENT_NAME: String = "parentName"
+        const val EXTRA_ELEMENT_ID: String = "elementId"
+
+        const val RESULT_EXCEPTION: String = "exception"
     }
 
     data class Input(
-        val parentName: String,
-        val parentId: Long
+        val parentName: String?,
+        val parentId: Long?,
+        val elementId: Long?
     ) {
-        constructor(entity: DataEntity) : this(entity.displayName, entity.id)
+        constructor(
+            parentName: String,
+            parentId: Long
+        ) : this(parentName, parentId, null)
+
+        companion object {
+            fun fromParent(parent: DataEntity) = Input(parent.displayName, parent.id)
+
+            fun fromElement(parent: DataEntity, element: DataEntity) = Input(
+                parent.displayName,
+                parent.id,
+                element.id
+            )
+        }
     }
 
-    abstract class ResultContract<A : CreatorActivity<*>>(
+    abstract class ResultContract<A : CreatorActivity<*, *, *>>(
         private val kClass: KClass<A>
-    ) : ActivityResultContract<Input?, Boolean>() {
+    ) : ActivityResultContract<Input?, Throwable?>() {
         override fun createIntent(context: Context, input: Input?): Intent =
             Intent(context, kClass.java).apply {
                 putExtra(EXTRA_PARENT_ID, input?.parentId)
                 putExtra(EXTRA_PARENT_NAME, input?.parentName)
+                putExtra(EXTRA_ELEMENT_ID, input?.elementId)
             }
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Boolean =
-            resultCode == Activity.RESULT_OK
+        override fun parseResult(resultCode: Int, intent: Intent?): Throwable? =
+            when (resultCode) {
+                Activity.RESULT_OK -> null
+                Activity.RESULT_CANCELED -> CancellationException("User pressed back.")
+                else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                }
+            }
     }
 
     protected abstract val model: Model
@@ -145,6 +179,11 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
     protected open val isScrollable: Boolean = true
 
     protected open val maxWidth: Int = 1000
+
+    protected val parentId: Long? by extras()
+    protected val parentName: String? by extras()
+
+    protected val elementId: Long? by extras()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -285,12 +324,21 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
     }
 
     @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    protected fun <M : CreatorModel, Z : CreatorActivity<M>, T : Any> extras(): ReadOnlyProperty<Z, T?> =
-        ReadOnlyProperty { _, property ->
-            intent?.extras?.get(property.name) as? T?
-        }
+    private fun <
+        ParentType : BaseEntity?,
+        ChildType : BaseEntity,
+        M : CreatorModel<ParentType, ChildType>,
+        Z : CreatorActivity<ParentType, ChildType, M>,
+        T : Any
+        > extras(): ReadOnlyProperty<Z, T?> = ReadOnlyProperty { _, property ->
+        intent?.extras?.get(property.name) as? T?
+    }
 
-    abstract class CreatorModel(application: Application) : AndroidViewModel(application) {
+    abstract class CreatorModel<ParentType : BaseEntity?, ChildType : BaseEntity>(
+        application: Application,
+        protected val parentId: Long?,
+        private val childId: Long?
+    ) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
         protected val dao = database.dataDao()
 
@@ -337,17 +385,59 @@ abstract class CreatorActivity<Model : CreatorActivity.CreatorModel>(
          */
         abstract val isFilled: MediatorLiveData<Boolean>
 
+        protected abstract val hasParent: Boolean
+
+        val parent = MutableLiveData<ParentType>()
+
+        val element = MutableLiveData<ChildType>()
+
         /**
          * For appending all the data required for creating the object in the server. Will be sent
          * to the creation endpoint. Automatically appends the data in [image] when it's not null.
          */
         protected abstract fun FormBuilder.getFormData()
 
+        protected abstract val whenNotFound: (suspend () -> Unit)?
+
+        open suspend fun init(parent: ParentType) {}
+
+        /**
+         * Called when edit is requested, and the child has been found
+         */
+        open suspend fun fill(child: ChildType) {}
+
+        open suspend fun fetchParent(parentId: Long): ParentType? = null
+
+        open suspend fun fetchChild(childId: Long): ChildType? = null
+
         /**
          * Can be used for preparing data to send in the form asynchronously. For example,
          * compressing files, or doing heavy calculations.
          */
         open suspend fun prepareData(): FormBuilder.() -> Unit = {}
+
+        init {
+            viewModelScope.launch(Dispatchers.IO) {
+                if (!hasParent) {
+                    // If fetch parent is null, type doesn't have parent
+                } else {
+                    val parent = fetchParent(parentId!!)
+                    if (parent == null) {
+                        Timber.e("Could not get a valid parent with id $parentId")
+                        whenNotFound?.invoke()
+                        return@launch
+                    }
+                    this@CreatorModel.parent.postValue(parent)
+
+                    init(parent)
+
+                    val child = childId?.let { fetchChild(it) }
+                    if (child != null) {
+                        fill(child)
+                    }
+                }
+            }
+        }
 
         override fun onCleared() {
             image.value?.recycle()

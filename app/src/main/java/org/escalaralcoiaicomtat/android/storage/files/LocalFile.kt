@@ -19,6 +19,7 @@ import org.escalaralcoiaicomtat.android.utils.json
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.UUID
 
@@ -50,6 +51,8 @@ constructor(private val file: File, private val meta: File) {
         File(parent, "$uuid"),
         File(parent, "$uuid.meta")
     )
+
+    fun inputStream(): InputStream = file.inputStream()
 
     /**
      * Returns true if both the data and meta file exists.

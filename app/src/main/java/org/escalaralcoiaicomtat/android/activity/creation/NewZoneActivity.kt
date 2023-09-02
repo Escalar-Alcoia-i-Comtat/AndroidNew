@@ -45,6 +45,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.Area
+import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.type.DataPoint
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.ui.form.FormField
@@ -56,14 +58,11 @@ import org.escalaralcoiaicomtat.android.ui.form.PointOption
 import org.escalaralcoiaicomtat.android.utils.toJson
 
 @OptIn(ExperimentalFoundationApi::class)
-class NewZoneActivity : CreatorActivity<NewZoneActivity.Model>(R.string.new_zone_title) {
+class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.string.new_zone_title) {
 
     object Contract : ResultContract<NewZoneActivity>(NewZoneActivity::class)
 
-    private val parentName: String? by extras()
-    private val parentId: Long? by extras()
-
-    override val model: Model by viewModels { Model.Factory(parentId!!) }
+    override val model: Model by viewModels { Model.Factory(parentId!!, elementId, ::onBack) }
 
     @Composable
     override fun ColumnScope.Content() {
@@ -255,18 +254,26 @@ class NewZoneActivity : CreatorActivity<NewZoneActivity.Model>(R.string.new_zone
 
     class Model(
         application: Application,
-        private val areaId: Long
-    ) : CreatorModel(application) {
+        areaId: Long,
+        zoneId: Long?,
+        override val whenNotFound: suspend () -> Unit
+    ) : CreatorModel<Area, Zone>(application, areaId, zoneId) {
         companion object {
-            fun Factory(areaId: Long): ViewModelProvider.Factory = viewModelFactory {
+            fun Factory(
+                areaId: Long,
+                zoneId: Long?,
+                whenNotFound: () -> Unit
+            ): ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val application = this[APPLICATION_KEY] as Application
-                    Model(application, areaId)
+                    Model(application, areaId, zoneId, whenNotFound)
                 }
             }
         }
 
         override val creatorEndpoint: String = "zone"
+
+        override val hasParent: Boolean = true
 
         val displayName = MutableLiveData("")
         val webUrl = MutableLiveData("")
@@ -274,21 +281,42 @@ class NewZoneActivity : CreatorActivity<NewZoneActivity.Model>(R.string.new_zone
         val longitude = MutableLiveData("")
         val points = mutableStateListOf<DataPoint>()
 
-        override val isFilled: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
-            addSource(displayName) { value = it.isNotBlank() }
-            addSource(webUrl) { value = it.isNotBlank() }
-            addSource(image) { value = it != null }
-            addSource(kmzName) { value = it != null }
-            addSource(latitude) { value = it.toDoubleOrNull() != null }
-            addSource(longitude) { value = it.toDoubleOrNull() != null }
+        private fun checkRequirements(): Boolean {
+            return displayName.value?.isNotBlank() == true &&
+                webUrl.value?.isNotBlank() == true &&
+                image.value != null &&
+                kmzName.value != null &&
+                latitude.value?.toDoubleOrNull() != null &&
+                longitude.value?.toDoubleOrNull() != null
         }
+
+        override val isFilled: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
+            addSource(displayName) { value = checkRequirements() }
+            addSource(webUrl) { value = checkRequirements() }
+            addSource(image) { value = checkRequirements() }
+            addSource(kmzName) { value = checkRequirements() }
+            addSource(latitude) { value = checkRequirements() }
+            addSource(longitude) { value = checkRequirements() }
+        }
+
+        override suspend fun fill(child: Zone) {
+            displayName.postValue(child.displayName)
+            webUrl.postValue(child.webUrl.toString())
+            latitude.postValue(child.point?.latitude?.toString())
+            longitude.postValue(child.point?.longitude?.toString())
+            child.points.let(points::addAll)
+        }
+
+        override suspend fun fetchParent(parentId: Long): Area? = dao.getArea(parentId)
+
+        override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
 
         override fun FormBuilder.getFormData() {
             append("displayName", displayName.value!!)
             append("webUrl", webUrl.value!!)
             append("point", LatLng(latitude.value!!.toDouble(), longitude.value!!.toDouble()).toJson().toString())
             append("points", points.toJson().toString())
-            append("area", areaId)
+            append("area", parentId!!)
         }
     }
 }
