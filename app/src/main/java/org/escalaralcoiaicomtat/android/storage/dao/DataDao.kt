@@ -145,6 +145,12 @@ interface DataDao {
     @Query("SELECT * FROM paths")
     suspend fun getPathWithBlocks(): List<PathWithBlocks>
 
+    @Query("SELECT builder FROM paths")
+    suspend fun getAllBuilders(): List<String>
+
+    @Query("SELECT reBuilder FROM paths")
+    suspend fun getAllReBuilders(): List<String>
+
 
     @WorkerThread
     @Insert

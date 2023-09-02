@@ -35,6 +35,7 @@ fun FormField(
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     supportingText: String? = null,
+    supportingContent: (@Composable () -> Unit)? = null,
     onGo: (() -> Unit)? = null,
 ) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
@@ -49,9 +50,14 @@ fun FormField(
         }
     }
 
-    val supportingTextValue = when {
-        isError && valueAssertion.errorString != null -> stringResource(valueAssertion.errorString)
-        supportingText != null -> supportingText
+    val supportingTextComposable: (@Composable () -> Unit)? = when {
+        isError && valueAssertion.errorString != null -> {
+            { Text(stringResource(valueAssertion.errorString)) }
+        }
+        supportingText != null -> {
+            { Text(supportingText) }
+        }
+        supportingContent != null -> supportingContent
         else -> null
     }
 
@@ -83,6 +89,6 @@ fun FormField(
         leadingIcon = leadingContent,
         trailingIcon = trailingContent,
         isError = isError,
-        supportingText = supportingTextValue?.let { { Text(it) } }
+        supportingText = supportingTextComposable
     )
 }

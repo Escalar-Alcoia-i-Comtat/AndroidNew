@@ -15,6 +15,7 @@
     <string name="state_calculating">Calculating…</string>
 
     <string name="search">Search…</string>
+    <string name="none">None…</string>
 
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
@@ -77,9 +78,15 @@
     <string name="form_ending_inclination">Inclination</string>
     <string name="form_string_count">Quickdraw Count</string>
     <string name="form_count_title">Safes Count</string>
+    <string name="form_required_title">Required Material</string>
     <string name="form_count_unknown">Unknown amount</string>
     <string name="form_count_unknown_support">Toggle box for setting unknown amount.</string>
     <string name="form_pitches_title">Pitches Information</string>
+    <string name="form_builder_name">Builder Name</string>
+    <string name="form_builder_date">Building Date</string>
+    <string name="form_re_buildings">Re-Buildings</string>
+    <string name="form_description">Description</string>
+    <string name="form_description_show">Show Description</string>
 
     <string name="sun_time_none">None</string>
     <string name="sun_time_morning">Morning</string>
@@ -180,6 +187,11 @@
     <string name="filter_grade_title">Grade</string>
     <string name="filter_grade_from">From</string>
     <string name="filter_grade_up_to">Up to</string>
+
+    <string name="rich_editor_bold">Bold</string>
+    <string name="rich_editor_italic">Italic</string>
+    <string name="rich_editor_underline">Underline</string>
+    <string name="rich_editor_title">Title</string>
 
     <!-- CREDITS -->
     <string name="credit_icons8">%s icon by %s</string>

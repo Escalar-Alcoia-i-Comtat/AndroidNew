@@ -22,6 +22,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.FormatBold
+import androidx.compose.material.icons.rounded.FormatItalic
+import androidx.compose.material.icons.rounded.FormatUnderlined
+import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltipBox
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,13 +47,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -57,6 +68,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.mohamedrejeb.richeditor.model.RichTextState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import io.ktor.client.request.forms.FormBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -171,6 +185,17 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         val spitCount by model.spitCount.observeAsState()
         val tensorCount by model.tensorCount.observeAsState()
 
+        val crackerRequired by model.crackerRequired.observeAsState()
+        val friendRequired by model.friendRequired.observeAsState()
+        val lanyardRequired by model.lanyardRequired.observeAsState()
+        val nailRequired by model.nailRequired.observeAsState()
+        val pitonRequired by model.pitonRequired.observeAsState()
+        val stapesRequired by model.stapesRequired.observeAsState()
+
+        val reBuilders by model.reBuilders.observeAsState(initial = emptyList())
+
+        val showDescription by model.showDescription.observeAsState(initial = false)
+
         val sketchIdFocusRequester = remember { FocusRequester() }
         val heightFocusRequester = remember { FocusRequester() }
 
@@ -271,11 +296,137 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             Spacer(modifier = Modifier.height(8.dp))
         }
 
+        OutlinedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.form_required_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+
+            RequiredField(
+                crackerRequired,
+                model.crackerRequired::setValue,
+                R.string.required_type_cracker
+            )
+            RequiredField(
+                friendRequired,
+                model.friendRequired::setValue,
+                R.string.required_type_friend
+            )
+            RequiredField(
+                lanyardRequired,
+                model.lanyardRequired::setValue,
+                R.string.required_type_lanyard
+            )
+            RequiredField(nailRequired, model.nailRequired::setValue, R.string.required_type_nail)
+            RequiredField(
+                pitonRequired,
+                model.pitonRequired::setValue,
+                R.string.required_type_piton
+            )
+            RequiredField(
+                stapesRequired,
+                model.stapesRequired::setValue,
+                R.string.required_type_stapes
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         PitchesEditor(pitches)
 
-        // TODO: builder
-        // TODO: re-builders
-        // TODO: description & showDescription
+        BuilderField(
+            liveData = model.builder,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+
+        ReBuildersEditor(reBuilders)
+
+        OutlinedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            val richEditorState = rememberRichTextState()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.form_description),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = showDescription,
+                    onCheckedChange = { model.showDescription.value = it },
+                    enabled = richEditorState.toMarkdown().isNotEmpty()
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val currentSpanStyle = richEditorState.currentSpanStyle
+
+                EditorToolbarButton(
+                    richTextState = richEditorState,
+                    currentSpanStyle = currentSpanStyle,
+                    icon = Icons.Rounded.FormatBold,
+                    tooltip = R.string.rich_editor_bold,
+                    check = { it.fontWeight == FontWeight.Bold },
+                    span = {
+                        SpanStyle(fontWeight = if (it) FontWeight.Normal else FontWeight.Bold)
+                    }
+                )
+                EditorToolbarButton(
+                    richTextState = richEditorState,
+                    currentSpanStyle = currentSpanStyle,
+                    icon = Icons.Rounded.FormatItalic,
+                    tooltip = R.string.rich_editor_italic,
+                    check = { it.fontStyle == FontStyle.Italic },
+                    span = {
+                        SpanStyle(fontStyle = if (it) FontStyle.Normal else FontStyle.Italic)
+                    }
+                )
+                EditorToolbarButton(
+                    richTextState = richEditorState,
+                    currentSpanStyle = currentSpanStyle,
+                    icon = Icons.Rounded.FormatUnderlined,
+                    tooltip = R.string.rich_editor_underline,
+                    check = { it.textDecoration == TextDecoration.Underline },
+                    span = {
+                        SpanStyle(textDecoration = if (it) TextDecoration.Underline else TextDecoration.None)
+                    }
+                )
+                EditorToolbarButton(
+                    richTextState = richEditorState,
+                    currentSpanStyle = currentSpanStyle,
+                    icon = Icons.Rounded.Title,
+                    tooltip = R.string.rich_editor_title,
+                    check = { it.fontSize == 28.sp },
+                    span = {
+                        if (it)
+                            SpanStyle()
+                        else
+                            SpanStyle(fontSize = 28.sp)
+                    }
+                )
+            }
+
+            RichTextEditor(state = richEditorState, modifier = Modifier.fillMaxWidth())
+        }
     }
 
     @Composable
@@ -584,6 +735,142 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         )
     }
 
+    @Composable
+    fun RequiredField(
+        isRequired: Boolean?,
+        onValueChange: (Boolean) -> Unit,
+        @StringRes label: Int
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(checked = isRequired ?: false, onCheckedChange = onValueChange)
+
+            Text(
+                text = stringResource(label),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+
+    @Composable
+    fun BuilderField(
+        liveData: MutableLiveData<Builder>,
+        modifier: Modifier = Modifier
+    ) {
+        Row(
+            modifier = modifier
+        ) {
+            val builder by liveData.observeAsState()
+
+            FormField(
+                value = builder?.name,
+                onValueChange = { text ->
+                    val value = text.takeIf { it.isNotBlank() }
+                    liveData.value = builder?.copy(name = value) ?: Builder(value)
+                },
+                label = stringResource(R.string.form_builder_name),
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            FormField(
+                value = builder?.date,
+                onValueChange = { text ->
+                    val value = text.takeIf { it.isNotBlank() }
+                    liveData.value = builder?.copy(date = value) ?: Builder(null, value)
+                },
+                label = stringResource(R.string.form_builder_date),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+
+    @Composable
+    fun ReBuildersEditor(reBuilders: List<Builder>) {
+        FormListCreator(
+            list = reBuilders,
+            title = stringResource(R.string.form_re_buildings),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            inputContent = {
+                val reBuilder = MutableLiveData<Builder>()
+
+                BuilderField(liveData = reBuilder, modifier = Modifier.weight(1f))
+
+                IconButton(
+                    onClick = {
+                        model.reBuilders.value = reBuilders.toMutableList().apply {
+                            reBuilder.value
+                        }
+                    },
+                    enabled = reBuilder.value?.let { it.name != null || it.date != null } ?: false
+                ) {
+                    Icon(Icons.Rounded.Add, stringResource(R.string.action_add))
+                }
+            },
+            rowContent = { index, item ->
+                Text(
+                    text = item.name ?: stringResource(R.string.none),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                Text(
+                    text = item.date ?: stringResource(R.string.none),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelLarge
+                )
+
+                IconButton(
+                    onClick = {
+                        model.reBuilders.value = reBuilders.toMutableList().apply {
+                            removeAt(index)
+                        }
+                    }
+                ) {
+                    Icon(Icons.Outlined.DeleteForever, stringResource(R.string.action_remove))
+                }
+            }
+        )
+    }
+
+    @Composable
+    fun EditorToolbarButton(
+        richTextState: RichTextState,
+        currentSpanStyle: SpanStyle,
+        icon: ImageVector,
+        @StringRes tooltip: Int,
+        check: (SpanStyle) -> Boolean,
+        span: (Boolean) -> SpanStyle
+    ) {
+        PlainTooltipBox(tooltip = { Text(stringResource(tooltip)) }) {
+            IconButton(
+                onClick = {
+                    richTextState.toggleSpanStyle(
+                        span(check(currentSpanStyle))
+                    )
+                },
+                modifier = Modifier.tooltipAnchor(),
+                enabled = richTextState.selection.length > 0
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = stringResource(tooltip),
+                    tint = if (check(currentSpanStyle))
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onBackground
+                )
+            }
+        }
+    }
+
     class Model(
         application: Application,
         private val sectorId: Long,
@@ -664,7 +951,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
         val description = MutableLiveData<String>()
 
         val builder = MutableLiveData<Builder>()
-        val reBuilder = MutableLiveData<List<Builder>>()
+        val reBuilders = MutableLiveData<List<Builder>>()
 
         private fun checkRequirements(): Boolean {
             return displayName.value != null && sketchId.value != null
