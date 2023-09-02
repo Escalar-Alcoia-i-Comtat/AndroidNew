@@ -39,6 +39,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.ui.form.FormSegmentedButton
 import org.escalaralcoiaicomtat.android.ui.form.SizeMode
 import org.escalaralcoiaicomtat.android.utils.appendDifference
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import timber.log.Timber
 
 class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
@@ -152,6 +153,8 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
             }
         }
 
+        override val elementSerializer: JsonSerializer<Sector> = Sector.Companion
+
         override val creatorEndpoint: String = "sector"
 
         override val hasParent: Boolean = true
@@ -207,5 +210,9 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
             appendDifference("walkingTime", walkingTime.value?.takeIf { it.isNotBlank() }?.toLongOrNull(), element.value?.walkingTime)
             append("zone", parentId!!)
         }
+
+        override suspend fun insertDao(element: Sector) = dao.insert(element)
+
+        override suspend fun updateDao(element: Sector) = dao.update(element)
     }
 }

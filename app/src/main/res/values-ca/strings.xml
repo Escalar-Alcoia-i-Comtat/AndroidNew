@@ -41,7 +41,7 @@
     <string name="new_path_title">Crea una nova Via</string>
     <string name="new_element_choose_title">Tria un element pare</string>
     <string name="creation_step_compressing">Comprimint imatge…</string>
-    <string name="creation_step_uploading">Pujant… %f %</string>
+    <string name="creation_step_uploading">Pujant… %.2f %%</string>
     <string name="creation_step_finishing">Acabant…</string>
     <string name="creation_error_toast">No s\'ha pogut crear. Revisa el logcat</string>
     <string name="assert_number_fail">Per favor, introdueix un número vàlid.</string>

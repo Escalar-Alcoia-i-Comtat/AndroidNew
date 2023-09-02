@@ -94,6 +94,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
 import org.escalaralcoiaicomtat.android.utils.appendDifference
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -873,6 +874,8 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
             }
         }
 
+        override val elementSerializer: JsonSerializer<Path> = Path.Companion
+
         val sectorImage = MutableLiveData<LocalFile>()
         val sectorImageProgress = MutableLiveData<Float>()
 
@@ -1037,5 +1040,9 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
                 Timber.w("Could not move pitch from ${from.index} to ${to.index}: Out of bounds")
             }
         }
+
+        override suspend fun insertDao(element: Path) = dao.insert(element)
+
+        override suspend fun updateDao(element: Path) = dao.update(element)
     }
 }

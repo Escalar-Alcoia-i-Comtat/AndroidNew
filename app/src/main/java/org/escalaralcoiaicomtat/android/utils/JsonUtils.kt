@@ -272,11 +272,14 @@ fun JSONObject.getBooleanOrNull(key: String): Boolean? =
     }
 
 /**
- * Returns the Instant value associated with the specified key.
+ * Returns the Instant value associated with the specified key. Expects instant to be a long
+ * matching epoch millis.
  *
  * @param key the key to look up
  *
  * @return the Instant value associated with the specified key.
+ *
+ * @see Instant.ofEpochMilli
  */
 fun JSONObject.getInstant(key: String): Instant = getLong(key).let(Instant::ofEpochMilli)
 

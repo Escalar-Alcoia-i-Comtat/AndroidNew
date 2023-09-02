@@ -34,6 +34,7 @@ import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.utils.appendDifference
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 
 class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
     createTitleRes = R.string.new_area_title,
@@ -47,7 +48,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
 
         override fun parseResult(resultCode: Int, intent: Intent?): Result =
             when (resultCode) {
-                Activity.RESULT_OK -> Result.Success
+                Activity.RESULT_OK -> Result.CreateSuccess
                 RESULT_CREATE_CANCELLED -> Result.CreateCancelled
                 RESULT_EDIT_CANCELLED -> Result.EditCancelled
                 else -> {
@@ -111,6 +112,8 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             }
         }
 
+        override val elementSerializer: JsonSerializer<Area> = Area.CREATOR
+
         override val creatorEndpoint: String = "area"
 
         override val hasParent: Boolean = false
@@ -144,5 +147,9 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             appendDifference("displayName", displayName.value, element.value?.displayName)
             appendDifference("webUrl", webUrl.value, element.value?.webUrl)
         }
+
+        override suspend fun insertDao(element: Area) = dao.insert(element)
+
+        override suspend fun updateDao(element: Area) = dao.update(element)
     }
 }

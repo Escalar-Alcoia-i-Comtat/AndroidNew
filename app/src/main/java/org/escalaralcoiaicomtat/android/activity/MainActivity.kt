@@ -34,7 +34,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.toast
-import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
@@ -42,13 +41,11 @@ class MainActivity : AppCompatActivity() {
 
     private val resultCallback = ActivityResultCallback<EditorActivity.Result> { result ->
         when (result) {
-            is EditorActivity.Result.Success -> toast(R.string.creation_success)
+            is EditorActivity.Result.CreateSuccess -> toast(R.string.creation_success)
+            is EditorActivity.Result.EditSuccess -> toast(R.string.creation_success_edit)
             is EditorActivity.Result.CreateCancelled -> toast(R.string.creation_error_cancelled_toast)
             is EditorActivity.Result.EditCancelled -> toast(R.string.creation_error_edit_cancelled_toast)
-            is EditorActivity.Result.Failure -> {
-                Timber.e(result.throwable, "Creation failed.")
-                toast(R.string.creation_error_toast)
-            }
+            is EditorActivity.Result.Failure -> toast(R.string.creation_error_toast)
         }
     }
 

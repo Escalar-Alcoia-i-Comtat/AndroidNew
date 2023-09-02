@@ -1,6 +1,5 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -57,6 +56,7 @@ import io.ktor.client.request.forms.FormBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -78,11 +78,11 @@ import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
-import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
 import org.escalaralcoiaicomtat.android.utils.letIf
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.toMap
-import org.escalaralcoiaicomtat.android.worker.SyncWorker
+import org.json.JSONObject
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -102,6 +102,8 @@ abstract class EditorActivity<
         const val RESULT_FAILED = 2
         const val RESULT_CREATE_CANCELLED = 3
         const val RESULT_EDIT_CANCELLED = 4
+        const val RESULT_CREATE_OK = 5
+        const val RESULT_EDIT_OK = 6
 
         const val EXTRA_PARENT_ID: String = "parentId"
         const val EXTRA_PARENT_NAME: String = "parentName"
@@ -132,7 +134,9 @@ abstract class EditorActivity<
     }
 
     sealed class Result {
-        data object Success: Result()
+        data object CreateSuccess: Result()
+
+        data object EditSuccess: Result()
 
         data class Failure(val throwable: Throwable?): Result()
 
@@ -153,7 +157,8 @@ abstract class EditorActivity<
 
         override fun parseResult(resultCode: Int, intent: Intent?): Result =
             when (resultCode) {
-                Activity.RESULT_OK -> Result.Success
+                RESULT_CREATE_OK -> Result.CreateSuccess
+                RESULT_EDIT_OK -> Result.EditSuccess
                 RESULT_CREATE_CANCELLED -> Result.CreateCancelled
                 RESULT_EDIT_CANCELLED -> Result.EditCancelled
                 else -> {
@@ -378,17 +383,21 @@ abstract class EditorActivity<
                 onClick = {
                     model.create().invokeOnCompletion { throwable ->
                         if (throwable == null) {
-                            setResult(RESULT_OK)
-                            finish()
+                            Timber.i("Creation successful")
+
+                            if (model.element.value == null)
+                                setResult(RESULT_CREATE_OK)
+                            else
+                                setResult(RESULT_EDIT_OK)
                         } else {
-                            Timber.e(throwable, "Could not create.")
+                            Timber.e(throwable, "Creation failed.")
 
                             setResult(
                                 RESULT_FAILED,
                                 Intent().apply { putExtra(RESULT_EXCEPTION, throwable) }
                             )
-                            finish()
                         }
+                        finish()
                     }
                 },
                 enabled = isFilled && isCreating == null
@@ -434,6 +443,8 @@ abstract class EditorActivity<
     ) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
         protected val dao = database.dataDao()
+
+        protected abstract val elementSerializer: JsonSerializer<ElementType>
 
         /**
          * The endpoint to make the POST request to. Options:
@@ -509,6 +520,16 @@ abstract class EditorActivity<
          */
         open suspend fun prepareData(): FormBuilder.() -> Unit = {}
 
+        /**
+         * Should use [dao] to insert the given [element] into the database.
+         */
+        protected abstract suspend fun insertDao(element: ElementType)
+
+        /**
+         * Should use [dao] to update the given [element].
+         */
+        protected abstract suspend fun updateDao(element: ElementType)
+
         init {
             viewModelScope.launch(Dispatchers.IO) {
                 if (!hasParent) {
@@ -558,7 +579,9 @@ abstract class EditorActivity<
 
                 Timber.d("Sending data to server...")
                 ktorHttpClient.submitFormWithBinaryData(
-                    EndpointUtils.getUrl(creatorEndpoint),
+                    EndpointUtils.getUrl(creatorEndpoint).letIf(elementId != null) {
+                        "$it/$elementId"
+                    },
                     formData = formData {
                         imageBytes?.let { bytes ->
                             append("image", bytes, Headers.build {
@@ -586,14 +609,28 @@ abstract class EditorActivity<
                         )
                     }
                 }.apply {
-                    if (status == HttpStatusCode.Created) {
-                        Timber.d("Creation complete (status=$status). Synchronizing...")
-                        isCreating.postValue(CreationStep.Finishing)
+                    when (status) {
+                        HttpStatusCode.Created -> {
+                            Timber.d("Creation complete (status=$status). Synchronizing...")
+                            isCreating.postValue(CreationStep.Finishing)
 
-                        SyncWorker.synchronize(getApplication())
-                            .await { it.state.isFinished }
-                    } else {
-                        throw RequestException(status, bodyAsJson())
+                            val data = JSONObject(bodyAsText()).getJSONObject("data")
+                            val elementJson = data.getJSONObject("element")
+                            val element = elementSerializer.fromJson(elementJson)
+                            insertDao(element)
+                        }
+                        HttpStatusCode.OK -> {
+                            Timber.d("Update complete (status=$status). Synchronizing...")
+                            isCreating.postValue(CreationStep.Finishing)
+
+                            val data = JSONObject(bodyAsText()).getJSONObject("data")
+                            val elementJson = data.getJSONObject("element")
+                            val element = elementSerializer.fromJson(elementJson)
+                            updateDao(element)
+                        }
+                        else -> {
+                            throw RequestException(status, bodyAsJson())
+                        }
                     }
                 }
 

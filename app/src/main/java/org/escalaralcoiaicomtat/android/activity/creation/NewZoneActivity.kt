@@ -57,6 +57,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormKMZPicker
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.PointOption
 import org.escalaralcoiaicomtat.android.utils.appendDifference
+import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 
 @OptIn(ExperimentalFoundationApi::class)
 class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
@@ -286,6 +287,8 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
             }
         }
 
+        override val elementSerializer: JsonSerializer<Zone> = Zone.Companion
+
         override val creatorEndpoint: String = "zone"
 
         override val hasParent: Boolean = true
@@ -342,5 +345,9 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
             appendDifference("points", points, element.value?.points)
             append("area", parentId!!)
         }
+
+        override suspend fun insertDao(element: Zone) = dao.insert(element)
+
+        override suspend fun updateDao(element: Zone) = dao.update(element)
     }
 }

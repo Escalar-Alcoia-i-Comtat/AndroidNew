@@ -62,12 +62,13 @@
     <string name="new_element_choose_title">Choose a parent</string>
 
     <string name="creation_step_compressing">Compressing image…</string>
-    <string name="creation_step_uploading">Uploading… %f %</string>
+    <string name="creation_step_uploading">Uploading… %.2f %%</string>
     <string name="creation_step_finishing">Finishing…</string>
     <string name="creation_error_toast">Could not create. Check logcat</string>
     <string name="creation_error_cancelled_toast">Creation Cancelled</string>
     <string name="creation_error_edit_cancelled_toast">Edit Cancelled</string>
     <string name="creation_success">Created successfully</string>
+    <string name="creation_success_edit">Updated successfully</string>
 
     <string name="assert_number_fail">Please, introduce a valid number.</string>
 
