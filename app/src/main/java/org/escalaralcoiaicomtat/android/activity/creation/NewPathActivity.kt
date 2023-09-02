@@ -6,9 +6,9 @@ import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.SupervisorAccount
@@ -99,7 +97,10 @@ import org.escalaralcoiaicomtat.android.utils.appendDifference
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(R.string.new_path_title) {
+class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
+    createTitleRes = R.string.new_path_title,
+    editTitleRes = R.string.edit_path_title
+) {
     object Contract : ResultContract<NewPathActivity>(NewPathActivity::class)
 
     override val model: Model by viewModels {
@@ -111,63 +112,40 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(R.st
     override val maxWidth: Int = 1200
 
     @Composable
-    override fun ColumnScope.Content() {
-        val sector by model.parent.observeAsState()
+    override fun RowScope.SidePanel(parent: Sector?) {
+        val sector = parent!!
 
-        sector?.let { SplitView(it) } ?: Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) { CircularProgressIndicator() }
-    }
+        val progress by model.sectorImageProgress.observeAsState()
+        val image by model.sectorImage.observeAsState()
 
-    @Composable
-    fun SplitView(sector: Sector) {
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val progress by model.sectorImageProgress.observeAsState()
-            val image by model.sectorImage.observeAsState()
-
-            image?.let {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .clipToBounds()
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(this@NewPathActivity)
-                            .file(it)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = sector.displayName,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .zoomable(rememberZoomState()),
-                        contentScale = ContentScale.Inside
-                    )
-                }
-            } ?: run {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    progress?.let { CircularProgressIndicator(it) } ?: CircularProgressIndicator()
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
+        image?.let {
+            Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(2f)
-                    .verticalScroll(rememberScrollState())
+                    .weight(1f)
+                    .clipToBounds()
             ) {
-                Editor(sector)
+                AsyncImage(
+                    model = ImageRequest.Builder(this@NewPathActivity)
+                        .file(it)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = sector.displayName,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zoomable(rememberZoomState()),
+                    contentScale = ContentScale.Inside
+                )
+            }
+        } ?: run {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                progress?.let { CircularProgressIndicator(it) } ?: CircularProgressIndicator()
             }
         }
     }
 
     @Composable
-    fun Editor(sector: Sector) {
+    override fun ColumnScope.Editor(parent: Sector?) {
         val displayName by model.displayName.observeAsState()
         val sketchId by model.sketchId.observeAsState()
 
@@ -199,7 +177,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(R.st
         val heightFocusRequester = remember { FocusRequester() }
 
         FormField(
-            value = sector.displayName,
+            value = parent?.displayName,
             onValueChange = { },
             label = stringResource(R.string.form_parent),
             modifier = Modifier.fillMaxWidth(),

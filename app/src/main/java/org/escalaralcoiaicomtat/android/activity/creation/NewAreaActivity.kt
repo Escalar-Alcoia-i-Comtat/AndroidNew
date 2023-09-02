@@ -28,7 +28,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
-import kotlinx.coroutines.CancellationException
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
@@ -36,22 +35,29 @@ import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 
-class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(R.string.new_area_title) {
-    object Contract : ActivityResultContract<Area?, Throwable?>() {
+class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
+    createTitleRes = R.string.new_area_title,
+    editTitleRes = R.string.edit_area_title
+) {
+    object Contract : ActivityResultContract<Area?, Result>() {
         override fun createIntent(context: Context, input: Area?): Intent =
             Intent(context, NewAreaActivity::class.java).apply {
                 putExtra(EXTRA_ELEMENT_ID, input?.id)
             }
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Throwable? =
+        override fun parseResult(resultCode: Int, intent: Intent?): Result =
             when (resultCode) {
-                Activity.RESULT_OK -> null
-                Activity.RESULT_CANCELED -> CancellationException("User pressed back.")
-                else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                Activity.RESULT_OK -> Result.Success
+                RESULT_CREATE_CANCELLED -> Result.CreateCancelled
+                RESULT_EDIT_CANCELLED -> Result.EditCancelled
+                else -> {
+                    val throwable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                    }
+                    Result.Failure(throwable)
                 }
             }
     }
@@ -59,7 +65,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
     override val model: Model by viewModels { Model.Factory(elementId, ::onBack) }
 
     @Composable
-    override fun ColumnScope.Content() {
+    override fun ColumnScope.Editor(parent: BaseEntity?) {
         val displayName by model.displayName.observeAsState(initial = "")
         val webUrl by model.webUrl.observeAsState(initial = "")
         val image by model.image.observeAsState()

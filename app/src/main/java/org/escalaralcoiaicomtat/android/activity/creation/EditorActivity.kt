@@ -16,9 +16,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,6 +31,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,7 +60,6 @@ import io.ktor.client.request.header
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -71,6 +74,7 @@ import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
@@ -78,7 +82,6 @@ import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
 import org.escalaralcoiaicomtat.android.utils.letIf
 import org.escalaralcoiaicomtat.android.utils.toMap
-import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
@@ -92,9 +95,14 @@ abstract class EditorActivity<
     ElementType : BaseEntity,
     Model : EditorActivity.EditorModel<ParentType, ElementType>
     >(
-    @StringRes private val titleRes: Int
+    @StringRes private val createTitleRes: Int,
+    @StringRes private val editTitleRes: Int
 ) : AppCompatActivity() {
     companion object {
+        const val RESULT_FAILED = 2
+        const val RESULT_CREATE_CANCELLED = 3
+        const val RESULT_EDIT_CANCELLED = 4
+
         const val EXTRA_PARENT_ID: String = "parentId"
         const val EXTRA_PARENT_NAME: String = "parentName"
         const val EXTRA_ELEMENT_ID: String = "elementId"
@@ -123,9 +131,19 @@ abstract class EditorActivity<
         }
     }
 
+    sealed class Result {
+        data object Success: Result()
+
+        data class Failure(val throwable: Throwable?): Result()
+
+        data object CreateCancelled: Result()
+
+        data object EditCancelled: Result()
+    }
+
     abstract class ResultContract<A : EditorActivity<*, *, *>>(
         private val kClass: KClass<A>
-    ) : ActivityResultContract<Input?, Throwable?>() {
+    ) : ActivityResultContract<Input?, Result>() {
         override fun createIntent(context: Context, input: Input?): Intent =
             Intent(context, kClass.java).apply {
                 putExtra(EXTRA_PARENT_ID, input?.parentId)
@@ -133,15 +151,19 @@ abstract class EditorActivity<
                 putExtra(EXTRA_ELEMENT_ID, input?.elementId)
             }
 
-        override fun parseResult(resultCode: Int, intent: Intent?): Throwable? =
+        override fun parseResult(resultCode: Int, intent: Intent?): Result =
             when (resultCode) {
-                Activity.RESULT_OK -> null
-                Activity.RESULT_CANCELED -> CancellationException("User pressed back.")
-                else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                Activity.RESULT_OK -> Result.Success
+                RESULT_CREATE_CANCELLED -> Result.CreateCancelled
+                RESULT_EDIT_CANCELLED -> Result.EditCancelled
+                else -> {
+                    val throwable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                    }
+                    Result.Failure(throwable)
                 }
             }
     }
@@ -197,7 +219,19 @@ abstract class EditorActivity<
             Scaffold(
                 topBar = {
                     CenterAlignedTopAppBar(
-                        title = { Text(stringResource(titleRes)) },
+                        title = {
+                            val element by model.element.observeAsState()
+
+                            Text(
+                                text = stringResource(
+                                    if (element == null) {
+                                        createTitleRes
+                                    } else {
+                                        editTitleRes
+                                    }
+                                )
+                            )
+                        },
                         navigationIcon = {
                             IconButton(onClick = ::onBack) {
                                 Icon(
@@ -223,14 +257,45 @@ abstract class EditorActivity<
                             .padding(bottom = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
+                        Row(
                             modifier = Modifier
                                 .widthIn(max = maxWidth.dp)
                                 .fillMaxSize()
-                                .letIf(isScrollable) { it.verticalScroll(rememberScrollState()) },
-                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Content()
+                            val parent by model.parent.observeAsState()
+
+                            if (!model.hasParent || parent != null) {
+                                SidePanel(parent)
+
+                                Column(
+                                    modifier = Modifier
+                                        .widthIn(max = maxWidth.dp)
+                                        .fillMaxHeight()
+                                        .weight(1f)
+                                        .letIf(isScrollable) { it.verticalScroll(rememberScrollState()) },
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    val editing by model.element.observeAsState()
+                                    editing?.let {
+                                        FormField(
+                                            value = it.id.toString(),
+                                            onValueChange = {},
+                                            label = stringResource(R.string.form_id),
+                                            readOnly = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+
+                                    Editor(parent)
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
 
@@ -270,8 +335,22 @@ abstract class EditorActivity<
         }
     }
 
+    /**
+     * Should be overridden with the contents of the editor such as text inputs. Scrollable if
+     * [isScrollable].
+     *
+     * @param [parent] The parent element of the currently creating/editing one. Won't be `null` if
+     * [EditorModel.hasParent] is true. Always `null` otherwise.
+     */
     @Composable
-    protected abstract fun ColumnScope.Content()
+    protected abstract fun ColumnScope.Editor(parent: ParentType?)
+
+    /**
+     * If any, can be overridden to show a panel on the left side of the editor. Use
+     * [RowScope.weight] or width in contents to set size.
+     */
+    @Composable
+    protected open fun RowScope.SidePanel(parent: ParentType?) {}
 
     @Composable
     private fun Footer() {
@@ -283,6 +362,8 @@ abstract class EditorActivity<
             verticalAlignment = Alignment.CenterVertically
         ) {
             val context = LocalContext.current
+
+            val element by model.element.observeAsState()
 
             val isFilled by model.isFilled.observeAsState(initial = false)
             val isCreating by model.isCreating.observeAsState()
@@ -300,21 +381,33 @@ abstract class EditorActivity<
                             setResult(RESULT_OK)
                             finish()
                         } else {
-                            Timber.e("Could not create.", throwable)
+                            Timber.e(throwable, "Could not create.")
 
-                            toast(R.string.creation_error_toast)
+                            setResult(
+                                RESULT_FAILED,
+                                Intent().apply { putExtra(RESULT_EXCEPTION, throwable) }
+                            )
+                            finish()
                         }
                     }
                 },
                 enabled = isFilled && isCreating == null
             ) {
-                Text(stringResource(R.string.action_create))
+                Text(
+                    text = if (element == null)
+                        stringResource(R.string.action_create)
+                    else
+                        stringResource(R.string.action_update)
+                )
             }
         }
     }
 
     protected open fun onBack() {
-        setResult(Activity.RESULT_CANCELED)
+        if (model.element.value == null)
+            setResult(RESULT_CREATE_CANCELLED)
+        else
+            setResult(RESULT_EDIT_CANCELLED)
         finish()
     }
 
@@ -337,7 +430,7 @@ abstract class EditorActivity<
     abstract class EditorModel<ParentType : BaseEntity?, ElementType : BaseEntity>(
         application: Application,
         protected val parentId: Long?,
-        private val elementId: Long?
+        protected val elementId: Long?
     ) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
         protected val dao = database.dataDao()
@@ -385,7 +478,7 @@ abstract class EditorActivity<
          */
         abstract val isFilled: MediatorLiveData<Boolean>
 
-        protected abstract val hasParent: Boolean
+        abstract val hasParent: Boolean
 
         val parent = MutableLiveData<ParentType>()
 
@@ -436,6 +529,8 @@ abstract class EditorActivity<
 
                 val child = elementId?.let { fetchChild(it) }
                 if (child != null) {
+                    element.postValue(child)
+
                     fill(child)
                 }
             }

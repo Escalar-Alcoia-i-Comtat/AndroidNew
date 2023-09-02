@@ -11,6 +11,7 @@
     <string name="action_filter">Filter</string>
     <string name="action_previous">Previous</string>
     <string name="action_next">Next</string>
+    <string name="action_update">Update</string>
 
     <string name="state_calculating">Calculating…</string>
 
@@ -53,6 +54,11 @@
     <string name="new_sector_title">Create New Sector</string>
     <string name="new_path_title">Create New Path</string>
 
+    <string name="edit_area_title">Modify Area</string>
+    <string name="edit_zone_title">Modify Zone</string>
+    <string name="edit_sector_title">Modify Sector</string>
+    <string name="edit_path_title">Modify Path</string>
+
     <string name="new_element_choose_title">Choose a parent</string>
 
     <string name="creation_step_compressing">Compressing image…</string>
@@ -60,10 +66,12 @@
     <string name="creation_step_finishing">Finishing…</string>
     <string name="creation_error_toast">Could not create. Check logcat</string>
     <string name="creation_error_cancelled_toast">Creation Cancelled</string>
+    <string name="creation_error_edit_cancelled_toast">Edit Cancelled</string>
     <string name="creation_success">Created successfully</string>
 
     <string name="assert_number_fail">Please, introduce a valid number.</string>
 
+    <string name="form_id">Element ID</string>
     <string name="form_parent">Parent</string>
     <string name="form_display_name">Display Name</string>
     <string name="form_web_url">Web URL</string>

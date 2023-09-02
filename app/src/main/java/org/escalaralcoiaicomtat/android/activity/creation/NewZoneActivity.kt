@@ -1,6 +1,8 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -57,14 +59,17 @@ import org.escalaralcoiaicomtat.android.ui.form.PointOption
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 
 @OptIn(ExperimentalFoundationApi::class)
-class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(R.string.new_zone_title) {
+class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
+    createTitleRes = R.string.new_zone_title,
+    editTitleRes = R.string.edit_zone_title
+) {
 
     object Contract : ResultContract<NewZoneActivity>(NewZoneActivity::class)
 
     override val model: Model by viewModels { Model.Factory(parentId!!, elementId, ::onBack) }
 
     @Composable
-    override fun ColumnScope.Content() {
+    override fun ColumnScope.Editor(parent: Area?) {
         val displayName by model.displayName.observeAsState(initial = "")
         val webUrl by model.webUrl.observeAsState(initial = "")
         val image by model.image.observeAsState()
@@ -78,7 +83,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(R.stri
         val longitudeFocusRequester = remember { FocusRequester() }
 
         FormField(
-            value = parentName ?: "",
+            value = parent?.displayName ?: "",
             onValueChange = { },
             label = stringResource(R.string.form_parent),
             modifier = Modifier.fillMaxWidth(),
@@ -315,6 +320,11 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(R.stri
             latitude.postValue(child.point?.latitude?.toString())
             longitude.postValue(child.point?.longitude?.toString())
             points.postValue(child.points)
+
+            child.fetchImage(getApplication(), null, null).collect {
+                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
+                image.postValue(bitmap)
+            }
         }
 
         override suspend fun fetchParent(parentId: Long): Area? = dao.getArea(parentId)

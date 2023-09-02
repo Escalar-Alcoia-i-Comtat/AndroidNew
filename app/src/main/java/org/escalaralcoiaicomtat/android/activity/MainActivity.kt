@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.activity
 
 import android.app.Application
 import android.os.Bundle
+import androidx.activity.result.ActivityResultCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -14,7 +15,6 @@ import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
@@ -40,57 +40,33 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity() {
     private val model by viewModels<Model>()
 
-    private val newAreaRequestLauncher = registerForActivityResult(
-        NewAreaActivity.Contract
-    ) { throwable ->
-        when (throwable) {
-            null -> toast(R.string.creation_success)
-            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
-            else -> {
-                Timber.e(throwable, "Creation failed.")
+    private val resultCallback = ActivityResultCallback<EditorActivity.Result> { result ->
+        when (result) {
+            is EditorActivity.Result.Success -> toast(R.string.creation_success)
+            is EditorActivity.Result.CreateCancelled -> toast(R.string.creation_error_cancelled_toast)
+            is EditorActivity.Result.EditCancelled -> toast(R.string.creation_error_edit_cancelled_toast)
+            is EditorActivity.Result.Failure -> {
+                Timber.e(result.throwable, "Creation failed.")
                 toast(R.string.creation_error_toast)
             }
         }
     }
+
+    private val newAreaRequestLauncher = registerForActivityResult(
+        NewAreaActivity.Contract, resultCallback
+    )
 
     private val newZoneRequestLauncher = registerForActivityResult(
-        NewZoneActivity.Contract
-    ) { throwable ->
-        when (throwable) {
-            null -> toast(R.string.creation_success)
-            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
-            else -> {
-                Timber.e(throwable, "Creation failed.")
-                toast(R.string.creation_error_toast)
-            }
-        }
-    }
+        NewZoneActivity.Contract, resultCallback
+    )
 
     private val newSectorRequestLauncher = registerForActivityResult(
-        NewSectorActivity.Contract
-    ) { throwable ->
-        when (throwable) {
-            null -> toast(R.string.creation_success)
-            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
-            else -> {
-                Timber.e(throwable, "Creation failed.")
-                toast(R.string.creation_error_toast)
-            }
-        }
-    }
+        NewSectorActivity.Contract, resultCallback
+    )
 
     private val newPathRequestLauncher = registerForActivityResult(
-        NewPathActivity.Contract
-    ) { throwable ->
-        when (throwable) {
-            null -> toast(R.string.creation_success)
-            is CancellationException -> toast(R.string.creation_error_cancelled_toast)
-            else -> {
-                Timber.e(throwable, "Creation failed.")
-                toast(R.string.creation_error_toast)
-            }
-        }
-    }
+        NewPathActivity.Contract, resultCallback
+    )
 
     private val sectorViewerRequestLauncher = registerForActivityResult(
         SectorViewer.Contract
