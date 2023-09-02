@@ -36,7 +36,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.ui.form.FormSegmentedButton
 import org.escalaralcoiaicomtat.android.ui.form.SizeMode
-import org.escalaralcoiaicomtat.android.utils.appendSerializable
+import org.escalaralcoiaicomtat.android.utils.appendDifference
 import timber.log.Timber
 
 class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>(R.string.new_sector_title) {
@@ -123,7 +123,8 @@ class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>
             value = walkingTime,
             onValueChange = { model.walkingTime.value = it },
             label = stringResource(R.string.form_walking_time),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            keyboardType = KeyboardType.Number
         )
     }
 
@@ -189,14 +190,11 @@ class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>
         override fun FormBuilder.getFormData() {
             Timber.i("Creating a new sector for zone #$parentId")
 
-            append("displayName", displayName.value!!)
-            appendSerializable("point", LatLng(latitude.value!!, longitude.value!!))
-            append("kidsApt", kidsApt.value ?: false)
-            append("sunTime", sunTime.value!!.name)
-            walkingTime.value
-                ?.takeIf { it.isNotBlank() }
-                ?.toLongOrNull()
-                ?.let { append("walkingTime", it) }
+            appendDifference("displayName", displayName.value, element.value?.displayName)
+            appendDifference("point", LatLng(latitude.value!!, longitude.value!!), element.value?.point)
+            appendDifference("kidsApt", kidsApt.value, element.value?.kidsApt)
+            appendDifference("sunTime", sunTime.value, element.value?.sunTime)
+            appendDifference("walkingTime", walkingTime.value?.takeIf { it.isNotBlank() }?.toLongOrNull(), element.value?.walkingTime)
             append("zone", parentId!!)
         }
     }

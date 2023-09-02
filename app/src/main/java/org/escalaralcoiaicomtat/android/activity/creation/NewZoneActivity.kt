@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,7 +54,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.ui.form.FormKMZPicker
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.PointOption
-import org.escalaralcoiaicomtat.android.utils.toJson
+import org.escalaralcoiaicomtat.android.utils.appendDifference
 
 @OptIn(ExperimentalFoundationApi::class)
 class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.string.new_zone_title) {
@@ -72,6 +71,7 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
         val kmzFile by model.kmzName.observeAsState()
         val latitude by model.latitude.observeAsState(initial = "")
         val longitude by model.longitude.observeAsState(initial = "")
+        val points by model.points.observeAsState()
 
         val webUrlFocusRequester = remember { FocusRequester() }
         val latitudeFocusRequester = remember { FocusRequester() }
@@ -141,7 +141,7 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
         }
 
         FormListCreator(
-            list = model.points,
+            list = points ?: emptyList(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
@@ -195,12 +195,16 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
                         rowLatitude.toDoubleOrNull() != null &&
                         rowLongitude.toDoubleOrNull() != null,
                     onClick = {
-                        model.points.add(
-                            DataPoint(
-                                LatLng(rowLatitude.toDouble(), rowLongitude.toDouble()),
-                                label,
-                                selection.key
-                            )
+                        model.points.postValue(
+                            (points ?: emptyList()).toMutableList().apply {
+                                add(
+                                    DataPoint(
+                                        LatLng(rowLatitude.toDouble(), rowLongitude.toDouble()),
+                                        label,
+                                        selection.key
+                                    )
+                                )
+                            }
                         )
                         rowLatitude = ""
                         rowLongitude = ""
@@ -226,7 +230,13 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
                     },
                     trailingContent = {
                         IconButton(
-                            onClick = { model.points.remove(point) }
+                            onClick = {
+                                model.points.postValue(
+                                    (points ?: emptyList()).toMutableList().apply {
+                                        remove(point)
+                                    }.takeIf { it.isNotEmpty() }
+                                )
+                            }
                         ) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.action_remove))
                         }
@@ -279,7 +289,7 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
         val webUrl = MutableLiveData("")
         val latitude = MutableLiveData("")
         val longitude = MutableLiveData("")
-        val points = mutableStateListOf<DataPoint>()
+        val points = MutableLiveData<List<DataPoint>>()
 
         private fun checkRequirements(): Boolean {
             return displayName.value?.isNotBlank() == true &&
@@ -304,7 +314,7 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
             webUrl.postValue(child.webUrl.toString())
             latitude.postValue(child.point?.latitude?.toString())
             longitude.postValue(child.point?.longitude?.toString())
-            child.points.let(points::addAll)
+            points.postValue(child.points)
         }
 
         override suspend fun fetchParent(parentId: Long): Area? = dao.getArea(parentId)
@@ -312,10 +322,14 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
         override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
 
         override fun FormBuilder.getFormData() {
-            append("displayName", displayName.value!!)
-            append("webUrl", webUrl.value!!)
-            append("point", LatLng(latitude.value!!.toDouble(), longitude.value!!.toDouble()).toJson().toString())
-            append("points", points.toJson().toString())
+            appendDifference("displayName", displayName.value, element.value?.displayName)
+            appendDifference("webUrl", webUrl.value, element.value?.webUrl)
+            appendDifference(
+                "point",
+                LatLng(latitude.value!!.toDouble(), longitude.value!!.toDouble()),
+                element.value?.point
+            )
+            appendDifference("points", points, element.value?.points)
             append("area", parentId!!)
         }
     }

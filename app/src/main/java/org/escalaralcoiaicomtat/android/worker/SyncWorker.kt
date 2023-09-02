@@ -50,6 +50,7 @@ import org.escalaralcoiaicomtat.android.utils.serialize
 import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
+import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -151,6 +152,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             getTree()
 
             Preferences.markAsSynchronized(applicationContext)
+            Preferences.setLastSync(applicationContext, Instant.now())
 
             Result.success()
         } catch (e: JSONException) {
@@ -232,7 +234,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         info: DataTypeInfo<R>
     ) = with(info) {
         if (local == null) {
-            // No local copy of the sector, insert it
+            // No local copy of the element, insert it
             Timber.d("- Got new $endpoint! ID: ${server.id}. Inserting...")
             dao.daoInsert(server)
             return@with

@@ -35,6 +35,9 @@
     <string name="settings_storage_cache_title">Cached files</string>
     <string name="settings_storage_cache_description">Files downloaded temporally. May be removed by the system automatically, but you can tap to remove them now.\nUsed space: %s</string>
     <string name="settings_storage_cache_cleared">Cleared cache</string>
+    <string name="settings_storage_sync_title">Run Synchronization</string>
+    <string name="settings_storage_sync_description">Tap here to force a new data synchronization (last run: %s).</string>
+    <string name="settings_storage_sync_description_running">Synchronization is running…</string>
     <string name="settings_security_lock">Security lock</string>
     <string name="settings_security_lock_locked">Locked</string>
     <string name="settings_security_lock_unlocked">Unlocked</string>

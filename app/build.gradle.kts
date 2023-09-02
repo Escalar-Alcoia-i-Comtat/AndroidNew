@@ -21,8 +21,8 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "PROTOCOL", "\"http\"")
-        buildConfigField("String", "HOSTNAME", "\"27.0.174.143:8080\"")
+        buildConfigField("String", "PROTOCOL", "\"https\"")
+        buildConfigField("String", "HOSTNAME", "\"backend.escalaralcoiaicomtat.org\"")
     }
 
     buildTypes {

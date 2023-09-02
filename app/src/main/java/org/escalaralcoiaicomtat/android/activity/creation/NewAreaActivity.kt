@@ -34,6 +34,7 @@ import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
+import org.escalaralcoiaicomtat.android.utils.appendDifference
 
 class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>(R.string.new_area_title) {
     object Contract : ActivityResultContract<Void?, Throwable?>() {
@@ -109,10 +110,15 @@ class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>
         val displayName = MutableLiveData("")
         val webUrl = MutableLiveData("")
 
+        private fun checkRequirements(): Boolean =
+            displayName.value?.isNotBlank() == true &&
+                webUrl.value?.isNotBlank() == true &&
+                image.value != null
+
         override val isFilled = MediatorLiveData<Boolean>().apply {
-            addSource(displayName) { value = it.isNotBlank() }
-            addSource(webUrl) { value = it.isNotBlank() }
-            addSource(image) { value = it != null }
+            addSource(displayName) { value = checkRequirements() }
+            addSource(webUrl) { value = checkRequirements() }
+            addSource(image) { value = checkRequirements() }
         }
 
         override suspend fun fill(child: Zone) {
@@ -127,8 +133,8 @@ class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>
         override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
 
         override fun FormBuilder.getFormData() {
-            append("displayName", displayName.value!!)
-            append("webUrl", webUrl.value!!)
+            appendDifference("displayName", displayName.value, element.value?.displayName)
+            appendDifference("webUrl", webUrl.value, element.value?.webUrl)
         }
     }
 }

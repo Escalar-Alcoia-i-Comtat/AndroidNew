@@ -41,6 +41,8 @@ data class LatLng(
         "longitude" to longitude
     )
 
+    override fun toString(): String = toJson().toString()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

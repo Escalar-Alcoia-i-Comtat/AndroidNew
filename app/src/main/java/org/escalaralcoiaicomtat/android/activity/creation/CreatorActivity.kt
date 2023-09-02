@@ -508,9 +508,9 @@ abstract class CreatorActivity<
         open class CreationStep(@StringRes val messageRes: Int) {
             object Compressing : CreationStep(R.string.creation_step_compressing)
             class Uploading(progress: Float) :
-                ProgressStep(R.string.creation_step_compressing, progress)
+                ProgressStep(R.string.creation_step_uploading, progress)
 
-            object Finishing : CreationStep(R.string.creation_step_compressing)
+            object Finishing : CreationStep(R.string.creation_step_finishing)
 
             open fun getString(context: Context) = context.getString(messageRes)
         }

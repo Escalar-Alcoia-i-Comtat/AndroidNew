@@ -95,10 +95,7 @@ import org.escalaralcoiaicomtat.android.ui.form.FormDropdown
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
-import org.escalaralcoiaicomtat.android.utils.appendEnum
-import org.escalaralcoiaicomtat.android.utils.appendSerializable
-import org.escalaralcoiaicomtat.android.utils.appendSerializableList
-import org.escalaralcoiaicomtat.android.utils.appendULong
+import org.escalaralcoiaicomtat.android.utils.appendDifference
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -940,7 +937,11 @@ class NewPathActivity : CreatorActivity<Sector, Path, NewPathActivity.Model>(R.s
             val paths = dao.getPathsFromSector(parent.id)
             if (paths != null) {
                 this@Model.sketchId.postValue(
-                    (paths.paths.maxOf { it.sketchId } + 1).toString()
+                    try {
+                        (paths.paths.maxOf { it.sketchId } + 1).toString()
+                    } catch (_: NoSuchElementException) {
+                        "1"
+                    }
                 )
             }
 
@@ -1000,35 +1001,35 @@ class NewPathActivity : CreatorActivity<Sector, Path, NewPathActivity.Model>(R.s
         override fun FormBuilder.getFormData() {
             Timber.i("Creating a new path for sector #$parentId")
 
-            append("displayName", displayName.value!!)
-            append("sketchId", sketchId.value!!)
+            appendDifference("displayName", displayName.value, element.value?.displayName)
+            appendDifference("sketchId", sketchId.value, element.value?.sketchId)
 
-            height.value?.toULongOrNull()?.let { appendULong("height", it) }
-            grade.value?.let { append("grade", it.name) }
-            ending.value?.let { appendEnum("ending", it) }
+            appendDifference("height", height.value?.toULongOrNull(), element.value?.height)
+            appendDifference("grade", grade.value, element.value?.grade)
+            appendDifference("ending", ending.value, element.value?.ending)
 
-            pitches.takeIf { it.isNotEmpty() }?.let { appendSerializableList("ending", it) }
+            appendDifference("pitches", pitches, element.value?.pitches)
 
-            stringCount.value?.toULongOrNull()?.let { appendULong("stringCount", it) }
+            appendDifference("stringCount", stringCount.value, element.value?.stringCount)
 
-            paraboltCount.value?.toULongOrNull()?.let { appendULong("paraboltCount", it) }
-            burilCount.value?.toULongOrNull()?.let { appendULong("burilCount", it) }
-            pitonCount.value?.toULongOrNull()?.let { appendULong("pitonCount", it) }
-            spitCount.value?.toULongOrNull()?.let { appendULong("spitCount", it) }
-            tensorCount.value?.toULongOrNull()?.let { appendULong("tensorCount", it) }
+            appendDifference("paraboltCount", paraboltCount.value, element.value?.paraboltCount)
+            appendDifference("burilCount", burilCount.value, element.value?.burilCount)
+            appendDifference("pitonCount", pitonCount.value, element.value?.pitonCount)
+            appendDifference("spitCount", spitCount.value, element.value?.spitCount)
+            appendDifference("tensorCount", tensorCount.value, element.value?.tensorCount)
 
-            crackerRequired.value?.let { append("crackerRequired", it) }
-            friendRequired.value?.let { append("friendRequired", it) }
-            lanyardRequired.value?.let { append("lanyardRequired", it) }
-            nailRequired.value?.let { append("nailRequired", it) }
-            pitonRequired.value?.let { append("pitonRequired", it) }
-            stapesRequired.value?.let { append("stapesRequired", it) }
+            appendDifference("crackerRequired", crackerRequired.value, element.value?.crackerRequired)
+            appendDifference("friendRequired", friendRequired.value, element.value?.friendRequired)
+            appendDifference("lanyardRequired", lanyardRequired.value, element.value?.lanyardRequired)
+            appendDifference("nailRequired", nailRequired.value, element.value?.nailRequired)
+            appendDifference("pitonRequired", pitonRequired.value, element.value?.pitonRequired)
+            appendDifference("stapesRequired", stapesRequired.value, element.value?.stapesRequired)
 
-            showDescription.value?.let { append("showDescription", it) }
-            description.value?.let { append("description", it) }
+            appendDifference("showDescription", showDescription.value, element.value?.showDescription)
+            appendDifference("description", description.value, element.value?.description)
 
-            builder.value?.let { appendSerializable("builder", it) }
-            reBuilders.value?.let { appendSerializableList("reBuilders", it) }
+            appendDifference("builder", builder.value, element.value?.builder)
+            appendDifference("reBuilders", reBuilders.value, element.value?.reBuilder)
 
             append("sector", parentId!!)
         }

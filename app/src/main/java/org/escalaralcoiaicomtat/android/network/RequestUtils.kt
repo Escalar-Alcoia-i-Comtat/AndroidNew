@@ -10,6 +10,7 @@ import org.escalaralcoiaicomtat.android.utils.getJSONObjectOrNull
 import org.escalaralcoiaicomtat.android.utils.json
 import org.json.JSONObject
 import timber.log.Timber
+import java.time.Instant
 
 /**
  * Converts the body of the `HttpResponse` object into a `JSONObject`.
@@ -63,6 +64,7 @@ fun <T: Any> FormBuilder.appendUpdate(name: String, local: T?, server: T?) {
             is Number -> append(name, local)
             is Boolean -> append(name, local)
             is ByteArray -> append(name, local)
+            is Instant -> append(name, local.toEpochMilli())
             else -> throw IllegalArgumentException("Tried to append unsupported type ${local::class.simpleName}")
         }
     }

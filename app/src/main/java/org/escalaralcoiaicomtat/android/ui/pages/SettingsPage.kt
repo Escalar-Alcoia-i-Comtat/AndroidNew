@@ -4,6 +4,7 @@ import android.text.format.Formatter
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
@@ -27,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.work.WorkInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,6 +40,8 @@ import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.ui.dialog.ApiKeyDialog
 import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
 import org.escalaralcoiaicomtat.android.utils.toast
+import org.escalaralcoiaicomtat.android.worker.SyncWorker
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
@@ -106,6 +110,35 @@ fun SettingsPage(
             crate.cacheClear().invokeOnCompletion {
                 context.toast(R.string.settings_storage_cache_cleared)
             }
+        }
+    )
+
+    val liveSync by SyncWorker.getLive(context).observeAsState(initial = emptyList())
+    val sync = liveSync.find { it.state == WorkInfo.State.RUNNING }
+    val lastSync by Preferences.getLastSync(context).collectAsState(initial = null)
+
+    ListItem(
+        leadingContent = {
+            Icon(Icons.Outlined.CloudSync, stringResource(R.string.settings_storage_sync_title))
+        },
+        headlineContent = { Text(stringResource(R.string.settings_storage_sync_title)) },
+        supportingContent = {
+            Text(
+                text = if (sync != null)
+                    stringResource(R.string.settings_storage_sync_description_running)
+                else
+                    stringResource(
+                        R.string.settings_storage_sync_description,
+                        lastSync?.let {
+                            DateTimeFormatter
+                                .ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault())
+                                .format(it)
+                        } ?: stringResource(R.string.none)
+                    )
+            )
+        },
+        modifier = Modifier.clickable(enabled = sync == null) {
+            CoroutineScope(Dispatchers.IO).launch { SyncWorker.synchronize(context) }
         }
     )
 
