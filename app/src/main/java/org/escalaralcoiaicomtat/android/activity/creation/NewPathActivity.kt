@@ -37,12 +37,14 @@ import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -95,6 +97,10 @@ import org.escalaralcoiaicomtat.android.ui.form.FormDropdown
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
+import org.escalaralcoiaicomtat.android.utils.appendEnum
+import org.escalaralcoiaicomtat.android.utils.appendSerializable
+import org.escalaralcoiaicomtat.android.utils.appendSerializableList
+import org.escalaralcoiaicomtat.android.utils.appendULong
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -356,6 +362,11 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
                 .padding(vertical = 8.dp)
         ) {
             val richEditorState = rememberRichTextState()
+
+            LaunchedEffect(richEditorState) {
+                snapshotFlow { richEditorState.toMarkdown() }
+                    .collect { model.description.postValue(it) }
+            }
 
             Row(
                 modifier = Modifier
@@ -959,6 +970,7 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
 
         override val isFilled: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
             addSource(displayName) { value = checkRequirements() }
+            addSource(sketchId) { value = checkRequirements() }
         }
 
         override fun FormBuilder.getFormData() {
@@ -967,7 +979,32 @@ class NewPathActivity : CreatorActivity<NewPathActivity.Model>(R.string.new_path
             append("displayName", displayName.value!!)
             append("sketchId", sketchId.value!!)
 
-            // todo - missing fields
+            height.value?.toULongOrNull()?.let { appendULong("height", it) }
+            grade.value?.let { append("grade", it.name) }
+            ending.value?.let { appendEnum("ending", it) }
+
+            pitches.takeIf { it.isNotEmpty() }?.let { appendSerializableList("ending", it) }
+
+            stringCount.value?.toULongOrNull()?.let { appendULong("stringCount", it) }
+
+            paraboltCount.value?.toULongOrNull()?.let { appendULong("paraboltCount", it) }
+            burilCount.value?.toULongOrNull()?.let { appendULong("burilCount", it) }
+            pitonCount.value?.toULongOrNull()?.let { appendULong("pitonCount", it) }
+            spitCount.value?.toULongOrNull()?.let { appendULong("spitCount", it) }
+            tensorCount.value?.toULongOrNull()?.let { appendULong("tensorCount", it) }
+
+            crackerRequired.value?.let { append("crackerRequired", it) }
+            friendRequired.value?.let { append("friendRequired", it) }
+            lanyardRequired.value?.let { append("lanyardRequired", it) }
+            nailRequired.value?.let { append("nailRequired", it) }
+            pitonRequired.value?.let { append("pitonRequired", it) }
+            stapesRequired.value?.let { append("stapesRequired", it) }
+
+            showDescription.value?.let { append("showDescription", it) }
+            description.value?.let { append("description", it) }
+
+            builder.value?.let { appendSerializable("builder", it) }
+            reBuilders.value?.let { appendSerializableList("reBuilders", it) }
         }
 
         @UiThread
