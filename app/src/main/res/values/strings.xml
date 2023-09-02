@@ -24,6 +24,7 @@
     <string name="list_item_favorite">Favorite</string>
     <string name="list_item_download">Download</string>
     <string name="list_item_create">Create New</string>
+    <string name="list_item_edit">Edit</string>
 
     <string name="settings_category_ui">User Interface</string>
     <string name="settings_category_storage">Storage</string>

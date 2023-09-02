@@ -18,7 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
-import org.escalaralcoiaicomtat.android.activity.creation.CreatorActivity
+import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewAreaActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewSectorActivity
@@ -109,20 +109,31 @@ class MainActivity : AppCompatActivity() {
                 navController = navController,
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
-                onCreateArea = { newAreaRequestLauncher.launch(null) },
-                onCreateZone = {
+                onCreateOrEditArea = { area ->
+                    newAreaRequestLauncher.launch(area)
+                },
+                onCreateOrEditZone = { area, zone ->
                     newZoneRequestLauncher.launch(
-                        CreatorActivity.Input.fromParent(it)
+                        if (zone == null)
+                            EditorActivity.Input.fromParent(area)
+                        else
+                            EditorActivity.Input.fromElement(area, zone)
                     )
                 },
-                onCreateSector = {
+                onCreateOrEditSector = { zone, sector ->
                     newSectorRequestLauncher.launch(
-                        CreatorActivity.Input.fromParent(it)
+                        if (sector == null)
+                            EditorActivity.Input.fromParent(zone)
+                        else
+                            EditorActivity.Input.fromElement(zone, sector)
                     )
                 },
-                onCreatePath = {
+                onCreateOrEditPath = { sector, path ->
                     newPathRequestLauncher.launch(
-                        CreatorActivity.Input.fromParent(it)
+                        if (path == null)
+                            EditorActivity.Input.fromParent(sector)
+                        else
+                            EditorActivity.Input.fromElement(sector, path)
                     )
                 },
                 onSectorView = {

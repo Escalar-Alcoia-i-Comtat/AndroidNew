@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Downloading
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.AlertDialog
@@ -67,7 +68,8 @@ fun <T: DataEntity> DataCard(
     imageHeight: Dp,
     modifier: Modifier = Modifier,
     onFavoriteToggle: () -> Job?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEdit: (() -> Unit)?
 ) {
     val context = LocalContext.current
 
@@ -130,6 +132,15 @@ fun <T: DataEntity> DataCard(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 fontSize = 20.sp
             )
+
+            onEdit?.let {
+                IconButton(onClick = it) {
+                    Icon(
+                        Icons.Rounded.Edit,
+                        stringResource(R.string.list_item_edit)
+                    )
+                }
+            }
 
             IconButton(
                 enabled = !isDownloading && imageFile != null,

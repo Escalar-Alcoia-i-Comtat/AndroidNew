@@ -30,16 +30,18 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
 import kotlinx.coroutines.CancellationException
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
-import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 
-class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>(R.string.new_area_title) {
-    object Contract : ActivityResultContract<Void?, Throwable?>() {
-        override fun createIntent(context: Context, input: Void?): Intent =
-            Intent(context, NewAreaActivity::class.java)
+class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(R.string.new_area_title) {
+    object Contract : ActivityResultContract<Area?, Throwable?>() {
+        override fun createIntent(context: Context, input: Area?): Intent =
+            Intent(context, NewAreaActivity::class.java).apply {
+                putExtra(EXTRA_ELEMENT_ID, input?.id)
+            }
 
         override fun parseResult(resultCode: Int, intent: Intent?): Throwable? =
             when (resultCode) {
@@ -88,17 +90,17 @@ class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>
 
     class Model(
         application: Application,
-        zoneId: Long?,
+        areaId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : CreatorModel<BaseEntity, Zone>(application, null, zoneId) {
+    ) : EditorModel<BaseEntity, Area>(application, null, areaId) {
         companion object {
             fun Factory(
-                zoneId: Long?,
+                areaId: Long?,
                 whenNotFound: () -> Unit
             ): ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                    Model(application, zoneId, whenNotFound)
+                    Model(application, areaId, whenNotFound)
                 }
             }
         }
@@ -121,7 +123,7 @@ class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>
             addSource(image) { value = checkRequirements() }
         }
 
-        override suspend fun fill(child: Zone) {
+        override suspend fun fill(child: Area) {
             displayName.postValue(child.displayName)
             webUrl.postValue(child.webUrl.toString())
             child.fetchImage(getApplication(), null, null).collect {
@@ -130,7 +132,7 @@ class NewAreaActivity : CreatorActivity<BaseEntity, Zone, NewAreaActivity.Model>
             }
         }
 
-        override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
+        override suspend fun fetchChild(childId: Long): Area? = dao.getArea(childId)
 
         override fun FormBuilder.getFormData() {
             appendDifference("displayName", displayName.value, element.value?.displayName)

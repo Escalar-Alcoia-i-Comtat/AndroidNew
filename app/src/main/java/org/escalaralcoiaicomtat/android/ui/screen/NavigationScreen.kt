@@ -30,6 +30,7 @@ import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.sorted
@@ -43,10 +44,10 @@ fun NavigationScreen(
     widthSizeClass: WindowWidthSizeClass,
     backProgress: Float?,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateArea: () -> Unit,
-    onCreateZone: (Area) -> Unit,
-    onCreateSector: (Zone) -> Unit,
-    onCreatePath: (Sector) -> Unit,
+    onCreateOrEditArea: (item: Area?) -> Unit,
+    onCreateOrEditZone: (parent: Area, item: Zone?) -> Unit,
+    onCreateOrEditSector: (parent: Zone, item: Sector?) -> Unit,
+    onCreateOrEditPath: (parent: Sector, item: Path?) -> Unit,
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
@@ -105,7 +106,7 @@ fun NavigationScreen(
                         selected = area == selection,
                         showCreate = apiKey != null,
                         onClick = { viewModel.navigate(area) },
-                        onCreate = { onCreateZone(area) }
+                        onCreate = { onCreateOrEditZone(area, null) }
                     )
                     zones.takeIf { selection == area || (selection as? Zone)?.areaId == area.id }
                         ?.sorted()
@@ -117,7 +118,7 @@ fun NavigationScreen(
                                 selected = zone == selection,
                                 showCreate = apiKey != null,
                                 onClick = { viewModel.navigate(zone) },
-                                onCreate = { onCreateSector(zone) }
+                                onCreate = { onCreateOrEditSector(zone, null) }
                             )
                             sectors.takeIf { selection == zone }
                                 ?.sorted()
@@ -129,7 +130,7 @@ fun NavigationScreen(
                                         selected = sector == selection,
                                         showCreate = apiKey != null,
                                         onClick = { viewModel.navigate(sector) },
-                                        onCreate = { onCreatePath(sector) }
+                                        onCreate = { onCreateOrEditPath(sector, null) }
                                     )
                                 }
                         }
@@ -147,9 +148,10 @@ fun NavigationScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 12.dp),
-                    onFavoriteToggle,
-                    onCreateArea,
                     onClick = { viewModel.navigate(it) },
+                    onFavoriteToggle = onFavoriteToggle,
+                    onCreate = { onCreateOrEditArea(null) },
+                    onEdit = apiKey?.let { { onCreateOrEditArea(it) } },
                     onMove = null // Areas cannot be reordered
                 )
             // Zones List
@@ -164,9 +166,10 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp)
                         .backAnimation(backProgress),
-                    onFavoriteToggle,
-                    onCreate = { onCreateZone(data) },
                     onClick = { viewModel.navigate(it) },
+                    onFavoriteToggle = onFavoriteToggle,
+                    onCreate = { onCreateOrEditZone(data, null) },
+                    onEdit = apiKey?.let { { onCreateOrEditZone(data, it) } },
                     onMove = null // Zones cannot be reordered
                 )
             }
@@ -182,9 +185,10 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp)
                         .backAnimation(backProgress),
-                    onFavoriteToggle,
-                    onCreate = { onCreateSector(data) },
                     onClick = { viewModel.navigate(it) },
+                    onFavoriteToggle = onFavoriteToggle,
+                    onCreate = { onCreateOrEditSector(data, null) },
+                    onEdit = apiKey?.let { { onCreateOrEditSector(data, it) } },
                     onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
             }

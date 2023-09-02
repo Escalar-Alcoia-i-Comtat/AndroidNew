@@ -72,6 +72,7 @@ import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
@@ -134,10 +135,10 @@ fun MainScreen(
     widthSizeClass: WindowWidthSizeClass,
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateArea: () -> Unit,
-    onCreateZone: (Area) -> Unit,
-    onCreateSector: (Zone) -> Unit,
-    onCreatePath: (Sector) -> Unit,
+    onCreateOrEditArea: (Area?) -> Unit,
+    onCreateOrEditZone: (Area, Zone?) -> Unit,
+    onCreateOrEditSector: (Zone, Sector?) -> Unit,
+    onCreateOrEditPath: (Sector, Path?) -> Unit,
     onSectorView: (Sector) -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModel.Factory(
@@ -345,24 +346,24 @@ fun MainScreen(
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.LocationCity,
                             text = stringResource(R.string.new_area_title)
-                        ) { onCreateArea() },
+                        ) { onCreateOrEditArea(null) },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
                         ) {
-                            viewModel.createChooser(Area::class, onCreateZone)
+                            viewModel.createChooser(Area::class) { onCreateOrEditZone(it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
                         ) {
-                            viewModel.createChooser(Zone::class, onCreateSector)
+                            viewModel.createChooser(Zone::class) { onCreateOrEditSector(it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
                         ) {
-                            viewModel.createChooser(Sector::class, onCreatePath)
+                            viewModel.createChooser(Sector::class) { onCreateOrEditPath(it, null) }
                         }
                     ),
                     toggled = toggled,
@@ -427,10 +428,10 @@ fun MainScreen(
                     widthSizeClass,
                     backProgress,
                     onFavoriteToggle,
-                    onCreateArea,
-                    onCreateZone,
-                    onCreateSector,
-                    onCreatePath,
+                    onCreateOrEditArea,
+                    onCreateOrEditZone,
+                    onCreateOrEditSector,
+                    onCreateOrEditPath,
                     viewModel
                 )
             }
@@ -457,10 +458,10 @@ fun MainScreen_Preview() {
             widthSizeClass = WindowWidthSizeClass.Compact,
             onApiKeySubmit = { CoroutineScope(Dispatchers.IO).launch { } },
             onFavoriteToggle = { CoroutineScope(Dispatchers.IO).launch { } },
-            onCreateArea = {},
-            onCreateZone = {},
-            onCreateSector = {},
-            onCreatePath = {},
+            onCreateOrEditArea = {},
+            onCreateOrEditZone = { _, _ -> },
+            onCreateOrEditSector = { _, _ -> },
+            onCreateOrEditPath = { _, _ -> },
             onSectorView = {}
         )
     }

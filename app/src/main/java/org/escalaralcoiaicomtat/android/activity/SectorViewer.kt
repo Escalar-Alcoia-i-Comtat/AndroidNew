@@ -79,7 +79,7 @@ import kotlinx.coroutines.withContext
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.escalaralcoiaicomtat.android.R
-import org.escalaralcoiaicomtat.android.activity.creation.CreatorActivity
+import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
@@ -223,7 +223,7 @@ class SectorViewer : AppCompatActivity() {
                                         IconButton(
                                             onClick = {
                                                 newPathLauncher.launch(
-                                                    CreatorActivity.Input.fromParent(sector)
+                                                    EditorActivity.Input.fromParent(sector)
                                                 )
                                             }
                                         ) {

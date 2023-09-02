@@ -57,7 +57,7 @@ import org.escalaralcoiaicomtat.android.ui.form.PointOption
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 
 @OptIn(ExperimentalFoundationApi::class)
-class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.string.new_zone_title) {
+class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(R.string.new_zone_title) {
 
     object Contract : ResultContract<NewZoneActivity>(NewZoneActivity::class)
 
@@ -267,7 +267,7 @@ class NewZoneActivity : CreatorActivity<Area, Zone, NewZoneActivity.Model>(R.str
         areaId: Long,
         zoneId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : CreatorModel<Area, Zone>(application, areaId, zoneId) {
+    ) : EditorModel<Area, Zone>(application, areaId, zoneId) {
         companion object {
             fun Factory(
                 areaId: Long,

@@ -36,9 +36,10 @@ inline fun <reified T : DataEntity> DataList(
     gridCellSize: Dp,
     imageHeight: Dp,
     modifier: Modifier = Modifier,
+    crossinline onClick: (T) -> Unit,
     crossinline onFavoriteToggle: (T) -> Job,
     noinline onCreate: () -> Unit,
-    crossinline onClick: (T) -> Unit,
+    noinline onEdit: ((T) -> Unit)?,
     noinline onMove: ((from: Int, to: Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -60,8 +61,10 @@ inline fun <reified T : DataEntity> DataList(
             modifier = modifier.letIf(onMove != null) { it.reorderable(state) },
             state = state.gridState
         ) {
+            // TODO - hide if apiKey != null
             if (list.isEmpty()) {
                 item {
+                    // TODO - translate
                     Text("No items available")
                 }
             }
@@ -85,7 +88,8 @@ inline fun <reified T : DataEntity> DataList(
                             },
                         imageHeight = imageHeight,
                         onFavoriteToggle = { onFavoriteToggle(item) },
-                        onClick = { onClick(item) }
+                        onClick = { onClick(item) },
+                        onEdit = onEdit?.let { { it(item) } }
                     )
                 }
             }

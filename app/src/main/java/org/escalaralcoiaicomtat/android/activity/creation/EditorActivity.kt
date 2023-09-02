@@ -87,10 +87,10 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
-abstract class CreatorActivity<
+abstract class EditorActivity<
     ParentType : BaseEntity?,
-    ChildType : BaseEntity,
-    Model : CreatorActivity.CreatorModel<ParentType, ChildType>
+    ElementType : BaseEntity,
+    Model : EditorActivity.EditorModel<ParentType, ElementType>
     >(
     @StringRes private val titleRes: Int
 ) : AppCompatActivity() {
@@ -115,7 +115,7 @@ abstract class CreatorActivity<
         companion object {
             fun fromParent(parent: DataEntity) = Input(parent.displayName, parent.id)
 
-            fun fromElement(parent: DataEntity, element: DataEntity) = Input(
+            fun fromElement(parent: DataEntity, element: BaseEntity) = Input(
                 parent.displayName,
                 parent.id,
                 element.id
@@ -123,7 +123,7 @@ abstract class CreatorActivity<
         }
     }
 
-    abstract class ResultContract<A : CreatorActivity<*, *, *>>(
+    abstract class ResultContract<A : EditorActivity<*, *, *>>(
         private val kClass: KClass<A>
     ) : ActivityResultContract<Input?, Throwable?>() {
         override fun createIntent(context: Context, input: Input?): Intent =
@@ -242,7 +242,7 @@ abstract class CreatorActivity<
                     ) {
                         isCreating?.let { step ->
                             when (step) {
-                                is CreatorModel.ProgressStep ->
+                                is EditorModel.ProgressStep ->
                                     LinearProgressIndicator(
                                         modifier = Modifier.fillMaxWidth(),
                                         progress = step.progress
@@ -326,18 +326,18 @@ abstract class CreatorActivity<
     @Suppress("UNCHECKED_CAST", "DEPRECATION")
     private fun <
         ParentType : BaseEntity?,
-        ChildType : BaseEntity,
-        M : CreatorModel<ParentType, ChildType>,
-        Z : CreatorActivity<ParentType, ChildType, M>,
+        ElementType : BaseEntity,
+        M : EditorModel<ParentType, ElementType>,
+        Z : EditorActivity<ParentType, ElementType, M>,
         T : Any
         > extras(): ReadOnlyProperty<Z, T?> = ReadOnlyProperty { _, property ->
         intent?.extras?.get(property.name) as? T?
     }
 
-    abstract class CreatorModel<ParentType : BaseEntity?, ChildType : BaseEntity>(
+    abstract class EditorModel<ParentType : BaseEntity?, ElementType : BaseEntity>(
         application: Application,
         protected val parentId: Long?,
-        private val childId: Long?
+        private val elementId: Long?
     ) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
         protected val dao = database.dataDao()
@@ -389,7 +389,7 @@ abstract class CreatorActivity<
 
         val parent = MutableLiveData<ParentType>()
 
-        val element = MutableLiveData<ChildType>()
+        val element = MutableLiveData<ElementType>()
 
         /**
          * For appending all the data required for creating the object in the server. Will be sent
@@ -404,11 +404,11 @@ abstract class CreatorActivity<
         /**
          * Called when edit is requested, and the child has been found
          */
-        open suspend fun fill(child: ChildType) {}
+        open suspend fun fill(child: ElementType) {}
 
         open suspend fun fetchParent(parentId: Long): ParentType? = null
 
-        open suspend fun fetchChild(childId: Long): ChildType? = null
+        open suspend fun fetchChild(childId: Long): ElementType? = null
 
         /**
          * Can be used for preparing data to send in the form asynchronously. For example,
@@ -427,14 +427,16 @@ abstract class CreatorActivity<
                         whenNotFound?.invoke()
                         return@launch
                     }
-                    this@CreatorModel.parent.postValue(parent)
+                    this@EditorModel.parent.postValue(parent)
 
+                    val parentName = parent.let { it::class.simpleName }
+                    Timber.d("Initializing data for $parentName #$parentId")
                     init(parent)
+                }
 
-                    val child = childId?.let { fetchChild(it) }
-                    if (child != null) {
-                        fill(child)
-                    }
+                val child = elementId?.let { fetchChild(it) }
+                if (child != null) {
+                    fill(child)
                 }
             }
         }

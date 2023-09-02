@@ -39,7 +39,7 @@ import org.escalaralcoiaicomtat.android.ui.form.SizeMode
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 import timber.log.Timber
 
-class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>(R.string.new_sector_title) {
+class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(R.string.new_sector_title) {
 
     object Contract : ResultContract<NewSectorActivity>(NewSectorActivity::class)
 
@@ -133,7 +133,7 @@ class NewSectorActivity : CreatorActivity<Zone, Sector, NewSectorActivity.Model>
         zoneId: Long,
         sectorId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : CreatorModel<Zone, Sector>(application, zoneId, sectorId) {
+    ) : EditorModel<Zone, Sector>(application, zoneId, sectorId) {
         companion object {
             fun Factory(
                 zoneId: Long,

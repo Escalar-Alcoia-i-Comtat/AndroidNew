@@ -99,7 +99,7 @@ import org.escalaralcoiaicomtat.android.utils.appendDifference
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-class NewPathActivity : CreatorActivity<Sector, Path, NewPathActivity.Model>(R.string.new_path_title) {
+class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(R.string.new_path_title) {
     object Contract : ResultContract<NewPathActivity>(NewPathActivity::class)
 
     override val model: Model by viewModels {
@@ -880,7 +880,7 @@ class NewPathActivity : CreatorActivity<Sector, Path, NewPathActivity.Model>(R.s
         sectorId: Long,
         pathId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : CreatorModel<Sector, Path>(application, sectorId, pathId) {
+    ) : EditorModel<Sector, Path>(application, sectorId, pathId) {
         companion object {
             fun Factory(
                 sectorId: Long,
