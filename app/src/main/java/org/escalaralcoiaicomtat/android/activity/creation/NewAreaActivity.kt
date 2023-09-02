@@ -148,8 +148,8 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             appendDifference("webUrl", webUrl.value, element.value?.webUrl)
         }
 
-        override suspend fun insertDao(element: Area) = dao.insert(element)
+        override suspend fun insert(element: Area) = dao.insert(element)
 
-        override suspend fun updateDao(element: Area) = dao.update(element)
+        override suspend fun update(element: Area) = dao.update(element)
     }
 }

@@ -523,12 +523,12 @@ abstract class EditorActivity<
         /**
          * Should use [dao] to insert the given [element] into the database.
          */
-        protected abstract suspend fun insertDao(element: ElementType)
+        protected abstract suspend fun insert(element: ElementType)
 
         /**
          * Should use [dao] to update the given [element].
          */
-        protected abstract suspend fun updateDao(element: ElementType)
+        protected abstract suspend fun update(element: ElementType)
 
         init {
             viewModelScope.launch(Dispatchers.IO) {
@@ -617,7 +617,7 @@ abstract class EditorActivity<
                             val data = JSONObject(bodyAsText()).getJSONObject("data")
                             val elementJson = data.getJSONObject("element")
                             val element = elementSerializer.fromJson(elementJson)
-                            insertDao(element)
+                            insert(element)
                         }
                         HttpStatusCode.OK -> {
                             Timber.d("Update complete (status=$status). Synchronizing...")
@@ -626,7 +626,7 @@ abstract class EditorActivity<
                             val data = JSONObject(bodyAsText()).getJSONObject("data")
                             val elementJson = data.getJSONObject("element")
                             val element = elementSerializer.fromJson(elementJson)
-                            updateDao(element)
+                            update(element)
                         }
                         else -> {
                             throw RequestException(status, bodyAsJson())

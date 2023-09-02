@@ -346,8 +346,8 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
             append("area", parentId!!)
         }
 
-        override suspend fun insertDao(element: Zone) = dao.insert(element)
+        override suspend fun insert(element: Zone) = dao.insert(element)
 
-        override suspend fun updateDao(element: Zone) = dao.update(element)
+        override suspend fun update(element: Zone) = dao.update(element)
     }
 }

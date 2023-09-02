@@ -211,8 +211,8 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
             append("zone", parentId!!)
         }
 
-        override suspend fun insertDao(element: Sector) = dao.insert(element)
+        override suspend fun insert(element: Sector) = dao.insert(element)
 
-        override suspend fun updateDao(element: Sector) = dao.update(element)
+        override suspend fun update(element: Sector) = dao.update(element)
     }
 }
