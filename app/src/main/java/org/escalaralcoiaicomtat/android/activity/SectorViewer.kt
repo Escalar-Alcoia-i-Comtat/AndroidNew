@@ -38,6 +38,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -285,6 +286,8 @@ class SectorViewer : AppCompatActivity() {
         val context = LocalContext.current
         val windowSizeClass = calculateWindowSizeClass(this@SectorViewer)
 
+        val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
+
         val imageFile by sector.rememberImageFile()
         var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
@@ -352,6 +355,11 @@ class SectorViewer : AppCompatActivity() {
                             else {
                                 { viewModel.selectionIndex.postValue(selectedIndex - 1) }
                             },
+                            onEditRequested = {
+                                newPathLauncher.launch(
+                                    EditorActivity.Input.fromElement(sector, path)
+                                )
+                            }.takeIf { apiKey != null }
                         ) { viewModel.selectionIndex.postValue(null) }
                     }
                 }
@@ -386,7 +394,7 @@ class SectorViewer : AppCompatActivity() {
                 }
 
                 if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
-                    BottomPathsView(paths)
+                    BottomPathsView(sector, paths)
                 }
             }
         } ?: Box(
@@ -405,7 +413,9 @@ class SectorViewer : AppCompatActivity() {
     }
 
     @Composable
-    fun BottomPathsView(paths: List<Path>) {
+    fun BottomPathsView(sector: Sector, paths: List<Path>) {
+        val apiKey by Preferences.getApiKey(this).collectAsState(initial = null)
+
         val selectionIndex by viewModel.selectionIndex.observeAsState()
 
         AnimatedContent(
@@ -440,6 +450,11 @@ class SectorViewer : AppCompatActivity() {
                     else {
                         { viewModel.selectionIndex.postValue(selectedIndex - 1) }
                     },
+                    onEditRequested = {
+                        newPathLauncher.launch(
+                            EditorActivity.Input.fromElement(sector, path)
+                        )
+                    }.takeIf { apiKey != null }
                 ) { viewModel.selectionIndex.postValue(null) }
             }
         }
@@ -451,6 +466,7 @@ class SectorViewer : AppCompatActivity() {
         modifier: Modifier = Modifier,
         onPreviousRequested: (() -> Unit)?,
         onNextRequested: (() -> Unit)?,
+        onEditRequested: (() -> Unit)?,
         onDismissRequested: () -> Unit
     ) {
         OutlinedCard(
@@ -476,6 +492,11 @@ class SectorViewer : AppCompatActivity() {
                     modifier = Modifier.weight(1f).padding(start = 8.dp),
                     style = MaterialTheme.typography.titleSmall
                 )
+                onEditRequested?.let {
+                    IconButton(onClick = it) {
+                        Icon(Icons.Rounded.Edit, stringResource(R.string.action_edit))
+                    }
+                }
                 IconButton(onClick = onDismissRequested) {
                     Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
                 }

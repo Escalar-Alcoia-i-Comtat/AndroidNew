@@ -644,15 +644,25 @@ abstract class EditorActivity<
                     this@EditorModel.parent.postValue(parent)
 
                     val parentName = parent.let { it::class.simpleName }
-                    Timber.d("Initializing data for $parentName #$parentId")
-                    init(parent)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        Timber.d("Initializing data for $parentName #$parentId")
+                        init(parent)
+                    }
                 }
 
-                val child = elementId?.let { fetchChild(it) }
-                if (child != null) {
-                    element.postValue(child)
+                if (elementId != null) {
+                    val child = fetchChild(elementId)
+                    if (child != null) {
+                        Timber.d("Loaded element's data. Posting and filling...")
+                        element.postValue(child)
 
-                    fill(child)
+                        fill(child)
+                    } else {
+                        Timber.w("Tried to load a non-existing child. ID: $elementId")
+                        whenNotFound?.invoke()
+                    }
+                } else {
+                    Timber.d("Won't load element since elementId is null")
                 }
 
                 withContext(Dispatchers.Main) {

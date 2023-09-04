@@ -12,6 +12,7 @@
     <string name="action_previous">Previous</string>
     <string name="action_next">Next</string>
     <string name="action_update">Update</string>
+    <string name="action_edit">Edit</string>
 
     <string name="state_calculating">Calculating…</string>
 
