@@ -190,7 +190,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
             longitude.postValue(child.point?.longitude?.toString())
             weight.postValue(child.weight)
 
-            child.fetchImage(getApplication(), null, null).collect {
+            child.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
                 image.postValue(bitmap)
             }

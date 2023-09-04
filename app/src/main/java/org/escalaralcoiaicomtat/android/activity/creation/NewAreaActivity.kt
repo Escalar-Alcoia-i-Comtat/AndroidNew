@@ -135,7 +135,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
         override suspend fun fill(child: Area) {
             displayName.postValue(child.displayName)
             webUrl.postValue(child.webUrl.toString())
-            child.fetchImage(getApplication(), null, null).collect {
+            child.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
                 image.postValue(bitmap)
             }

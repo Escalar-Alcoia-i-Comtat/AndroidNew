@@ -324,7 +324,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, NewZoneActivity.Model>(
             longitude.postValue(child.point?.longitude?.toString())
             points.postValue(child.points)
 
-            child.fetchImage(getApplication(), null, null).collect {
+            child.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
                 image.postValue(bitmap)
             }

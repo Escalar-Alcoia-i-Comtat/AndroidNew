@@ -1,16 +1,16 @@
 package org.escalaralcoiaicomtat.android.storage.data
 
 import android.content.Context
+import androidx.annotation.WorkerThread
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import org.escalaralcoiaicomtat.android.exception.remote.RemoteFileNotFound
-import org.escalaralcoiaicomtat.android.exception.remote.RequestException
-import org.escalaralcoiaicomtat.android.network.EndpointUtils
-import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
-import org.escalaralcoiaicomtat.android.network.get
-import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile
-import org.escalaralcoiaicomtat.android.worker.DownloadWorker
+import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
 import timber.log.Timber
 import java.util.UUID
 
@@ -21,70 +21,34 @@ abstract class DataEntity : BaseEntity() {
 
     val imageUUID: UUID by lazy { UUID.fromString(image.substringBeforeLast('.')) }
 
-    private suspend fun fetchLocalImageInfo(context: Context): RemoteFileInfo? {
-        val crate = FilesCrate.getInstance(context)
+    private fun imageFile(context: Context) = SynchronizedFile.create(context, imageUUID)
 
-        val cache = crate.cache(imageUUID)
-        if (cache.exists()) {
-            return cache.readMeta()
-        }
+    fun readImageFile(context: Context, lifecycle: Lifecycle): Flow<ByteArray> {
+        val imageFile = imageFile(context)
 
-        val permanent = crate.permanent(imageUUID)
-        if (permanent.exists()) {
-            return permanent.readMeta()
-        }
-
-        return null
+        return imageFile.read(lifecycle)
     }
 
-    private suspend fun fetchImageInfo(): RemoteFileInfo {
-        try {
-            val endpoint = EndpointUtils.getFile(image)
-            var result: RemoteFileInfo? = null
-            get(endpoint) { data ->
-                requireNotNull(data)
+    @Composable
+    fun rememberImageFile(): State<ByteArray?> {
+        val context = LocalContext.current
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val lifecycle = lifecycleOwner.lifecycle
 
-                result = RemoteFileInfo(
-                    download = data.getString("download"),
-                    filename = data.getString("filename"),
-                    size = data.getLong("size"),
-                    hash = data.getString("hash"),
-                )
-            }
-            return result!!
-        } catch (e: RequestException) {
-            if (e.code == RemoteFileNotFound.ERROR_CODE)
-                throw RemoteFileNotFound(imageUUID)
-            throw e
-        }
+        val imageFile = remember { SynchronizedFile.create(context, imageUUID) }
+        val fileFlow = remember { imageFile.read(lifecycle) }
+
+        return fileFlow.collectAsState(initial = null)
     }
 
-    suspend fun fetchImage(
+    @WorkerThread
+    suspend fun updateImageIfNeeded(
         context: Context,
-        imageWidth: Int?,
-        progress: (suspend (current: Int, max: Int) -> Unit)?
-    ): Flow<LocalFile> = channelFlow {
-        val local = fetchLocalImageInfo(context)
-        if (local != null) {
-            val file = local.permanentOrCache(context)
-            send(file)
-        }
-
-        val info = fetchImageInfo()
-
-        // Check if hashes match
-        val remoteFile = info.permanentOrCache(context)
-        if (remoteFile.exists() && info.hash == local?.hash) {
-            send(remoteFile)
-            return@channelFlow
-        }
-
-        // If there's no stored version, or hashes do not match, download a new one
-
-        Timber.d("Downloading image for ${this::class.simpleName} $id...")
-        val file = DownloadWorker.download(context, info, imageWidth, progress)
-
-        Timber.d("Image for $id downloaded. Decoding image...")
-        send(file)
+        width: Int? = null,
+        progress: (suspend (current: Long, max: Long) -> Unit)? = null
+    ) {
+        Timber.d("Checking if image file needs to be updated...")
+        val imageFile = imageFile(context)
+        imageFile.update(width, progress)
     }
 }

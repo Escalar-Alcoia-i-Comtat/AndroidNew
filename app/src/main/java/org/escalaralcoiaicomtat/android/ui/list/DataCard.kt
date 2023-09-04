@@ -55,10 +55,7 @@ import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.network.NetworkObserver.Companion.rememberNetworkObserver
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
-import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import timber.log.Timber
 
@@ -78,7 +75,7 @@ fun <T: DataEntity> DataCard(
 
     val filesCrate = FilesCrate.rememberInstance()
 
-    var imageFile by remember { mutableStateOf<LocalFile?>(null) }
+    val imageFile by item.rememberImageFile()
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     var imageSize by remember { mutableStateOf<IntSize?>(null) }
@@ -215,7 +212,7 @@ fun <T: DataEntity> DataCard(
             }
         }
 
-        LaunchedEffect(imageSize) {
+        LaunchedEffect(imageSize, item) {
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
                 if (imageSize == null) return@withContext
@@ -223,13 +220,8 @@ fun <T: DataEntity> DataCard(
                 // Get the display's width
                 val width = imageSize?.width
 
-                item.fetchImage(
-                    context,
-                    // Download sector images fully
-                    width.takeIf { item !is Sector },
-                    progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
-                ).collect { file ->
-                    withContext(Dispatchers.Main) { imageFile = file }
+                item.updateImageIfNeeded(context, width) { current, max ->
+                    progress = current.toInt() to max.toInt()
                 }
 
                 // TODO - if bitmap is null, show error
@@ -249,7 +241,7 @@ fun <T: DataEntity> DataCard(
             imageFile?.let { file ->
                 AsyncImage(
                     model = ImageRequest.Builder(context)
-                        .file(file)
+                        .data(file)
                         .crossfade(true)
                         .build(),
                     contentDescription = null,

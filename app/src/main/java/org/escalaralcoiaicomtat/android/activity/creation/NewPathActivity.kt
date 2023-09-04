@@ -1,6 +1,8 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
@@ -78,8 +80,6 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.storage.type.ArtificialGrade
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
@@ -116,8 +116,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
     override fun RowScope.SidePanel(parent: Sector?) {
         val sector = parent!!
 
-        val progress by model.sectorImageProgress.observeAsState()
-        val image by model.sectorImage.observeAsState()
+        val image by model.image.observeAsState()
 
         image?.let {
             Box(
@@ -128,7 +127,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(this@NewPathActivity)
-                        .file(it)
+                        .data(it)
                         .crossfade(true)
                         .build(),
                     contentDescription = sector.displayName,
@@ -140,7 +139,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
             }
         } ?: run {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                progress?.let { CircularProgressIndicator(it) } ?: CircularProgressIndicator()
+                CircularProgressIndicator()
             }
         }
     }
@@ -876,9 +875,6 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
 
         override val elementSerializer: JsonSerializer<Path> = Path.Companion
 
-        val sectorImage = MutableLiveData<LocalFile>()
-        val sectorImageProgress = MutableLiveData<Float>()
-
         override val creatorEndpoint: String = "path"
 
         val displayName = MutableLiveData<String>()
@@ -927,10 +923,9 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
             }
 
             // Load sector image
-            parent.fetchImage(getApplication(), null) { c, m ->
-                sectorImageProgress.postValue(m.toFloat() / c)
-            }.collect {
-                sectorImage.postValue(it)
+            parent.readImageFile(getApplication(), lifecycle).collect {
+                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
+                image.postValue(bitmap)
             }
         }
 

@@ -8,6 +8,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import coil.request.ImageRequest
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.ByteReadChannel
@@ -18,8 +21,9 @@ import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
 import org.escalaralcoiaicomtat.android.utils.json
 import timber.log.Timber
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.IOException
-import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.UUID
 
@@ -52,7 +56,12 @@ constructor(private val file: File, private val meta: File) {
         File(parent, "$uuid.meta")
     )
 
-    fun inputStream(): InputStream = file.inputStream()
+    /**
+     * Tries to get an [FileInputStream] for reading the file's contents.
+     *
+     * @throws FileNotFoundException If the file doesn't exist.
+     */
+    fun inputStream(): FileInputStream = file.inputStream()
 
     /**
      * Returns true if both the data and meta file exists.
@@ -149,6 +158,29 @@ constructor(private val file: File, private val meta: File) {
     }
 
     /**
+     * Starts watching for changes on the current file, following the state of the given [lifecycle]
+     *
+     * @param lifecycle The lifecycle that's holding the listener.
+     * @param listener Will get called with updates to the file.
+     */
+    fun watch(lifecycle: Lifecycle, listener: FileUpdateListener) {
+        val fileObserver = observer(listener)
+
+        val lifecycleObserver = object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                fileObserver.forEach { it.startWatching() }
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                fileObserver.forEach { it.stopWatching() }
+            }
+        }
+        lifecycle.addObserver(lifecycleObserver)
+
+        fileObserver.forEach { it.startWatching() }
+    }
+
+    /**
      * Converts this into a String. Returns the path of the data file.
      */
     override fun toString(): String = file.path
@@ -170,9 +202,32 @@ constructor(private val file: File, private val meta: File) {
     }
 
     /**
+     * Writes the given meta info to the meta file.
+     *
+     * @param remoteFileInfo The info to write. Will be converted into a JSON string to write.
+     * @param charset The charset to use while writing.
+     *
+     * @throws IOException If there's any problem in the writing of the file.
+     */
+    suspend fun writeMeta(
+        remoteFileInfo: RemoteFileInfo,
+        charset: Charset = Charsets.UTF_8
+    ) = withContext(Dispatchers.IO) {
+        if (meta.exists() && !meta.delete()) {
+            throw IOException("Could not delete existing meta file.")
+        }
+
+        meta.writeText(remoteFileInfo.toJson().toString(), charset)
+
+        if (!meta.exists()) {
+            throw IOException("An unknown error occurred while writing the meta file: meta doesn't exist.")
+        }
+    }
+
+    /**
      * Writes the given data into the target and meta files.
      *
-     * @param dataBytes The data to write into the data file.
+     * @param dataBytes The data to write into the data file. The channel is closed automatically.
      * @param metaData The metadata to write into the meta file.
      * @param overwrite If `true`, and the file exists, it will be deleted before copying.
      *                  If `false`, and the file exists, this function will do nothing.
@@ -187,7 +242,21 @@ constructor(private val file: File, private val meta: File) {
         if (!overwrite && exists()) return@withContext
         if (exists()) delete()
 
+        file.createNewFile()
         dataBytes.copyAndClose(file.writeChannel())
+        meta.writeText(metaData.toJson().toString(), charset)
+    }
+
+    suspend fun write(
+        byteArray: ByteArray,
+        metaData: RemoteFileInfo,
+        overwrite: Boolean = false,
+        charset: Charset = Charsets.UTF_8
+    ) = withContext(Dispatchers.IO) {
+        if (!overwrite && exists()) return@withContext
+        if (exists()) delete()
+
+        file.outputStream().write(byteArray)
         meta.writeText(metaData.toJson().toString(), charset)
     }
 

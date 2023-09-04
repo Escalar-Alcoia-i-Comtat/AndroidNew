@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -48,6 +49,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -56,7 +60,6 @@ import io.ktor.client.request.forms.FormBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -82,7 +85,6 @@ import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
 import org.escalaralcoiaicomtat.android.utils.letIf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.toMap
-import org.json.JSONObject
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -134,15 +136,15 @@ abstract class EditorActivity<
     }
 
     sealed class Result {
-        data object CreateSuccess: Result()
+        data object CreateSuccess : Result()
 
-        data object EditSuccess: Result()
+        data object EditSuccess : Result()
 
-        data class Failure(val throwable: Throwable?): Result()
+        data class Failure(val throwable: Throwable?) : Result()
 
-        data object CreateCancelled: Result()
+        data object CreateCancelled : Result()
 
-        data object EditCancelled: Result()
+        data object EditCancelled : Result()
     }
 
     abstract class ResultContract<A : EditorActivity<*, *, *>>(
@@ -355,7 +357,8 @@ abstract class EditorActivity<
      * [RowScope.weight] or width in contents to set size.
      */
     @Composable
-    protected open fun RowScope.SidePanel(parent: ParentType?) {}
+    protected open fun RowScope.SidePanel(parent: ParentType?) {
+    }
 
     @Composable
     private fun Footer() {
@@ -440,7 +443,14 @@ abstract class EditorActivity<
         application: Application,
         protected val parentId: Long?,
         protected val elementId: Long?
-    ) : AndroidViewModel(application) {
+    ) : AndroidViewModel(application), LifecycleOwner {
+        @Suppress("LeakingThis")
+        @SuppressLint("StaticFieldLeak")
+        private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+
+        override val lifecycle: Lifecycle
+            get() = lifecycleRegistry
+
         private val database = AppDatabase.getInstance(application)
         protected val dao = database.dataDao()
 
@@ -531,6 +541,8 @@ abstract class EditorActivity<
         protected abstract suspend fun update(element: ElementType)
 
         init {
+            lifecycleRegistry.currentState = Lifecycle.State.CREATED
+
             viewModelScope.launch(Dispatchers.IO) {
                 if (!hasParent) {
                     // If fetch parent is null, type doesn't have parent
@@ -554,12 +566,15 @@ abstract class EditorActivity<
 
                     fill(child)
                 }
+
+                lifecycleRegistry.currentState = Lifecycle.State.STARTED
             }
         }
 
         override fun onCleared() {
             image.value?.recycle()
             Timber.d("Cleared View Model.")
+            lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
         }
 
         fun create() = viewModelScope.launch {
@@ -578,7 +593,7 @@ abstract class EditorActivity<
                 val extraData = prepareData()
 
                 Timber.d("Sending data to server...")
-                ktorHttpClient.submitFormWithBinaryData(
+                val response = ktorHttpClient.submitFormWithBinaryData(
                     EndpointUtils.getUrl(creatorEndpoint).letIf(elementId != null) {
                         "$it/$elementId"
                     },
@@ -608,33 +623,40 @@ abstract class EditorActivity<
                             CreationStep.Uploading((bytesSentTotal.toDouble() / contentLength).toFloat())
                         )
                     }
-                }.apply {
-                    when (status) {
+                }
+                try {
+                    val status = response.status
+                    val body = response.bodyAsJson()
+
+                    val operation: suspend (element: ElementType) -> Unit = when (status) {
                         HttpStatusCode.Created -> {
-                            Timber.d("Creation complete (status=$status). Synchronizing...")
-                            isCreating.postValue(CreationStep.Finishing)
-
-                            val data = JSONObject(bodyAsText()).getJSONObject("data")
-                            val elementJson = data.getJSONObject("element")
-                            val element = elementSerializer.fromJson(elementJson)
-                            insert(element)
+                            Timber.i("Creation complete (status=$status). Inserting into database...")
+                            ::insert
                         }
+
                         HttpStatusCode.OK -> {
-                            Timber.d("Update complete (status=$status). Synchronizing...")
-                            isCreating.postValue(CreationStep.Finishing)
+                            Timber.i("Update complete (status=$status). Updating database...")
+                            ::update
+                        }
 
-                            val data = JSONObject(bodyAsText()).getJSONObject("data")
-                            val elementJson = data.getJSONObject("element")
-                            val element = elementSerializer.fromJson(elementJson)
-                            update(element)
-                        }
-                        else -> {
-                            throw RequestException(status, bodyAsJson())
-                        }
+                        else -> throw RequestException(status, body)
                     }
+                    isCreating.postValue(CreationStep.Finishing)
+
+                    val data = body.getJSONObject("data")
+                    val elementJson = data.getJSONObject("element")
+                    val element = elementSerializer.fromJson(elementJson)
+
+                    if (element is DataEntity) {
+                        element.updateImageIfNeeded(getApplication())
+                    }
+
+                    operation(element)
+                } catch (e: Exception) {
+                    Timber.e(e, "Could not create or update.")
+                    throw e
                 }
 
-                Timber.d("Synchronization complete.")
                 isCreating.postValue(null)
             }
         }

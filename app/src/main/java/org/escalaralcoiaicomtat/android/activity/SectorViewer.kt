@@ -86,8 +86,6 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile
-import org.escalaralcoiaicomtat.android.storage.files.LocalFile.Companion.file
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
@@ -286,19 +284,15 @@ class SectorViewer : AppCompatActivity() {
         val context = LocalContext.current
         val windowSizeClass = calculateWindowSizeClass(this@SectorViewer)
 
-        var imageFile by remember { mutableStateOf<LocalFile?>(null) }
+        val imageFile by sector.rememberImageFile()
         var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
 
-                sector.fetchImage(
-                    context,
-                    null,
-                    progress = { c, m -> withContext(Dispatchers.Main) { progress = c to m } }
-                ).collect { file ->
-                    withContext(Dispatchers.Main) { imageFile = file }
+                sector.updateImageIfNeeded(context, null) { current, max ->
+                    progress = current.toInt() to max.toInt()
                 }
             }
         }
@@ -363,7 +357,7 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
-        imageFile?.let { file ->
+        imageFile?.let { image ->
             val zoomState = rememberZoomState()
 
             Column(
@@ -379,7 +373,7 @@ class SectorViewer : AppCompatActivity() {
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .file(file)
+                            .data(image)
                             .crossfade(true)
                             .build(),
                         contentDescription = sector.displayName,
