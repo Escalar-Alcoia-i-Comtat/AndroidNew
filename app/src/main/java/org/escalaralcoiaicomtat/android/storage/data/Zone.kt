@@ -29,7 +29,7 @@ data class Zone(
     val points: List<DataPoint>,
     val areaId: Long,
     override val isFavorite: Boolean = false
-) : DataEntity(), JsonSerializable {
+) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Zone> {
         override fun fromJson(json: JSONObject): Zone = Zone(
             json.getLong("id"),

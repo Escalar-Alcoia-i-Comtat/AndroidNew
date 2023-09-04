@@ -83,6 +83,7 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.dao.deleteRecursively
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
@@ -748,7 +749,7 @@ abstract class EditorActivity<
                     val elementJson = data.getJSONObject("element")
                     val element = elementSerializer.fromJson(elementJson)
 
-                    if (element is DataEntity) {
+                    if (element is ImageEntity) {
                         element.updateImageIfNeeded(getApplication())
                     }
 

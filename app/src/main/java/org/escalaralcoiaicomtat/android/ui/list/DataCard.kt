@@ -54,13 +54,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.network.NetworkObserver.Companion.rememberNetworkObserver
-import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import timber.log.Timber
 
 @Composable
-fun <T: DataEntity> DataCard(
+fun <T: ImageEntity> DataCard(
     item: T,
     imageHeight: Dp,
     modifier: Modifier = Modifier,

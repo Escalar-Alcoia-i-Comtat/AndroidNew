@@ -26,7 +26,7 @@ data class Area(
     val webUrl: Uri,
     override val image: String,
     override val isFavorite: Boolean = false,
-) : DataEntity(), JsonSerializable, Parcelable {
+) : ImageEntity(), JsonSerializable, Parcelable {
     companion object CREATOR : JsonSerializer<Area>, Parcelable.Creator<Area> {
         override fun fromJson(json: JSONObject): Area = Area(
             json.getLong("id"),

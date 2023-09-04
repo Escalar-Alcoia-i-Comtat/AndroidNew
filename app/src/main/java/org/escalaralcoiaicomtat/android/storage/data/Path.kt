@@ -10,6 +10,7 @@ import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.RequiredMaterial
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
+import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
@@ -28,7 +29,7 @@ data class Path(
     @PrimaryKey
     override val id: Long = 0L,
     override val timestamp: Instant,
-    val displayName: String,
+    override val displayName: String,
     val sketchId: Long,
 
     val height: Long?,
@@ -58,8 +59,10 @@ data class Path(
     val builder: Builder?,
     val reBuilder: List<Builder>?,
 
-    val sectorId: Long
-) : BaseEntity(), JsonSerializable {
+    val sectorId: Long,
+
+    override val isFavorite: Boolean = false
+) : DataEntity(), JsonSerializable {
     companion object : JsonSerializer<Path> {
         override fun fromJson(json: JSONObject): Path = Path(
             json.getLong("id"),
@@ -95,7 +98,9 @@ data class Path(
             json.getSerializableOrNull<Builder, Builder.Companion>("builder"),
             json.getSerializableArrayOrNull<Builder, Builder.Companion>("re_builder"),
 
-            json.getLong("sector_id")
+            json.getLong("sector_id"),
+
+            json.getBooleanOrNull("is_favorite") ?: false
         )
     }
 
@@ -204,6 +209,8 @@ data class Path(
         "builder" to builder,
         "re_builder" to reBuilder,
 
-        "sector_id" to sectorId
+        "sector_id" to sectorId,
+        
+        "is_favorite" to isFavorite
     )
 }

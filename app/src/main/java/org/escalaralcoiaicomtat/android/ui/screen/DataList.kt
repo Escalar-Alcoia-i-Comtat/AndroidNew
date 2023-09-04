@@ -23,7 +23,7 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
 import org.burnoutcrew.reorderable.reorderable
 import org.escalaralcoiaicomtat.android.storage.Preferences
-import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.list.CreateCard
 import org.escalaralcoiaicomtat.android.ui.list.DataCard
@@ -31,7 +31,7 @@ import org.escalaralcoiaicomtat.android.utils.letIf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-inline fun <reified T : DataEntity> DataList(
+inline fun <reified T : ImageEntity> DataList(
     list: List<T>?,
     gridCellSize: Dp,
     imageHeight: Dp,

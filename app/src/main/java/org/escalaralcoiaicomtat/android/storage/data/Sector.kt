@@ -30,7 +30,7 @@ data class Sector(
     val weight: String,
     val zoneId: Long,
     override val isFavorite: Boolean = false
-) : DataEntity(), JsonSerializable {
+) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Sector> {
         override fun fromJson(json: JSONObject): Sector = Sector(
             json.getLong("id"),
