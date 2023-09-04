@@ -29,8 +29,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.rounded.ChevronLeft
-import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -296,20 +296,21 @@ abstract class EditorActivity<
                             )
                         },
                         navigationIcon = {
-                            if (element != null) {
-                                IconButton(onClick = ::onBack) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.DeleteForever,
-                                        contentDescription = stringResource(R.string.action_delete)
-                                    )
-                                }
-                            }
-
                             IconButton(onClick = ::onBack) {
                                 Icon(
                                     imageVector = Icons.Rounded.ChevronLeft,
                                     contentDescription = stringResource(R.string.action_back)
                                 )
+                            }
+                        },
+                        actions = {
+                            if (element != null) {
+                                IconButton(onClick = ::onBack) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.DeleteForever,
+                                        contentDescription = stringResource(R.string.action_delete)
+                                    )
+                                }
                             }
                         }
                     )
