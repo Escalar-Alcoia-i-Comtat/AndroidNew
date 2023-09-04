@@ -17,7 +17,7 @@
     <string name="state_calculating">Calculating…</string>
 
     <string name="search">Search…</string>
-    <string name="none">None…</string>
+    <string name="none">None</string>
 
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>

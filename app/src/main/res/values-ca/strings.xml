@@ -13,7 +13,7 @@
     <string name="action_next">Següent</string>
     <string name="action_update">Actualitza</string>
     <string name="state_calculating">Calculant…</string>
-    <string name="none">Cap…</string>
+    <string name="none">Cap</string>
     <string name="item_home">Inici</string>
     <string name="item_favorites">Preferits</string>
     <string name="item_settings">Configuració</string>
