@@ -305,7 +305,7 @@ abstract class EditorActivity<
                         },
                         actions = {
                             if (element != null) {
-                                IconButton(onClick = ::onBack) {
+                                IconButton(onClick = { requestedDeletion = true }) {
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteForever,
                                         contentDescription = stringResource(R.string.action_delete)
