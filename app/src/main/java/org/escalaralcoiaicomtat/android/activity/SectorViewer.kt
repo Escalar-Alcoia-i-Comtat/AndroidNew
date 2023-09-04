@@ -68,6 +68,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -134,7 +135,7 @@ class SectorViewer : AppCompatActivity() {
             return
         }
 
-        viewModel.loadSector(sectorId)
+        viewModel.loadSector(this, sectorId)
 
         onBackPressedDispatcher.addCallback(this) {
             if (viewModel.selectionIndex.value != null) {
@@ -596,14 +597,17 @@ class SectorViewer : AppCompatActivity() {
 
         val selectionIndex: MutableLiveData<Int?> = MutableLiveData(null)
 
-        fun loadSector(sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
+        fun loadSector(lifecycleOwner: LifecycleOwner, sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
             val sector = dao.getSector(sectorId)
                 ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
             _sector.postValue(sector)
 
-            val paths = dao.getPathsFromSector(sector.id)
-                ?: throw IllegalArgumentException("Could not find associated paths with sector")
-            _paths.postValue(paths.paths.sorted())
+            val paths = dao.getPathsFromSectorLive(sector.id)
+            withContext(Dispatchers.Main) {
+                paths.observe(lifecycleOwner) {
+                    _paths.postValue(it?.paths?.sorted())
+                }
+            }
         }
     }
 

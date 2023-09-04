@@ -119,6 +119,11 @@ interface DataDao {
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM sectors WHERE id=:sectorId")
+    fun getPathsFromSectorLive(sectorId: Long): LiveData<SectorWithPaths?>
+
+    @WorkerThread
+    @Transaction
+    @Query("SELECT * FROM sectors WHERE id=:sectorId")
     suspend fun getPathsFromSector(sectorId: Long): SectorWithPaths?
 
 
