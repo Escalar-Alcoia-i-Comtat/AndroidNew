@@ -342,7 +342,7 @@ class SectorViewer : AppCompatActivity() {
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth(),
-                            onNextRequested = if (selectedIndex >= paths.size)
+                            onNextRequested = if (selectedIndex + 1 >= paths.size)
                                 null
                             else {
                                 { viewModel.selectionIndex.postValue(selectedIndex + 1) }
@@ -473,7 +473,7 @@ class SectorViewer : AppCompatActivity() {
                 }
                 Text(
                     text = path.displayName,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).padding(start = 8.dp),
                     style = MaterialTheme.typography.titleSmall
                 )
                 IconButton(onClick = onDismissRequested) {
