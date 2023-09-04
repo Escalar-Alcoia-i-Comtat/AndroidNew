@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import org.escalaralcoiaicomtat.android.storage.data.Area
+import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
@@ -49,6 +50,11 @@ interface DataDao {
     @Transaction
     @Query("SELECT * FROM areas WHERE id=:areaId")
     fun getZonesFromAreaLive(areaId: Long): LiveData<AreaWithZones>
+
+    @WorkerThread
+    @Transaction
+    @Query("SELECT * FROM areas WHERE id=:areaId")
+    suspend fun getZonesFromArea(areaId: Long): AreaWithZones?
 
 
     @WorkerThread
@@ -171,4 +177,31 @@ interface DataDao {
     @WorkerThread
     @Query("SELECT * FROM blocking WHERE pathId=:path")
     suspend fun getAllBlocks(path: Long): List<Blocking>
+}
+
+/**
+ * Deletes [element] from the database, and all of its children recursively.
+ */
+suspend fun <Type: BaseEntity> DataDao.deleteRecursively(element: Type) {
+    when (element) {
+        is Area -> {
+            delete(element)
+            getZonesFromArea(element.id)?.zones?.forEach {
+                deleteRecursively(it)
+            }
+        }
+        is Zone -> {
+            delete(element)
+            getSectorsFromZone(element.id)?.sectors?.forEach {
+                deleteRecursively(it)
+            }
+        }
+        is Sector -> {
+            delete(element)
+            getPathsFromSector(element.id)?.paths?.forEach {
+                deleteRecursively(it)
+            }
+        }
+        is Path -> delete(element)
+    }
 }

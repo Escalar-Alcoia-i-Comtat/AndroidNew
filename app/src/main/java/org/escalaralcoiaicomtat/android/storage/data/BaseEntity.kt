@@ -6,6 +6,25 @@ import kotlin.reflect.full.memberProperties
 abstract class BaseEntity {
     abstract val id: Long
     abstract val timestamp: Instant
+
+    override fun toString(): String = "${this::class.simpleName}[id=$id]"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BaseEntity
+
+        if (id != other.id) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        return result
+    }
 }
 
 data class EntityProperty(

@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
@@ -42,7 +43,7 @@ import org.escalaralcoiaicomtat.android.utils.appendDifference
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import timber.log.Timber
 
-class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
+class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.Model>(
     createTitleRes = R.string.new_sector_title,
     editTitleRes = R.string.edit_sector_title
 ) {
@@ -139,7 +140,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
         zoneId: Long,
         sectorId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : EditorModel<Zone, Sector>(application, zoneId, sectorId) {
+    ) : EditorModel<Zone, Sector, Path>(application, zoneId, sectorId) {
         companion object {
             fun Factory(
                 zoneId: Long,
@@ -167,6 +168,10 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
         val longitude = MutableLiveData("")
         val weight = MutableLiveData("")
 
+        init {
+            onInit()
+        }
+
         private fun checkRequirements(): Boolean {
             return displayName.value?.isNotBlank() == true &&
                 image.value != null &&
@@ -191,7 +196,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, NewSectorActivity.Model>(
             weight.postValue(child.weight)
 
             child.readImageFile(getApplication(), lifecycle).collect {
-                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
+                val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
                 image.postValue(bitmap)
             }
         }

@@ -9,10 +9,12 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.set
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.BuildConfig
 import org.escalaralcoiaicomtat.android.exception.remote.RemoteFileNotFoundException
 import org.escalaralcoiaicomtat.android.exception.remote.RequestException
@@ -110,38 +112,53 @@ data class SynchronizedFile(
     }
 
     @WorkerThread
-    fun read(lifecycle: Lifecycle): Flow<ByteArray> = channelFlow {
+    fun read(lifecycle: Lifecycle): Flow<ByteArray?> = channelFlow {
         val fileUpdatedListener: (LocalFile) -> Unit = { file ->
-            Timber.d("Got update to $file. Sending update...")
-            val bytes = file.inputStream().use { it.readBytes() }
-            runBlocking { send(bytes) }
+            if (file.exists()) {
+                Timber.d("Got update to $file. Sending update...")
+                val bytes = file.inputStream().use { it.readBytes() }
+                runBlocking { send(bytes) }
+            } else {
+                Timber.w("Could not read $file. It doesn't exist.")
+                runBlocking { send(null) }
+            }
         }
 
-        // Start watching the cache for changes
-        cache.watch(
-            lifecycle,
-            object : FileUpdateListener(cache) {
-                override fun onCreate(file: LocalFile) {
-                    fileUpdatedListener(file)
-                }
+        withContext(Dispatchers.Main) {
+            // Start watching the cache for changes
+            cache.watch(
+                lifecycle,
+                object : FileUpdateListener(cache) {
+                    override fun onCreate(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
 
-                override fun onModify(file: LocalFile) {
-                    fileUpdatedListener(file)
-                }
-            }
-        )
-        permanent.watch(
-            lifecycle,
-            object : FileUpdateListener(permanent) {
-                override fun onCreate(file: LocalFile) {
-                    fileUpdatedListener(file)
-                }
+                    override fun onModify(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
 
-                override fun onModify(file: LocalFile) {
-                    fileUpdatedListener(file)
+                    override fun onDelete(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
                 }
-            }
-        )
+            )
+            permanent.watch(
+                lifecycle,
+                object : FileUpdateListener(permanent) {
+                    override fun onCreate(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onModify(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onDelete(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+                }
+            )
+        }
 
         startListening(permanent, fileUpdatedListener)
         startListening(cache, fileUpdatedListener)

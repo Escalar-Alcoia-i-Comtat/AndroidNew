@@ -208,6 +208,12 @@
     <string name="rich_editor_underline">Underline</string>
     <string name="rich_editor_title">Title</string>
 
+    <string name="delete_confirmation_title">Confirm Deletion</string>
+    <string name="delete_confirmation_message">Are you sure that you want to delete "%1$s"? All of its children will be deleted as well.</string>
+    <string name="delete_confirmation_deleting">Deleting element… Please, do not leave this page, close the app, of turn off the device while we work into it…</string>
+    <string name="delete_complete_toast">Element deleted successfully</string>
+    <string name="delete_error_toast">Could not complete deletion</string>
+
     <!-- CREDITS -->
     <string name="credit_icons8">%s icon by %s</string>
     <string name="credit_icons8_anchor">Climbing Anchor</string>

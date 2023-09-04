@@ -30,6 +30,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +45,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -75,6 +80,7 @@ import org.escalaralcoiaicomtat.android.network.bodyAsJson
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.dao.deleteRecursively
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
@@ -85,6 +91,7 @@ import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
 import org.escalaralcoiaicomtat.android.utils.letIf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.toMap
+import org.escalaralcoiaicomtat.android.utils.toast
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -95,7 +102,8 @@ import kotlin.reflect.KClass
 abstract class EditorActivity<
     ParentType : BaseEntity?,
     ElementType : BaseEntity,
-    Model : EditorActivity.EditorModel<ParentType, ElementType>
+    ChildrenType : BaseEntity?,
+    Model : EditorActivity.EditorModel<ParentType, ElementType, ChildrenType>
     >(
     @StringRes private val createTitleRes: Int,
     @StringRes private val editTitleRes: Int
@@ -106,6 +114,7 @@ abstract class EditorActivity<
         const val RESULT_EDIT_CANCELLED = 4
         const val RESULT_CREATE_OK = 5
         const val RESULT_EDIT_OK = 6
+        const val RESULT_DELETE_OK = 7
 
         const val EXTRA_PARENT_ID: String = "parentId"
         const val EXTRA_PARENT_NAME: String = "parentName"
@@ -147,7 +156,7 @@ abstract class EditorActivity<
         data object EditCancelled : Result()
     }
 
-    abstract class ResultContract<A : EditorActivity<*, *, *>>(
+    abstract class ResultContract<A : EditorActivity<*, *, *, *>>(
         private val kClass: KClass<A>
     ) : ActivityResultContract<Input?, Result>() {
         override fun createIntent(context: Context, input: Input?): Intent =
@@ -205,8 +214,6 @@ abstract class EditorActivity<
             }
         }
 
-    protected open val isScrollable: Boolean = true
-
     protected open val maxWidth: Int = 1000
 
     protected val parentId: Long? by extras()
@@ -223,12 +230,61 @@ abstract class EditorActivity<
         setContentThemed {
             BackInvokeHandler(onBack = ::onBack)
 
+            val isDeleting by model.isDeleting.observeAsState(false)
+            var requestedDeletion by remember { mutableStateOf(false) }
+            if (requestedDeletion) {
+                val element by model.element.observeAsState()
+
+                AlertDialog(
+                    onDismissRequest = { if (!isDeleting) requestedDeletion = false },
+                    title = { Text(stringResource(R.string.delete_confirmation_title)) },
+                    text = {
+                        Text(
+                            text = stringResource(
+                                R.string.delete_confirmation_message,
+                                (element as? DataEntity)?.displayName
+                                    ?: stringResource(R.string.none)
+                            )
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                model.delete().invokeOnCompletion {
+                                    if (it == null) {
+                                        toast(R.string.delete_complete_toast)
+
+                                        setResult(RESULT_DELETE_OK)
+                                        finish()
+                                    } else {
+                                        toast(R.string.delete_error_toast)
+
+                                        Timber.e(it, "Could not delete element")
+                                    }
+                                }
+                            },
+                            enabled = (element as? DataEntity) != null
+                        ) {
+                            Text(stringResource(R.string.action_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { requestedDeletion = false },
+                            enabled = !isDeleting
+                        ) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                )
+            }
+
             Scaffold(
                 topBar = {
+                    val element by model.element.observeAsState()
+
                     CenterAlignedTopAppBar(
                         title = {
-                            val element by model.element.observeAsState()
-
                             Text(
                                 text = stringResource(
                                     if (element == null) {
@@ -240,6 +296,15 @@ abstract class EditorActivity<
                             )
                         },
                         navigationIcon = {
+                            if (element != null) {
+                                IconButton(onClick = ::onBack) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.DeleteForever,
+                                        contentDescription = stringResource(R.string.action_delete)
+                                    )
+                                }
+                            }
+
                             IconButton(onClick = ::onBack) {
                                 Icon(
                                     imageVector = Icons.Rounded.ChevronLeft,
@@ -279,7 +344,7 @@ abstract class EditorActivity<
                                         .widthIn(max = maxWidth.dp)
                                         .fillMaxHeight()
                                         .weight(1f)
-                                        .letIf(isScrollable) { it.verticalScroll(rememberScrollState()) },
+                                        .verticalScroll(rememberScrollState()),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     val editing by model.element.observeAsState()
@@ -343,8 +408,7 @@ abstract class EditorActivity<
     }
 
     /**
-     * Should be overridden with the contents of the editor such as text inputs. Scrollable if
-     * [isScrollable].
+     * Should be overridden with the contents of the editor such as text inputs.
      *
      * @param [parent] The parent element of the currently creating/editing one. Won't be `null` if
      * [EditorModel.hasParent] is true. Always `null` otherwise.
@@ -432,14 +496,28 @@ abstract class EditorActivity<
     private fun <
         ParentType : BaseEntity?,
         ElementType : BaseEntity,
-        M : EditorModel<ParentType, ElementType>,
-        Z : EditorActivity<ParentType, ElementType, M>,
+        ChildrenType : BaseEntity?,
+        M : EditorModel<ParentType, ElementType, ChildrenType>,
+        Z : EditorActivity<ParentType, ElementType, ChildrenType, M>,
         T : Any
         > extras(): ReadOnlyProperty<Z, T?> = ReadOnlyProperty { _, property ->
         intent?.extras?.get(property.name) as? T?
     }
 
-    abstract class EditorModel<ParentType : BaseEntity?, ElementType : BaseEntity>(
+    /**
+     * Provides a ViewModel for interacting with the [EditorActivity]. All parent types must run
+     * [onInit] when initialized:
+     * ```kotlin
+     * init {
+     *   onInit()
+     * }
+     * ```
+     */
+    abstract class EditorModel<
+        ParentType : BaseEntity?,
+        ElementType : BaseEntity,
+        ChildrenType : BaseEntity?
+        >(
         application: Application,
         protected val parentId: Long?,
         protected val elementId: Long?
@@ -494,6 +572,12 @@ abstract class EditorActivity<
         val isCreating = MutableLiveData<CreationStep?>(null)
 
         /**
+         * Stores whether a process of deletion is being performed. This is used by the deletion
+         * dialog to block the user interaction until the operation is complete.
+         */
+        val isDeleting = MutableLiveData<Boolean>()
+
+        /**
          * Whether the form is completely filled or not. The creation button should be disabled if
          * this is not true.
          */
@@ -540,19 +624,23 @@ abstract class EditorActivity<
          */
         protected abstract suspend fun update(element: ElementType)
 
-        init {
+        fun onInit() {
+            Timber.d("Initializing ${this::class.simpleName}...")
             lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
             viewModelScope.launch(Dispatchers.IO) {
                 if (!hasParent) {
                     // If fetch parent is null, type doesn't have parent
+                    Timber.d("${this@EditorModel::class.simpleName} doesn't have a parent.")
                 } else {
+                    Timber.d("Fetching parent with id $parentId...")
                     val parent = fetchParent(parentId!!)
                     if (parent == null) {
                         Timber.e("Could not get a valid parent with id $parentId")
                         whenNotFound?.invoke()
                         return@launch
                     }
+                    Timber.d("Parent loaded, posting value...")
                     this@EditorModel.parent.postValue(parent)
 
                     val parentName = parent.let { it::class.simpleName }
@@ -567,7 +655,9 @@ abstract class EditorActivity<
                     fill(child)
                 }
 
-                lifecycleRegistry.currentState = Lifecycle.State.STARTED
+                withContext(Dispatchers.Main) {
+                    lifecycleRegistry.currentState = Lifecycle.State.STARTED
+                }
             }
         }
 
@@ -658,6 +748,28 @@ abstract class EditorActivity<
                 }
 
                 isCreating.postValue(null)
+            }
+        }
+
+        /**
+         * Starts deleting [element] and all of its children. Updates [isDeleting] to `true` at
+         * start, and to `false` at end.
+         */
+        fun delete() = viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                try {
+                    isDeleting.postValue(true)
+
+                    val element = element.value
+                    if (element == null) {
+                        Timber.w("Won't delete anything since element is null.")
+                    } else {
+                        Timber.i("Deleting $element recursively.")
+                        dao.deleteRecursively(element)
+                    }
+                } finally {
+                    isDeleting.postValue(false)
+                }
             }
         }
 

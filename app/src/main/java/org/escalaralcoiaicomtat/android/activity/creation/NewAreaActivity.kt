@@ -31,12 +31,13 @@ import io.ktor.client.request.forms.FormBuilder
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
+import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 
-class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
+class NewAreaActivity : EditorActivity<BaseEntity, Area, Zone, NewAreaActivity.AreaModel>(
     createTitleRes = R.string.new_area_title,
     editTitleRes = R.string.edit_area_title
 ) {
@@ -63,7 +64,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             }
     }
 
-    override val model: Model by viewModels { Model.Factory(elementId, ::onBack) }
+    override val model: AreaModel by viewModels { AreaModel.Factory(elementId, ::onBack) }
 
     @Composable
     override fun ColumnScope.Editor(parent: BaseEntity?) {
@@ -95,11 +96,11 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
         }
     }
 
-    class Model(
+    class AreaModel(
         application: Application,
         areaId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : EditorModel<BaseEntity, Area>(application, null, areaId) {
+    ) : EditorModel<BaseEntity, Area, Zone>(application, null, areaId) {
         companion object {
             fun Factory(
                 areaId: Long?,
@@ -107,7 +108,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             ): ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                    Model(application, areaId, whenNotFound)
+                    AreaModel(application, areaId, whenNotFound)
                 }
             }
         }
@@ -120,6 +121,10 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
 
         val displayName = MutableLiveData("")
         val webUrl = MutableLiveData("")
+
+        init {
+            onInit()
+        }
 
         private fun checkRequirements(): Boolean =
             displayName.value?.isNotBlank() == true &&
@@ -136,7 +141,7 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, NewAreaActivity.Model>(
             displayName.postValue(child.displayName)
             webUrl.postValue(child.webUrl.toString())
             child.readImageFile(getApplication(), lifecycle).collect {
-                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
+                val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
                 image.postValue(bitmap)
             }
         }

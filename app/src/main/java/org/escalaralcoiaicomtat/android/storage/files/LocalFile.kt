@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.storage.files
 
 import android.os.Build
 import android.os.FileObserver
+import androidx.annotation.MainThread
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -163,6 +164,7 @@ constructor(private val file: File, private val meta: File) {
      * @param lifecycle The lifecycle that's holding the listener.
      * @param listener Will get called with updates to the file.
      */
+    @MainThread
     fun watch(lifecycle: Lifecycle, listener: FileUpdateListener) {
         val fileObserver = observer(listener)
 

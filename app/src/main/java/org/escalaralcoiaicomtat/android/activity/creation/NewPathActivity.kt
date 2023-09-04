@@ -78,6 +78,7 @@ import net.engawapg.lib.zoomable.zoomable
 import org.burnoutcrew.reorderable.ItemPosition
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.type.ArtificialGrade
@@ -98,17 +99,15 @@ import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
-class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
+class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity.PathModel>(
     createTitleRes = R.string.new_path_title,
     editTitleRes = R.string.edit_path_title
 ) {
     object Contract : ResultContract<NewPathActivity>(NewPathActivity::class)
 
-    override val model: Model by viewModels {
-        Model.Factory(parentId!!, elementId, ::onBack)
+    override val model: PathModel by viewModels {
+        PathModel.Factory(parentId!!, elementId, ::onBack)
     }
-
-    override val isScrollable: Boolean = false
 
     override val maxWidth: Int = 1200
 
@@ -116,7 +115,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
     override fun RowScope.SidePanel(parent: Sector?) {
         val sector = parent!!
 
-        val image by model.image.observeAsState()
+        val image by model.sectorImage.observeAsState()
 
         image?.let {
             Box(
@@ -853,12 +852,12 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
         }
     }
 
-    class Model(
+    class PathModel(
         application: Application,
         sectorId: Long,
         pathId: Long?,
         override val whenNotFound: suspend () -> Unit
-    ) : EditorModel<Sector, Path>(application, sectorId, pathId) {
+    ) : EditorModel<Sector, Path, BaseEntity>(application, sectorId, pathId) {
         companion object {
             fun Factory(
                 sectorId: Long,
@@ -868,7 +867,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
                 initializer {
                     val application =
                         this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                    Model(application, sectorId, pathId, whenSectorNotFound)
+                    PathModel(application, sectorId, pathId, whenSectorNotFound)
                 }
             }
         }
@@ -907,13 +906,22 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
         val builder = MutableLiveData<Builder>()
         val reBuilders = MutableLiveData<List<Builder>>()
 
+        /**
+         * Used for displaying the current sector's image in the side of the screen.
+         */
+        val sectorImage = MutableLiveData<Bitmap?>(null)
+
         override val hasParent: Boolean = true
+
+        init {
+            onInit()
+        }
 
         override suspend fun init(parent: Sector) {
             // initialize sketchId as the last one of the sector's paths
             val paths = dao.getPathsFromSector(parent.id)
             if (paths != null) {
-                this@Model.sketchId.postValue(
+                this@PathModel.sketchId.postValue(
                     try {
                         (paths.paths.maxOf { it.sketchId } + 1).toString()
                     } catch (_: NoSuchElementException) {
@@ -924,8 +932,8 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
 
             // Load sector image
             parent.readImageFile(getApplication(), lifecycle).collect {
-                val bitmap: Bitmap? = it.inputStream().use(BitmapFactory::decodeStream)
-                image.postValue(bitmap)
+                val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+                sectorImage.postValue(bitmap)
             }
         }
 
@@ -1002,7 +1010,7 @@ class NewPathActivity : EditorActivity<Sector, Path, NewPathActivity.Model>(
             appendDifference("stapesRequired", stapesRequired.value, element.value?.stapesRequired)
 
             appendDifference("showDescription", showDescription.value, element.value?.showDescription)
-            appendDifference("description", description.value, element.value?.description)
+            appendDifference("description", description.value?.takeIf { it.isNotBlank() }, element.value?.description)
 
             appendDifference("builder", builder.value, element.value?.builder)
             appendDifference("reBuilders", reBuilders.value, element.value?.reBuilder)

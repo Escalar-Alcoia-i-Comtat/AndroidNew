@@ -23,7 +23,7 @@ abstract class DataEntity : BaseEntity() {
 
     private fun imageFile(context: Context) = SynchronizedFile.create(context, imageUUID)
 
-    fun readImageFile(context: Context, lifecycle: Lifecycle): Flow<ByteArray> {
+    fun readImageFile(context: Context, lifecycle: Lifecycle): Flow<ByteArray?> {
         val imageFile = imageFile(context)
 
         return imageFile.read(lifecycle)
