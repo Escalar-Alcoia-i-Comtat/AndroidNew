@@ -63,6 +63,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 val roomVersion by project.properties
 val workVersion by project.properties
 val ktorVersion by project.properties
