@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
             is EditorActivity.Result.CreateCancelled -> toast(R.string.creation_error_cancelled_toast)
             is EditorActivity.Result.EditCancelled -> toast(R.string.creation_error_edit_cancelled_toast)
             is EditorActivity.Result.Failure -> toast(R.string.creation_error_toast)
+            is EditorActivity.Result.Deleted -> toast(R.string.creation_deleted)
         }
     }
 

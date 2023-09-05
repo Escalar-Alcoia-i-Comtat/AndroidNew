@@ -70,6 +70,7 @@
     <string name="creation_error_edit_cancelled_toast">Edit Cancelled</string>
     <string name="creation_success">Created successfully</string>
     <string name="creation_success_edit">Updated successfully</string>
+    <string name="creation_deleted">Deleted!</string>
 
     <string name="assert_number_fail">Please, introduce a valid number.</string>
 

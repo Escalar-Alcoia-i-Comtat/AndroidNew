@@ -155,6 +155,8 @@ abstract class EditorActivity<
         data object CreateCancelled : Result()
 
         data object EditCancelled : Result()
+
+        data object Deleted : Result()
     }
 
     abstract class ResultContract<A : EditorActivity<*, *, *, *>>(
@@ -173,6 +175,7 @@ abstract class EditorActivity<
                 RESULT_EDIT_OK -> Result.EditSuccess
                 RESULT_CREATE_CANCELLED -> Result.CreateCancelled
                 RESULT_EDIT_CANCELLED -> Result.EditCancelled
+                RESULT_DELETE_OK -> Result.Deleted
                 else -> {
                     val throwable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)

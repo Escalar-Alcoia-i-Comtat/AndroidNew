@@ -1,6 +1,5 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
-import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -49,9 +48,11 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, Zone, NewAreaActivity.A
 
         override fun parseResult(resultCode: Int, intent: Intent?): Result =
             when (resultCode) {
-                Activity.RESULT_OK -> Result.CreateSuccess
+                RESULT_CREATE_OK -> Result.CreateSuccess
+                RESULT_EDIT_OK -> Result.EditSuccess
                 RESULT_CREATE_CANCELLED -> Result.CreateCancelled
                 RESULT_EDIT_CANCELLED -> Result.EditCancelled
+                RESULT_DELETE_OK -> Result.Deleted
                 else -> {
                     val throwable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
