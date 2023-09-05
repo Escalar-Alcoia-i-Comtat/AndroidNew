@@ -117,7 +117,7 @@ fun AppTheme(
 
 fun ComponentActivity.setContentThemed(
     darkTheme: Boolean? = null,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     setContent {
