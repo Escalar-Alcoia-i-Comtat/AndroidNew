@@ -34,11 +34,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,18 +87,24 @@ import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.data.Blocking
+import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
+import org.escalaralcoiaicomtat.android.ui.dialog.AddBlockDialog
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.DropdownChip
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import timber.log.Timber
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -291,6 +299,8 @@ class SectorViewer : AppCompatActivity() {
         val imageFile by sector.rememberImageFile().observeAsState()
         var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
+        val blocks by viewModel.blocks.observeAsState(initial = emptyMap())
+
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
@@ -342,6 +352,8 @@ class SectorViewer : AppCompatActivity() {
                     if (path != null) {
                         PathInformation(
                             path,
+                            apiKey = apiKey,
+                            blocks = blocks[path] ?: emptyList(),
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth(),
@@ -359,7 +371,7 @@ class SectorViewer : AppCompatActivity() {
                                 newPathLauncher.launch(
                                     EditorActivity.Input.fromElement(sector, path)
                                 )
-                            }.takeIf { apiKey != null }
+                            }
                         ) { viewModel.selectionIndex.postValue(null) }
                     }
                 }
@@ -418,6 +430,8 @@ class SectorViewer : AppCompatActivity() {
 
         val selectionIndex by viewModel.selectionIndex.observeAsState()
 
+        val blocks by viewModel.blocks.observeAsState(initial = emptyMap())
+
         AnimatedContent(
             targetState = selectionIndex,
             label = "paths-list"
@@ -439,6 +453,8 @@ class SectorViewer : AppCompatActivity() {
             } else {
                 PathInformation(
                     path,
+                    blocks = blocks[path] ?: emptyList(),
+                    apiKey = apiKey,
                     modifier = Modifier.fillMaxHeight(.5f),
                     onNextRequested = if (selectedIndex >= paths.size)
                         null
@@ -454,7 +470,7 @@ class SectorViewer : AppCompatActivity() {
                         newPathLauncher.launch(
                             EditorActivity.Input.fromElement(sector, path)
                         )
-                    }.takeIf { apiKey != null }
+                    }
                 ) { viewModel.selectionIndex.postValue(null) }
             }
         }
@@ -463,12 +479,43 @@ class SectorViewer : AppCompatActivity() {
     @Composable
     fun PathInformation(
         path: Path,
+        blocks: List<Blocking>,
+        apiKey: String?,
         modifier: Modifier = Modifier,
         onPreviousRequested: (() -> Unit)?,
         onNextRequested: (() -> Unit)?,
-        onEditRequested: (() -> Unit)?,
+        onEditRequested: () -> Unit,
         onDismissRequested: () -> Unit
     ) {
+        var showingCreateBlockDialog by remember { mutableStateOf(false) }
+        var editingBlock: Blocking? by remember { mutableStateOf(null) }
+        if (showingCreateBlockDialog || editingBlock != null) {
+            AddBlockDialog(
+                pathId = path.id,
+                blocking = editingBlock,
+                onCreationRequest = { blocking ->
+                    if (blocking.id == 0L) {
+                        viewModel.updateBlock(blocking)
+                    } else {
+                        viewModel.createBlock(blocking)
+                    }
+
+                    editingBlock = null
+                    showingCreateBlockDialog = false
+                },
+                onDeleteRequest = {
+                    viewModel.deleteBlock(editingBlock!!)
+
+                    editingBlock = null
+                    showingCreateBlockDialog = false
+                },
+                onDismissRequest = {
+                    showingCreateBlockDialog = false
+                    editingBlock = null
+                }
+            )
+        }
+
         OutlinedCard(
             shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
             modifier = modifier
@@ -494,8 +541,11 @@ class SectorViewer : AppCompatActivity() {
                         .padding(start = 8.dp),
                     style = MaterialTheme.typography.titleSmall
                 )
-                onEditRequested?.let {
-                    IconButton(onClick = it) {
+                if (apiKey != null) {
+                    IconButton(onClick = { showingCreateBlockDialog = true }) {
+                        Icon(Icons.Outlined.AddAlert, stringResource(R.string.action_add))
+                    }
+                    IconButton(onClick = onEditRequested) {
                         Icon(Icons.Rounded.Edit, stringResource(R.string.action_edit))
                     }
                 }
@@ -508,6 +558,58 @@ class SectorViewer : AppCompatActivity() {
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
+                blocks.forEach { block ->
+                    val type = block.type
+                    CardWithIconAndTitle(
+                        iconRes = type.iconRes,
+                        title = stringResource(type.titleRes),
+                        message = stringResource(type.messageRes),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        onClick = {
+                            editingBlock = block
+                        }.takeIf { apiKey != null }
+                    ) {
+                        block.recurrence?.let { recurrence ->
+                            Text(
+                                text = stringResource(
+                                    R.string.block_recurrence,
+                                    recurrence.fromDay,
+                                    recurrence.fromMonth.getDisplayName(
+                                        TextStyle.FULL_STANDALONE,
+                                        Locale.getDefault()
+                                    ),
+                                    recurrence.toDay,
+                                    recurrence.toMonth.getDisplayName(
+                                        TextStyle.FULL_STANDALONE,
+                                        Locale.getDefault()
+                                    )
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            )
+                        }
+                        block.endDate?.let { endDate ->
+                            Text(
+                                text = stringResource(
+                                    R.string.block_end_date,
+                                    endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
                 path.grade?.let { grade ->
                     CardWithIconAndTitle(
                         iconRes = R.drawable.climbing_shoes,
@@ -618,19 +720,43 @@ class SectorViewer : AppCompatActivity() {
         private val _paths = MutableLiveData<List<Path>>()
         val paths: LiveData<List<Path>> get() = _paths
 
+        private val _blocks = MutableLiveData<Map<Path, List<Blocking>>>()
+        val blocks: LiveData<Map<Path, List<Blocking>>> get() = _blocks
+
         val selectionIndex: MutableLiveData<Int?> = MutableLiveData(null)
 
-        fun loadSector(lifecycleOwner: LifecycleOwner, sectorId: Long) = viewModelScope.launch(Dispatchers.IO) {
-            val sector = dao.getSector(sectorId)
-                ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
-            _sector.postValue(sector)
+        fun loadSector(lifecycleOwner: LifecycleOwner, sectorId: Long) =
+            viewModelScope.launch(Dispatchers.IO) {
+                val sector = dao.getSector(sectorId)
+                    ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
+                _sector.postValue(sector)
 
-            val paths = dao.getPathsFromSectorLive(sector.id)
-            withContext(Dispatchers.Main) {
-                paths.observe(lifecycleOwner) {
-                    _paths.postValue(it?.paths?.sorted())
+                val paths = dao.getPathWithBlocksLive(sector.id)
+                withContext(Dispatchers.Main) {
+                    paths.observe(lifecycleOwner) { pathsWithBlocks ->
+                        val list = pathsWithBlocks.map { it.path }.sorted()
+
+                        _paths.postValue(list)
+                        _blocks.postValue(
+                            pathsWithBlocks.associate { it.path to it.blocks }
+                        )
+                    }
                 }
             }
+
+        fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
+            dao.insert(blocking)
+        }
+
+        fun updateBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
+            dao.update(blocking)
+        }
+
+        fun deleteBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
+            dao.notifyDeletion(
+                LocalDeletion(type = "block", deleteId = blocking.id)
+            )
+            dao.delete(blocking)
         }
     }
 

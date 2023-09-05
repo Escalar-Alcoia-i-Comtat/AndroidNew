@@ -153,6 +153,8 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         return try {
             getTree()
 
+            // TODO - sync blocks
+
             Preferences.markAsSynchronized(applicationContext)
             Preferences.setLastSync(applicationContext, Instant.now())
 

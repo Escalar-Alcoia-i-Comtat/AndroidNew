@@ -1,11 +1,13 @@
 package org.escalaralcoiaicomtat.android.ui.form
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -17,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +29,7 @@ fun <T : Any> FormDropdown(
     options: List<T>,
     label: String?,
     modifier: Modifier = Modifier,
+    icon: (@get:DrawableRes @Composable (T) -> Int)? = null,
     toString: @Composable (T) -> String = { it.toString() }
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -86,6 +90,9 @@ fun <T : Any> FormDropdown(
                             else
                                 MaterialTheme.colorScheme.onSurface
                         )
+                    },
+                    leadingIcon = icon?.invoke(option)?.let {
+                        { Icon(painterResource(it), toString(option)) }
                     },
                     onClick = {
                         onSelectionChanged(option)

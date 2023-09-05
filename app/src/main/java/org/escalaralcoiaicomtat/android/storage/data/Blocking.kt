@@ -13,7 +13,7 @@ data class Blocking(
     override val id: Long = 0L,
     override val timestamp: Instant,
     val type: BlockingTypes,
-    val recurrence: BlockingRecurrenceYearly,
-    val endDate: ZonedDateTime,
+    val recurrence: BlockingRecurrenceYearly?,
+    val endDate: ZonedDateTime?,
     val pathId: Long
 ) : BaseEntity()

@@ -13,6 +13,7 @@
     <string name="action_next">Next</string>
     <string name="action_update">Update</string>
     <string name="action_edit">Edit</string>
+    <string name="action_confirm">Confirm</string>
 
     <string name="state_calculating">Calculating…</string>
 
@@ -104,6 +105,8 @@
     <string name="form_re_buildings">Re-Buildings</string>
     <string name="form_description">Description</string>
     <string name="form_description_show">Show Description</string>
+    <string name="form_day">Day</string>
+    <string name="form_month">Month</string>
 
     <string name="sun_time_none">None</string>
     <string name="sun_time_morning">Morning</string>
@@ -216,6 +219,32 @@
     <string name="delete_complete_toast">Element deleted successfully</string>
     <string name="delete_error_toast">Could not complete deletion</string>
 
+    <string name="block_dry_title">Path drying</string>
+    <string name="block_dry_message">This path has been reequipped, and has used some chemical compound, so it needs a few days to dry. We will keep this updated.</string>
+    <string name="block_build_title">Path under construction</string>
+    <string name="block_build_message">This path is being built or reconstructed. Please wait until the process is complete.</string>
+    <string name="block_bird_title">Nesting season</string>
+    <string name="block_bird_message">It\'s nesting season and there might be some nests on the way. It\'s forbidden to climb until nesting season ends.</string>
+    <string name="block_old_title">Old Path</string>
+    <string name="block_old_message">This path is really old and hasn\'t been reequipped for a long time. Climb under your responsibility.</string>
+    <string name="block_plants_title">Bushy Path</string>
+    <string name="block_plants_message">This path is not used much, and may have some bushes or plants in the way. Be careful with falling dirt, rocks or branches.</string>
+    <string name="block_rope_length_title">Rope length warning</string>
+    <string name="block_rope_length_message">This path requires a lengthy rope, be careful and remember to tie a knot at the end of the rope to make sure no slips occur.</string>
+    <string name="block_recurrence" formatted="true">From %1$s of %2$s until %3$s of %4$s.</string>
+    <string name="block_end_date" formatted="true">Until %s.</string>
+
+    <string name="block_new_title">Create new Block</string>
+    <string name="block_new_type">Block Type</string>
+    <string name="block_new_mode_title">Valid until</string>
+    <string name="block_new_mode_forever">Forever</string>
+    <string name="block_new_mode_recurrence">Recurrence</string>
+    <string name="block_new_mode_date">Date</string>
+    <string name="block_new_mode_recurrence_title">Every year</string>
+    <string name="block_new_mode_recurrence_from">From</string>
+    <string name="block_new_mode_recurrence_until">Until</string>
+    <string name="block_new_mode_end_date">End Date</string>
+
     <!-- CREDITS -->
     <string name="credit_icons8">%s icon by %s</string>
     <string name="credit_icons8_anchor">Climbing Anchor</string>
@@ -228,4 +257,6 @@
     <string name="credit_icons8_quickdraw_link" translatable="false">https://icons8.com/icon/6021/quickdraw</string>
     <string name="credit_icons8_energy_absorber">Energy Absorber</string>
     <string name="credit_icons8_energy_absorber_link" translatable="false">https://icons8.com/icon/6030/energy-absorber</string>
+    <string name="credit_icons8_bird">Bird</string>
+    <string name="credit_icons8_bird_link" translatable="false">https://icons8.com/icon/Ot1pAvaUiBg1/parakeet</string>
 </resources>

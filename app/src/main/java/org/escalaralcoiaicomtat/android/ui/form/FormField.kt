@@ -1,10 +1,12 @@
 package org.escalaralcoiaicomtat.android.ui.form
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -37,6 +39,7 @@ fun FormField(
     supportingText: String? = null,
     supportingContent: (@Composable () -> Unit)? = null,
     onGo: (() -> Unit)? = null,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
 
@@ -89,6 +92,7 @@ fun FormField(
         leadingIcon = leadingContent,
         trailingIcon = trailingContent,
         isError = isError,
-        supportingText = supportingTextComposable
+        supportingText = supportingTextComposable,
+        interactionSource = interactionSource
     )
 }

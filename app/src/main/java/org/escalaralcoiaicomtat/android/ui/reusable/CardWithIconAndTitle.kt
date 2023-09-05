@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -16,15 +19,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardWithIconAndTitle(
     @DrawableRes iconRes: Int,
     title: String,
     message: String,
     modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.outlinedCardColors(),
+    onClick: (() -> Unit)? = null,
     extra: (@Composable ColumnScope.() -> Unit)? = null
 ) {
-    OutlinedCard(modifier) {
+    OutlinedCard(
+        modifier = modifier,
+        colors = colors,
+        onClick = { onClick?.invoke() },
+        enabled = onClick != null
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
