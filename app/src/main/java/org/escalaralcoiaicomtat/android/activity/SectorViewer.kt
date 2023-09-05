@@ -79,7 +79,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -87,6 +93,10 @@ import net.engawapg.lib.zoomable.zoomable
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
+import org.escalaralcoiaicomtat.android.exception.remote.RequestException
+import org.escalaralcoiaicomtat.android.network.EndpointUtils
+import org.escalaralcoiaicomtat.android.network.bodyAsJson
+import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
@@ -769,7 +779,23 @@ class SectorViewer : AppCompatActivity() {
             }
 
         fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
-            dao.insert(blocking)
+            val apiKey = Preferences.getApiKey(getApplication()).first()
+
+            ktorHttpClient.post(EndpointUtils.getUrl("block/${blocking.pathId}")) {
+                header(HttpHeaders.Authorization, "Bearer $apiKey")
+                setBody(blocking.toJson().toString())
+            }.apply {
+                if (status == HttpStatusCode.Created) {
+                    // Update successful
+                    Timber.d("Created block successfully.")
+
+                    val element = bodyAsJson().getJSONObject("element").let(Blocking::fromJson)
+                    dao.insert(element)
+                } else {
+                    Timber.e("Could not create block in server.")
+                    throw RequestException(status, bodyAsJson())
+                }
+            }
         }
 
         fun updateBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {

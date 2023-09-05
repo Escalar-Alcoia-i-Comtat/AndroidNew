@@ -41,6 +41,7 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.dao.DataDao
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
+import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
@@ -49,6 +50,7 @@ import org.escalaralcoiaicomtat.android.storage.data.propertiesWith
 import org.escalaralcoiaicomtat.android.utils.map
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.serialize
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
@@ -138,6 +140,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private val dao = database.dataDao()
 
+    private val serverBlockings = arrayListOf<Long>()
     private val serverPaths = arrayListOf<Long>()
     private val serverSectors = arrayListOf<Long>()
     private val serverZones = arrayListOf<Long>()
@@ -201,6 +204,14 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             "path",
             "paths",
             DataDao::getPath,
+            DataDao::insert,
+            DataDao::update
+        )
+
+        data object BlockingInfo : DataTypeInfo<Blocking>(
+            "block",
+            String(),
+            DataDao::getBlocking,
             DataDao::insert,
             DataDao::update
         )
@@ -307,7 +318,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun performDeletions(apiKey: String, type: String, serverCache: MutableList<Long>) {
+    private suspend fun performDeletions(apiKey: String, type: String, serverCache: MutableList<Long>?) {
         dao.pendingDeletions(type).forEach { deletion ->
             ktorHttpClient.delete(EndpointUtils.getUrl(deletion.endpoint)) {
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
@@ -316,12 +327,12 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     HttpStatusCode.OK -> {
                         // Deletion successful
                         Timber.d("Deleted data from server successfully: ${deletion.type}:${deletion.deleteId}")
-                        serverCache.remove(deletion.deleteId)
+                        serverCache?.remove(deletion.deleteId)
                     }
                     HttpStatusCode.Gone -> {
                         // Deletion successful
                         Timber.d("Data from server was already deleted: ${deletion.type}:${deletion.deleteId}")
-                        serverCache.remove(deletion.deleteId)
+                        serverCache?.remove(deletion.deleteId)
                     }
                     else -> {
                         Timber.e("Could not delete data from server: ${deletion.type}:${deletion.deleteId}")
@@ -370,10 +381,13 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             } ?: Timber.w("Could not get a valid data tree.")
         }
 
+        syncBlocks()
+
         // Synchronize deletions for type
         val apiKey = Preferences.getApiKey(applicationContext).firstOrNull()
         if (apiKey != null) {
             // Remove from bottom to top so that restrictions do not break
+            performDeletions(apiKey, LocalDeletion.TYPE_BLOCK, null)
             performDeletions(apiKey, LocalDeletion.TYPE_PATH, serverPaths)
             performDeletions(apiKey, LocalDeletion.TYPE_SECTOR, serverSectors)
             performDeletions(apiKey, LocalDeletion.TYPE_ZONE, serverZones)
@@ -393,6 +407,30 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         setProgress(Step.DELETE_PATHS)
         synchronizeDeletions(serverPaths, dao::getAllPaths) { dao.delete(it) }
             .let { Timber.d("Synchronized $it deleted paths from server.") }
+        setProgress(Step.DELETE_BLOCKING)
+        synchronizeDeletions(serverBlockings, dao::getAllBlocks) { dao.delete(it) }
+            .let { Timber.d("Synchronized $it deleted blockings from server.") }
+    }
+
+    private suspend fun syncBlocks() {
+        Timber.d("Getting all blocks...")
+
+        get(EndpointUtils.getUrl("blocks")) { data ->
+            val blocks = data?.getJSONArray("blocks") ?: JSONArray()
+            if (blocks.length() <= 0) {
+                Timber.d("- There aren't any blocks in the server.")
+            } else {
+                Timber.d("- Found ${blocks.length()} blocks, synchronizing...")
+                blocks.serialize(Blocking).forEach { serverBlocking ->
+                    val localBlocking = dao.getBlocking(serverBlocking.id)
+
+                    Timber.d("  Patching Blocking#${serverBlocking.id}...")
+                    patch(localBlocking, serverBlocking, DataTypeInfo.BlockingInfo)
+
+                    serverBlockings += serverBlocking.id
+                }
+            }
+        }
     }
 
     /**
@@ -471,6 +509,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         DELETE_AREAS,
         DELETE_ZONES,
         DELETE_SECTORS,
-        DELETE_PATHS
+        DELETE_PATHS,
+        DELETE_BLOCKING
     }
 }

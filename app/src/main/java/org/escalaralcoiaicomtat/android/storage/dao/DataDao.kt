@@ -182,6 +182,10 @@ interface DataDao {
     suspend fun update(items: Blocking)
 
     @WorkerThread
+    @Query("SELECT * FROM blocking WHERE id=:id")
+    suspend fun getBlocking(id: Long): Blocking?
+
+    @WorkerThread
     @Query("SELECT * FROM blocking")
     suspend fun getAllBlocks(): List<Blocking>
 

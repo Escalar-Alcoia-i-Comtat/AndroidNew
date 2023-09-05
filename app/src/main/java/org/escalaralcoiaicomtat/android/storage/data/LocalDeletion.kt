@@ -21,11 +21,13 @@ data class LocalDeletion(
         const val TYPE_ZONE = "zone"
         const val TYPE_SECTOR = "sector"
         const val TYPE_PATH = "path"
+        const val TYPE_BLOCK = "block"
 
         fun fromArea(area: Area) = LocalDeletion(0L, TYPE_AREA, area.id)
         fun fromZone(zone: Zone) = LocalDeletion(0L, TYPE_ZONE, zone.id)
         fun fromSector(sector: Sector) = LocalDeletion(0L, TYPE_SECTOR, sector.id)
         fun fromPath(path: Path) = LocalDeletion(0L, TYPE_PATH, path.id)
+        fun fromBlocking(blocking: Blocking) = LocalDeletion(0L, TYPE_BLOCK, blocking.id)
     }
 
     @Ignore
