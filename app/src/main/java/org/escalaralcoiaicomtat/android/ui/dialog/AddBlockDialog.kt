@@ -69,6 +69,13 @@ fun AddBlockDialog(
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { currentPage = it }
     }
+    LaunchedEffect(blocking) {
+        if (blocking?.recurrence != null) {
+            pagerState.scrollToPage(1)
+        } else if (blocking?.endDate != null) {
+            pagerState.scrollToPage(2)
+        }
+    }
 
     var type: BlockingTypes? by remember { mutableStateOf(blocking?.type) }
 
