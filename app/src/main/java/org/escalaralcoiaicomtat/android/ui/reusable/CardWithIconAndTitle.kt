@@ -30,12 +30,8 @@ fun CardWithIconAndTitle(
     onClick: (() -> Unit)? = null,
     extra: (@Composable ColumnScope.() -> Unit)? = null
 ) {
-    OutlinedCard(
-        modifier = modifier,
-        colors = colors,
-        onClick = { onClick?.invoke() },
-        enabled = onClick != null
-    ) {
+    @Composable
+    fun Content() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,4 +60,17 @@ fun CardWithIconAndTitle(
             }
         }
     }
+
+    onClick?.let {
+        OutlinedCard(
+            modifier = modifier,
+            colors = colors,
+            onClick = it,
+            content = { Content() }
+        )
+    } ?: OutlinedCard(
+        modifier = modifier,
+        colors = colors,
+        content = { Content() }
+    )
 }
