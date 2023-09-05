@@ -41,6 +41,7 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.dao.DataDao
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
+import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
@@ -224,27 +225,6 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 }
             }
 
-        // Synchronize deletions for type
-        val apiKey = Preferences.getApiKey(applicationContext).firstOrNull()
-        if (apiKey != null) {
-            dao.pendingDeletions(info.endpoint).forEach { deletion ->
-                ktorHttpClient.delete(EndpointUtils.getUrl(deletion.endpoint)) {
-                    header(HttpHeaders.Authorization, "Bearer $apiKey")
-                }.apply {
-                    if (status == HttpStatusCode.OK) {
-                        // Deletion successful
-                        Timber.d("Deleted data from server successfully: ${deletion.type}:${deletion.deleteId}")
-                        serverCache.remove(deletion.deleteId)
-                    } else {
-                        Timber.e("Could not delete data from server: ${deletion.type}:${deletion.deleteId}")
-                        throw RequestException(status, bodyAsJson())
-                    }
-                }
-
-                dao.clearDeletion(deletion)
-            }
-        }
-
         array.map { index ->
             val json = getJSONObject(index)
             forEach(json)
@@ -325,6 +305,33 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
+    private suspend fun performDeletions(apiKey: String, type: String, serverCache: MutableList<Long>) {
+        dao.pendingDeletions(type).forEach { deletion ->
+            ktorHttpClient.delete(EndpointUtils.getUrl(deletion.endpoint)) {
+                header(HttpHeaders.Authorization, "Bearer $apiKey")
+            }.apply {
+                when (status) {
+                    HttpStatusCode.OK -> {
+                        // Deletion successful
+                        Timber.d("Deleted data from server successfully: ${deletion.type}:${deletion.deleteId}")
+                        serverCache.remove(deletion.deleteId)
+                    }
+                    HttpStatusCode.Gone -> {
+                        // Deletion successful
+                        Timber.d("Data from server was already deleted: ${deletion.type}:${deletion.deleteId}")
+                        serverCache.remove(deletion.deleteId)
+                    }
+                    else -> {
+                        Timber.e("Could not delete data from server: ${deletion.type}:${deletion.deleteId}")
+                        throw RequestException(status, bodyAsJson())
+                    }
+                }
+            }
+
+            dao.clearDeletion(deletion)
+        }
+    }
+
     private suspend fun getTree() {
         Timber.d("Getting data tree...")
         setProgress(Step.GET_TREE)
@@ -359,6 +366,16 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     }
                 }
             } ?: Timber.w("Could not get a valid data tree.")
+        }
+
+        // Synchronize deletions for type
+        val apiKey = Preferences.getApiKey(applicationContext).firstOrNull()
+        if (apiKey != null) {
+            // Remove from bottom to top so that restrictions do not break
+            performDeletions(apiKey, LocalDeletion.TYPE_PATH, serverPaths)
+            performDeletions(apiKey, LocalDeletion.TYPE_SECTOR, serverSectors)
+            performDeletions(apiKey, LocalDeletion.TYPE_ZONE, serverZones)
+            performDeletions(apiKey, LocalDeletion.TYPE_AREA, serverAreas)
         }
 
         // Synchronize deletions
