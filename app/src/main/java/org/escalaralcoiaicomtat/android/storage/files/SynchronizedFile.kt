@@ -2,7 +2,12 @@ package org.escalaralcoiaicomtat.android.storage.files
 
 import android.content.Context
 import androidx.annotation.WorkerThread
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
@@ -36,6 +41,9 @@ data class SynchronizedFile(
     val permanent: LocalFile
 ) {
     companion object {
+        @Volatile
+        private var fileUpdatedListeners: Map<String, List<(LocalFile) -> Unit>> = emptyMap()
+
         fun create(context: Context, uuid: UUID): SynchronizedFile {
             val crate = FilesCrate.getInstance(context)
 
@@ -47,8 +55,6 @@ data class SynchronizedFile(
         }
     }
 
-    private val fileUpdatedListeners: LinkedHashMap<LocalFile, List<(LocalFile) -> Unit>> = LinkedHashMap()
-
     /**
      * Will be [permanent] if it exists, or [cache] otherwise.
      */
@@ -56,16 +62,22 @@ data class SynchronizedFile(
 
     @Synchronized
     private fun startListening(file: LocalFile, listener: (LocalFile) -> Unit) {
-        val list = fileUpdatedListeners.getOrDefault(file, emptyList()).toMutableList()
+        val list = fileUpdatedListeners.getOrDefault(file.toString(), emptyList()).toMutableList()
         list.add(listener)
-        fileUpdatedListeners[file] = list
+        val map = fileUpdatedListeners.toMutableMap()
+        map[file.toString()] = list
+        fileUpdatedListeners = map
+        Timber.d("Started listening for $file")
     }
 
     @Synchronized
     private fun stopListening(file: LocalFile, listener: (LocalFile) -> Unit) {
-        val list = fileUpdatedListeners.getOrDefault(file, emptyList()).toMutableList()
+        val list = fileUpdatedListeners.getOrDefault(file.toString(), emptyList()).toMutableList()
         list.remove(listener)
-        fileUpdatedListeners[file] = list
+        val map = fileUpdatedListeners.toMutableMap()
+        map[file.toString()] = list
+        fileUpdatedListeners = map
+        Timber.d("Stopped listening for $file")
     }
 
     /**
@@ -169,18 +181,76 @@ data class SynchronizedFile(
         }
 
         // Block flow until lifecycle is destroyed
-        while (lifecycle.currentState != Lifecycle.State.DESTROYED) { delay(1) }
+        while (lifecycle.currentState != Lifecycle.State.DESTROYED) {
+            delay(1)
+        }
         Timber.d("Lifecycle destroyed.")
 
         stopListening(permanent, fileUpdatedListener)
         stopListening(cache, fileUpdatedListener)
     }
 
+    @Composable
+    fun rememberImageData(): LiveData<ByteArray?> =
+        remember { MutableLiveData<ByteArray?>(null) }.apply {
+            DisposableEffect(this) {
+                val fileUpdatedListener: (LocalFile) -> Unit = { file ->
+                    if (file.exists()) {
+                        Timber.d("Got update to $file. Sending update...")
+                        val bytes = file.inputStream().use { it.readBytes() }
+                        runBlocking { postValue(bytes) }
+                    } else {
+                        Timber.w("Could not read $file. It doesn't exist.")
+                        runBlocking { postValue(null) }
+                    }
+                }
+
+                val observer = object : FileUpdateListener(permanent) {
+                    override fun onCreate(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onModify(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onDelete(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+                }
+
+                val permanentObserver = permanent.observer(observer)
+                val cacheObserver = cache.observer(observer)
+
+                permanentObserver.forEach { it.startWatching() }
+                cacheObserver.forEach { it.startWatching() }
+
+                startListening(permanent, fileUpdatedListener)
+                startListening(cache, fileUpdatedListener)
+
+                if (targetFile.exists()) {
+                    Timber.d("Reading target file and sending to flow... $targetFile")
+                    targetFile.inputStream().use { it.readBytes() }.let { postValue(it) }
+                }
+
+                onDispose {
+                    permanentObserver.forEach { it.stopWatching() }
+                    cacheObserver.forEach { it.stopWatching() }
+
+                    stopListening(permanent, fileUpdatedListener)
+                    stopListening(cache, fileUpdatedListener)
+                }
+            }
+        }
+
     /**
      * Downloads the metadata from the server, and if it has been updated, download the new file.
      */
     @WorkerThread
-    suspend fun update(width: Int? = null, progress: (suspend (current: Long, max: Long) -> Unit)? = null) {
+    suspend fun update(
+        width: Int? = null,
+        progress: (suspend (current: Long, max: Long) -> Unit)? = null
+    ) {
         val local = localMeta()
         val remote = remoteMeta()
 
@@ -213,8 +283,12 @@ data class SynchronizedFile(
                 val channel = response.bodyAsChannel()
                 targetFile.write(channel, remote)
 
-                Timber.d("Downloaded image successfully written. Calling listeners...")
-                fileUpdatedListeners[targetFile]?.forEach { it(targetFile) }
+                Timber.d("Downloaded image ($targetFile) successfully written. Calling listeners...")
+                val listeners = fileUpdatedListeners[targetFile.toString()]
+                if (listeners.isNullOrEmpty())
+                    Timber.w("There are no listeners for $targetFile to call.")
+                else
+                    listeners.forEach { it(targetFile) }
             }
         }
     }

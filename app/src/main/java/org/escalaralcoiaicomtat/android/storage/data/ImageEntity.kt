@@ -3,12 +3,10 @@ package org.escalaralcoiaicomtat.android.storage.data
 import android.content.Context
 import androidx.annotation.WorkerThread
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
 import timber.log.Timber
@@ -28,15 +26,12 @@ abstract class ImageEntity : DataEntity() {
     }
 
     @Composable
-    fun rememberImageFile(): State<ByteArray?> {
+    fun rememberImageFile(): LiveData<ByteArray?> {
         val context = LocalContext.current
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val lifecycle = lifecycleOwner.lifecycle
 
         val imageFile = remember { SynchronizedFile.create(context, imageUUID) }
-        val fileFlow = remember { imageFile.read(lifecycle) }
 
-        return fileFlow.collectAsState(initial = null)
+        return imageFile.rememberImageData()
     }
 
     @WorkerThread

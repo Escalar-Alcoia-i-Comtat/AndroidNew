@@ -75,7 +75,7 @@ fun <T: ImageEntity> DataCard(
 
     val filesCrate = FilesCrate.rememberInstance()
 
-    val imageFile by item.rememberImageFile()
+    val imageFile by item.rememberImageFile().observeAsState()
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     var imageSize by remember { mutableStateOf<IntSize?>(null) }

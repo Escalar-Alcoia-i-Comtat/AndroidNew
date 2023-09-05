@@ -299,4 +299,22 @@ constructor(private val file: File, private val meta: File) {
             }
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LocalFile
+
+        if (file.path != other.file.path) return false
+        if (meta.path != other.meta.path) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = file.path.hashCode()
+        result = 31 * result + meta.path.hashCode()
+        return result
+    }
 }
