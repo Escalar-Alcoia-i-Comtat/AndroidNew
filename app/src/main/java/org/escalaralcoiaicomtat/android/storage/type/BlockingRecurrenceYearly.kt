@@ -7,6 +7,7 @@ import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.json.JSONObject
 import java.time.Month
+import java.time.MonthDay
 
 data class BlockingRecurrenceYearly(
     val fromDay: UShort,
@@ -29,4 +30,7 @@ data class BlockingRecurrenceYearly(
         "to_day" to toDay,
         "to_month" to toMonth
     )
+
+    val from: MonthDay = MonthDay.of(fromMonth, fromDay.toInt())
+    val to: MonthDay = MonthDay.of(toMonth, toDay.toInt())
 }

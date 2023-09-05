@@ -231,7 +231,7 @@
     <string name="block_plants_message">This path is not used much, and may have some bushes or plants in the way. Be careful with falling dirt, rocks or branches.</string>
     <string name="block_rope_length_title">Rope length warning</string>
     <string name="block_rope_length_message">This path requires a lengthy rope, be careful and remember to tie a knot at the end of the rope to make sure no slips occur.</string>
-    <string name="block_recurrence" formatted="true">From %1$s of %2$s until %3$s of %4$s.</string>
+    <string name="block_recurrence" formatted="true">From %1$s until %2$s.</string>
     <string name="block_end_date" formatted="true">Until %s.</string>
 
     <string name="block_new_title">Create new Block</string>

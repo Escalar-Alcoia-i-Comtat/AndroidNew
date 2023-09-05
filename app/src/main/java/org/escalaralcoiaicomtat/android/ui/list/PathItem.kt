@@ -6,16 +6,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
@@ -26,14 +30,25 @@ import java.time.Instant
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 fun LazyItemScope.PathItem(
     path: Path,
+    blocks: List<Blocking>,
+    apiKey: String?,
     onClick: () -> Unit = {}
 ) {
+    val shouldDisplayBlock = blocks.any { it.shouldDisplay() }
+
     OutlinedCard(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .animateItemPlacement()
+            .animateItemPlacement(),
+        colors = if (blocks.isNotEmpty() && (shouldDisplayBlock || apiKey != null))
+            CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+        else
+            CardDefaults.outlinedCardColors()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -45,7 +60,11 @@ fun LazyItemScope.PathItem(
             )
             Text(
                 text = path.displayName,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                fontStyle = if (blocks.isNotEmpty() && !shouldDisplayBlock && apiKey != null)
+                    FontStyle.Italic
+                else
+                    FontStyle.Normal
             )
             Text(
                 text = path.grade?.displayName ?: "",
@@ -91,7 +110,9 @@ fun PathItem_Preview() {
                     builder = null,
                     reBuilder = null,
                     sectorId = 0
-                )
+                ),
+                blocks = emptyList(),
+                apiKey = null
             ) {}
         }
     }

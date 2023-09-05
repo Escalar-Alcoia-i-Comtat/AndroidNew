@@ -17,6 +17,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,6 +69,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
@@ -321,7 +323,7 @@ class SectorViewer : AppCompatActivity() {
                     modifier = Modifier.weight(1f)
                 ) {
                     itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
-                        PathItem(path) {
+                        PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
                             viewModel.selectionIndex.postValue(index)
                         }
                     }
@@ -445,7 +447,7 @@ class SectorViewer : AppCompatActivity() {
                         items = paths,
                         key = { _, path -> path.id }
                     ) { index, path ->
-                        PathItem(path) {
+                        PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
                             viewModel.selectionIndex.postValue(index)
                         }
                     }
@@ -495,9 +497,9 @@ class SectorViewer : AppCompatActivity() {
                 blocking = editingBlock,
                 onCreationRequest = { blocking ->
                     if (blocking.id == 0L) {
-                        viewModel.updateBlock(blocking)
-                    } else {
                         viewModel.createBlock(blocking)
+                    } else {
+                        viewModel.updateBlock(blocking)
                     }
 
                     editingBlock = null
@@ -560,6 +562,13 @@ class SectorViewer : AppCompatActivity() {
             ) {
                 blocks.forEach { block ->
                     val type = block.type
+                    val shouldDisplay = block.shouldDisplay()
+
+                    if (!shouldDisplay && apiKey == null) {
+                        // if not should display, and not authorized, hide block
+                        return@forEach
+                    }
+
                     CardWithIconAndTitle(
                         iconRes = type.iconRes,
                         title = stringResource(type.titleRes),
@@ -571,6 +580,13 @@ class SectorViewer : AppCompatActivity() {
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
                         ),
+                        border = if (shouldDisplay)
+                            CardDefaults.outlinedCardBorder()
+                        else
+                            BorderStroke(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            ),
                         onClick = {
                             editingBlock = block
                         }.takeIf { apiKey != null }
@@ -579,21 +595,25 @@ class SectorViewer : AppCompatActivity() {
                             Text(
                                 text = stringResource(
                                     R.string.block_recurrence,
-                                    recurrence.fromDay,
-                                    recurrence.fromMonth.getDisplayName(
-                                        TextStyle.FULL_STANDALONE,
-                                        Locale.getDefault()
-                                    ),
-                                    recurrence.toDay,
-                                    recurrence.toMonth.getDisplayName(
-                                        TextStyle.FULL_STANDALONE,
-                                        Locale.getDefault()
-                                    )
+                                    recurrence.fromDay.toString() + " " +
+                                        recurrence.fromMonth.getDisplayName(
+                                            TextStyle.FULL,
+                                            Locale.getDefault()
+                                        ),
+                                    recurrence.toDay.toString() + " " +
+                                        recurrence.toMonth.getDisplayName(
+                                            TextStyle.FULL,
+                                            Locale.getDefault()
+                                        )
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 8.dp)
+                                    .padding(top = 8.dp),
+                                fontStyle = if (shouldDisplay)
+                                    FontStyle.Normal
+                                else
+                                    FontStyle.Italic
                             )
                         }
                         block.endDate?.let { endDate ->
@@ -605,7 +625,11 @@ class SectorViewer : AppCompatActivity() {
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 8.dp)
+                                    .padding(top = 8.dp),
+                                fontStyle = if (shouldDisplay)
+                                    FontStyle.Normal
+                                else
+                                    FontStyle.Italic
                             )
                         }
                     }

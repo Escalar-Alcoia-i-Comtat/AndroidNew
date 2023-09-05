@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.ui.reusable
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ fun CardWithIconAndTitle(
     message: String,
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
+    border: BorderStroke = CardDefaults.outlinedCardBorder(),
     onClick: (() -> Unit)? = null,
     extra: (@Composable ColumnScope.() -> Unit)? = null
 ) {
@@ -65,12 +67,14 @@ fun CardWithIconAndTitle(
         OutlinedCard(
             modifier = modifier,
             colors = colors,
+            border = border,
             onClick = it,
             content = { Content() }
         )
     } ?: OutlinedCard(
         modifier = modifier,
         colors = colors,
+        border = border,
         content = { Content() }
     )
 }
