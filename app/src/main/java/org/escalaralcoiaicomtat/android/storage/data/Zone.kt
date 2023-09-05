@@ -2,7 +2,9 @@ package org.escalaralcoiaicomtat.android.storage.data
 
 import android.net.Uri
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.DataPoint
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
@@ -44,6 +46,9 @@ data class Zone(
             json.getBooleanOrNull("is_favorite") ?: false
         )
     }
+
+    @Ignore
+    override val pluralRes: Int = R.plurals.zone_count
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,

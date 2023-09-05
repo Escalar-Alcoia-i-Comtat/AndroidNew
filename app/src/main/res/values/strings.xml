@@ -245,6 +245,23 @@
     <string name="block_new_mode_recurrence_until">Until</string>
     <string name="block_new_mode_end_date">End Date</string>
 
+    <plurals name="area_count">
+        <item quantity="one">%d area</item>
+        <item quantity="other">%d areas</item>
+    </plurals>
+    <plurals name="zone_count">
+        <item quantity="one">%d zone</item>
+        <item quantity="other">%d zones</item>
+    </plurals>
+    <plurals name="sector_count">
+        <item quantity="one">%d sector</item>
+        <item quantity="other">%d sectors</item>
+    </plurals>
+    <plurals name="path_count">
+        <item quantity="one">%d path</item>
+        <item quantity="other">%d paths</item>
+    </plurals>
+
     <!-- CREDITS -->
     <string name="credit_icons8">%s icon by %s</string>
     <string name="credit_icons8_anchor">Climbing Anchor</string>
@@ -259,4 +276,7 @@
     <string name="credit_icons8_energy_absorber_link" translatable="false">https://icons8.com/icon/6030/energy-absorber</string>
     <string name="credit_icons8_bird">Bird</string>
     <string name="credit_icons8_bird_link" translatable="false">https://icons8.com/icon/Ot1pAvaUiBg1/parakeet</string>
+    
+    <string name="credits_lordicon">Icons by Lordicon.com</string>
+    <string name="credits_lordicon_link" translatable="false">https://lordicon.com</string>
 </resources>

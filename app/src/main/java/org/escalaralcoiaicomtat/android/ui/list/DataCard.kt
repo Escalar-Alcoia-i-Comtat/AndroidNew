@@ -1,28 +1,30 @@
 package org.escalaralcoiaicomtat.android.ui.list
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Downloading
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,14 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -63,12 +63,14 @@ import timber.log.Timber
 fun <T: ImageEntity> DataCard(
     item: T,
     imageHeight: Dp,
+    childCount: UInt,
     modifier: Modifier = Modifier,
     onFavoriteToggle: () -> Job?,
     onClick: () -> Unit,
     onEdit: (() -> Unit)?
 ) {
     val context = LocalContext.current
+    val localDensity = LocalDensity.current
 
     val networkObserver = rememberNetworkObserver()
     val isNetworkAvailable by networkObserver.isNetworkAvailable.observeAsState()
@@ -77,8 +79,6 @@ fun <T: ImageEntity> DataCard(
 
     val imageFile by item.rememberImageFile().observeAsState()
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
-
-    var imageSize by remember { mutableStateOf<IntSize?>(null) }
 
     var isDownloading by remember { mutableStateOf(false) }
     var isTogglingFavorite by remember { mutableStateOf(false) }
@@ -110,31 +110,93 @@ fun <T: ImageEntity> DataCard(
             }
         )
 
-    OutlinedCard(
+    LaunchedEffect(item) {
+        withContext(Dispatchers.IO) {
+            if (imageFile != null) return@withContext
+
+            // Get the display's width
+            val height = with(localDensity) { imageHeight.roundToPx() }
+
+            item.updateImageIfNeeded(context, height = height) { current, max ->
+                progress = current.toInt() to max.toInt()
+            }
+
+            // TODO - if bitmap is null, show error
+        }
+    }
+
+    Column(
         modifier = modifier.clickable(
             enabled = imageFile != null || isNetworkAvailable == true,
             onClick = onClick
         )
     ) {
+        Text(
+            text = item.displayName,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            fontSize = 20.sp
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(imageHeight),
+            contentAlignment = Alignment.Center
+        ) {
+            imageFile?.let { file ->
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(file)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = item.displayName,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } ?: CircularProgressIndicator(progress)
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.height(ListItemDefaults.HeaderHeight)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = item.displayName,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                fontSize = 20.sp
+            AssistChip(
+                onClick = { /*TODO*/ },
+                label = {
+                    Text(
+                        text = item.labelWithCount(childCount.toInt()),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             )
 
-            onEdit?.let {
-                IconButton(onClick = it) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = {
+                    isTogglingFavorite = true
+                    onFavoriteToggle()
+                        ?.invokeOnCompletion { isTogglingFavorite = false }
+                        ?: run { isTogglingFavorite = false }
+                },
+                enabled = !isTogglingFavorite
+            ) {
+                AnimatedContent(
+                    targetState = item,
+                    label = "animate-favorite"
+                ) {
                     Icon(
-                        Icons.Rounded.Edit,
-                        stringResource(R.string.list_item_edit)
+                        if (it.isFavorite)
+                            Icons.Rounded.Bookmark
+                        else
+                            Icons.Rounded.BookmarkBorder,
+                        stringResource(R.string.list_item_favorite)
                     )
                 }
             }
@@ -178,79 +240,22 @@ fun <T: ImageEntity> DataCard(
                 )
             }
 
-            IconButton(
-                onClick = {
-                    isTogglingFavorite = true
-                    onFavoriteToggle()
-                        ?.invokeOnCompletion { isTogglingFavorite = false }
-                        ?: run { isTogglingFavorite = false }
-                },
-                enabled = !isTogglingFavorite,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (item.isFavorite)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        Color.Unspecified,
-                    contentColor = if (item.isFavorite)
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onBackground
-                )
-            ) {
-                AnimatedContent(
-                    targetState = item,
-                    label = "animate-favorite"
-                ) {
-                    Icon(
-                        if (it.isFavorite)
-                            Icons.Rounded.Star
-                        else
-                            Icons.Rounded.StarBorder,
-                        stringResource(R.string.list_item_favorite)
-                    )
+            if (onEdit != null) {
+                var expanded by remember { mutableStateOf(false) }
+
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Rounded.MoreVert, null)
+                    }
+
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.list_item_edit)) },
+                            onClick = onEdit
+                        )
+                    }
                 }
             }
-        }
-
-        LaunchedEffect(imageSize, item) {
-            withContext(Dispatchers.IO) {
-                if (imageFile != null) return@withContext
-                if (imageSize == null) return@withContext
-
-                // Get the display's width
-                val width = imageSize?.width
-
-                item.updateImageIfNeeded(context, width) { current, max ->
-                    progress = current.toInt() to max.toInt()
-                }
-
-                // TODO - if bitmap is null, show error
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(imageHeight)
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 12.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                .onGloballyPositioned { imageSize = it.size },
-            contentAlignment = Alignment.Center
-        ) {
-            imageFile?.let { file ->
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(file)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            } ?: CircularProgressIndicator(progress)
         }
     }
 }

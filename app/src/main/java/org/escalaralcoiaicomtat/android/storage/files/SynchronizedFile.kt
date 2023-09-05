@@ -249,6 +249,7 @@ data class SynchronizedFile(
     @WorkerThread
     suspend fun update(
         width: Int? = null,
+        height: Int? = null,
         progress: (suspend (current: Long, max: Long) -> Unit)? = null
     ) {
         val local = localMeta()
@@ -262,6 +263,7 @@ data class SynchronizedFile(
                     set(scheme = BuildConfig.PROTOCOL)
 
                     width?.let { parameters["width"] = it.toString() }
+                    height?.let { parameters["height"] = it.toString() }
                 }
                 .build()
             Timber.d("Downloading $url...")

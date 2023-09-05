@@ -35,6 +35,7 @@ inline fun <reified T : ImageEntity> DataList(
     list: List<T>?,
     gridCellSize: Dp,
     imageHeight: Dp,
+    crossinline childCount: (T) -> UInt,
     modifier: Modifier = Modifier,
     crossinline onClick: (T) -> Unit,
     crossinline onFavoriteToggle: (T) -> Job,
@@ -86,6 +87,7 @@ inline fun <reified T : ImageEntity> DataList(
                             .letIf(onMove != null) {
                                 it.detectReorderAfterLongPress(state)
                             },
+                        childCount = childCount(item),
                         imageHeight = imageHeight,
                         onFavoriteToggle = { onFavoriteToggle(item) },
                         onClick = { onClick(item) },

@@ -1,7 +1,9 @@
 package org.escalaralcoiaicomtat.android.storage.data
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
@@ -46,6 +48,9 @@ data class Sector(
             json.getBooleanOrNull("is_favorite") ?: false
         )
     }
+
+    @Ignore
+    override val pluralRes: Int = R.plurals.sector_count
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,

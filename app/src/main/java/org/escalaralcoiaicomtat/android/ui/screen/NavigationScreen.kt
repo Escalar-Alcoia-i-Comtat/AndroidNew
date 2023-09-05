@@ -59,6 +59,7 @@ fun NavigationScreen(
     val areas by dao.getAllAreasLive().observeAsState()
     val zones by dao.getAllZonesLive().observeAsState(initial = emptyList())
     val sectors by dao.getAllSectorsLive().observeAsState(initial = emptyList())
+    val paths by dao.getAllPathsLive().observeAsState(initial = emptyList())
 
     val selection by viewModel.selection.observeAsState()
 
@@ -140,9 +141,10 @@ fun NavigationScreen(
     ) {
         when (val data = selection) {
             // Areas List
-            null ->
+            null -> {
                 DataList(
-                    areas,
+                    list = areas,
+                    childCount = { area -> zones.count { it.areaId == area.id }.toUInt() },
                     gridCellSize = 400.dp,
                     imageHeight = 200.dp,
                     modifier = Modifier
@@ -154,14 +156,16 @@ fun NavigationScreen(
                     onEdit = apiKey?.let { { onCreateOrEditArea(it) } },
                     onMove = null // Areas cannot be reordered
                 )
+            }
             // Zones List
             is Area -> {
                 val areaWithZones by dao.getZonesFromAreaLive(data.id).observeAsState()
 
                 DataList(
                     list = areaWithZones?.zones,
+                    childCount = { zone -> sectors.count { it.zoneId == zone.id }.toUInt() },
                     gridCellSize = 210.dp,
-                    imageHeight = 270.dp,
+                    imageHeight = 300.dp,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 12.dp)
@@ -179,6 +183,7 @@ fun NavigationScreen(
 
                 DataList(
                     list = sectorsFromZone?.sectors,
+                    childCount = { sector -> paths.count { it.sectorId == sector.id }.toUInt() },
                     gridCellSize = 400.dp,
                     imageHeight = 200.dp,
                     modifier = Modifier

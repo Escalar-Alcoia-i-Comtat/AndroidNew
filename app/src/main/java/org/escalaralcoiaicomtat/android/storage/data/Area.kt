@@ -5,7 +5,9 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.jsonOf
@@ -59,6 +61,9 @@ data class Area(
             parcel.readByte().toInt() == 1
         }
     )
+
+    @Ignore
+    override val pluralRes: Int = R.plurals.area_count
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,

@@ -38,10 +38,11 @@ abstract class ImageEntity : DataEntity() {
     suspend fun updateImageIfNeeded(
         context: Context,
         width: Int? = null,
+        height: Int? = null,
         progress: (suspend (current: Long, max: Long) -> Unit)? = null
     ) {
         Timber.d("Checking if image file needs to be updated...")
         val imageFile = imageFile(context)
-        imageFile.update(width, progress)
+        imageFile.update(width, height, progress)
     }
 }

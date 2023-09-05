@@ -105,6 +105,9 @@ data class Path(
     }
 
     @Ignore
+    override val pluralRes: Int = R.plurals.path_count
+
+    @Ignore
     val ropeLength: Long? = height?.let {
         val minLength = it * 2
         val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)
