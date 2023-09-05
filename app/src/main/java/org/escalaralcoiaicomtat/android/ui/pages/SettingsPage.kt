@@ -41,6 +41,7 @@ import org.escalaralcoiaicomtat.android.ui.dialog.ApiKeyDialog
 import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -132,7 +133,7 @@ fun SettingsPage(
                         lastSync?.let {
                             DateTimeFormatter
                                 .ofPattern("yyyy-MM-dd HH:mm", Locale.getDefault())
-                                .format(it)
+                                .format(it.atZone(ZoneId.systemDefault()))
                         } ?: stringResource(R.string.none)
                     )
             )
