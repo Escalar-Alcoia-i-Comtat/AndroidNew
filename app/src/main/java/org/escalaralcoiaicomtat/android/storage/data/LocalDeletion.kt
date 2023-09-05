@@ -17,10 +17,10 @@ data class LocalDeletion(
     val deleteId: Long
 ) {
     companion object {
-        private const val TYPE_AREA = "area"
-        private const val TYPE_ZONE = "zone"
-        private const val TYPE_SECTOR = "sector"
-        private const val TYPE_PATH = "path"
+        const val TYPE_AREA = "area"
+        const val TYPE_ZONE = "zone"
+        const val TYPE_SECTOR = "sector"
+        const val TYPE_PATH = "path"
 
         fun fromArea(area: Area) = LocalDeletion(0L, TYPE_AREA, area.id)
         fun fromZone(zone: Zone) = LocalDeletion(0L, TYPE_ZONE, zone.id)

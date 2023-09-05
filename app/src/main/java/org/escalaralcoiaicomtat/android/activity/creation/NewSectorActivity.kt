@@ -216,7 +216,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
             append("zone", parentId!!)
         }
 
-        override suspend fun insert(element: Sector) = dao.insert(element)
+        override suspend fun insert(element: Sector) { dao.insert(element) }
 
         override suspend fun update(element: Sector) = dao.update(element)
     }

@@ -19,21 +19,22 @@ import org.escalaralcoiaicomtat.android.storage.relations.AreaWithZones
 import org.escalaralcoiaicomtat.android.storage.relations.PathWithBlocks
 import org.escalaralcoiaicomtat.android.storage.relations.SectorWithPaths
 import org.escalaralcoiaicomtat.android.storage.relations.ZoneWithSectors
+import timber.log.Timber
 
 @Dao
 @Suppress("TooManyFunctions")
 interface DataDao {
     @WorkerThread
     @Insert
-    suspend fun insert(vararg items: Area)
+    suspend fun insert(items: Area): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(vararg items: Area)
+    suspend fun delete(items: Area)
 
     @WorkerThread
     @Update
-    suspend fun update(vararg items: Area)
+    suspend fun update(items: Area)
 
     @WorkerThread
     @Query("SELECT * FROM areas WHERE id=:id")
@@ -60,15 +61,15 @@ interface DataDao {
 
     @WorkerThread
     @Insert
-    suspend fun insert(vararg items: Zone)
+    suspend fun insert(items: Zone): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(vararg items: Zone)
+    suspend fun delete(items: Zone)
 
     @WorkerThread
     @Update
-    suspend fun update(vararg items: Zone)
+    suspend fun update(items: Zone)
 
     @WorkerThread
     @Query("SELECT * FROM zones WHERE id=:id")
@@ -95,15 +96,15 @@ interface DataDao {
 
     @WorkerThread
     @Insert
-    suspend fun insert(vararg items: Sector)
+    suspend fun insert(items: Sector): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(vararg items: Sector)
+    suspend fun delete(items: Sector)
 
     @WorkerThread
     @Update
-    suspend fun update(vararg items: Sector)
+    suspend fun update(items: Sector)
 
     @WorkerThread
     @Query("SELECT * FROM sectors WHERE id=:id")
@@ -130,15 +131,15 @@ interface DataDao {
 
     @WorkerThread
     @Insert
-    suspend fun insert(vararg items: Path)
+    suspend fun insert(items: Path): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(vararg items: Path)
+    suspend fun delete(items: Path)
 
     @WorkerThread
     @Update
-    suspend fun update(vararg items: Path)
+    suspend fun update(items: Path)
 
     @WorkerThread
     @Query("SELECT * FROM paths WHERE id=:id")
@@ -166,15 +167,15 @@ interface DataDao {
 
     @WorkerThread
     @Insert
-    suspend fun insert(vararg items: Blocking)
+    suspend fun insert(items: Blocking): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(vararg items: Blocking)
+    suspend fun delete(items: Blocking)
 
     @WorkerThread
     @Update
-    suspend fun update(vararg items: Blocking)
+    suspend fun update(items: Blocking)
 
     @WorkerThread
     @Query("SELECT * FROM blocking")
@@ -191,7 +192,7 @@ interface DataDao {
 
     @Insert
     @WorkerThread
-    suspend fun notifyDeletion(delete: LocalDeletion)
+    suspend fun notifyDeletion(delete: LocalDeletion): Long
 
     @Delete
     @WorkerThread
@@ -204,29 +205,33 @@ interface DataDao {
 suspend fun <Type: BaseEntity> DataDao.deleteRecursively(element: Type) {
     when (element) {
         is Area -> {
-            delete(element)
-            notifyDeletion(LocalDeletion.fromArea(element))
+            Timber.d("Deleting Area#${element.id}...")
             getZonesFromArea(element.id)?.zones?.forEach {
                 deleteRecursively(it)
-            }
+            } ?: Timber.d("Area#${element.id} doesn't have any children.")
+            notifyDeletion(LocalDeletion.fromArea(element))
+            delete(element)
         }
         is Zone -> {
-            delete(element)
-            notifyDeletion(LocalDeletion.fromZone(element))
+            Timber.d("Deleting Zone#${element.id}...")
             getSectorsFromZone(element.id)?.sectors?.forEach {
                 deleteRecursively(it)
-            }
+            } ?: Timber.d("Zone#${element.id} doesn't have any children.")
+            notifyDeletion(LocalDeletion.fromZone(element))
+            delete(element)
         }
         is Sector -> {
-            delete(element)
-            notifyDeletion(LocalDeletion.fromSector(element))
+            Timber.d("Deleting Sector#${element.id}...")
             getPathsFromSector(element.id)?.paths?.forEach {
                 deleteRecursively(it)
-            }
+            } ?: Timber.d("Sector#${element.id} doesn't have any children.")
+            notifyDeletion(LocalDeletion.fromSector(element))
+            delete(element)
         }
         is Path -> {
-            delete(element)
+            Timber.d("Deleting Path#${element.id}...")
             notifyDeletion(LocalDeletion.fromPath(element))
+            delete(element)
         }
     }
 }

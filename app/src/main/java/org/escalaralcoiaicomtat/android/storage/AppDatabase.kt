@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.storage
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -27,7 +28,8 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
-        private var instance: AppDatabase? = null
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        var instance: AppDatabase? = null
 
         fun getInstance(applicationContext: Context) = instance ?: synchronized(this) {
             instance ?: Room

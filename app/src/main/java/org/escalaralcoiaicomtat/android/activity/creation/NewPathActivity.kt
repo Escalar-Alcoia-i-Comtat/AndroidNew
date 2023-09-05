@@ -1044,7 +1044,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             }
         }
 
-        override suspend fun insert(element: Path) = dao.insert(element)
+        override suspend fun insert(element: Path) { dao.insert(element) }
 
         override suspend fun update(element: Path) = dao.update(element)
     }

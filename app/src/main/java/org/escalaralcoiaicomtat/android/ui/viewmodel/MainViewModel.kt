@@ -127,7 +127,7 @@ class MainViewModel(
                 )
             }
         // Update the database entries
-        dao.update(*updatedSectors.toTypedArray())
+        for (sector in updatedSectors) dao.update(sector)
     }
 
     /**
