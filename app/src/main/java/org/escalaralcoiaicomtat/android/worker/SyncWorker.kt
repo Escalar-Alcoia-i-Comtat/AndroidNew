@@ -22,6 +22,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
 import androidx.work.workDataOf
+import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
@@ -222,6 +223,28 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     setProgress(step, i, list.size)
                 }
             }
+
+        // Synchronize deletions for type
+        val apiKey = Preferences.getApiKey(applicationContext).firstOrNull()
+        if (apiKey != null) {
+            dao.pendingDeletions(info.endpoint).forEach { deletion ->
+                ktorHttpClient.delete(EndpointUtils.getUrl(deletion.endpoint)) {
+                    header(HttpHeaders.Authorization, "Bearer $apiKey")
+                }.apply {
+                    if (status == HttpStatusCode.OK) {
+                        // Deletion successful
+                        Timber.d("Deleted data from server successfully: ${deletion.type}:${deletion.deleteId}")
+                        serverCache.remove(deletion.deleteId)
+                    } else {
+                        Timber.e("Could not delete data from server: ${deletion.type}:${deletion.deleteId}")
+                        throw RequestException(status, bodyAsJson())
+                    }
+                }
+
+                dao.clearDeletion(deletion)
+            }
+        }
+
         array.map { index ->
             val json = getJSONObject(index)
             forEach(json)

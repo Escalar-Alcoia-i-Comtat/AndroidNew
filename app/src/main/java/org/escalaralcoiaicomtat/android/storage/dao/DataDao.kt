@@ -11,6 +11,7 @@ import androidx.room.Update
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
+import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
@@ -182,6 +183,19 @@ interface DataDao {
     @WorkerThread
     @Query("SELECT * FROM blocking WHERE pathId=:path")
     suspend fun getAllBlocks(path: Long): List<Blocking>
+
+
+    @WorkerThread
+    @Query("SELECT * FROM local_deletions WHERE type=:type")
+    suspend fun pendingDeletions(type: String): List<LocalDeletion>
+
+    @Insert
+    @WorkerThread
+    suspend fun notifyDeletion(delete: LocalDeletion)
+
+    @Delete
+    @WorkerThread
+    suspend fun clearDeletion(delete: LocalDeletion)
 }
 
 /**
@@ -191,22 +205,28 @@ suspend fun <Type: BaseEntity> DataDao.deleteRecursively(element: Type) {
     when (element) {
         is Area -> {
             delete(element)
+            notifyDeletion(LocalDeletion.fromArea(element))
             getZonesFromArea(element.id)?.zones?.forEach {
                 deleteRecursively(it)
             }
         }
         is Zone -> {
             delete(element)
+            notifyDeletion(LocalDeletion.fromZone(element))
             getSectorsFromZone(element.id)?.sectors?.forEach {
                 deleteRecursively(it)
             }
         }
         is Sector -> {
             delete(element)
+            notifyDeletion(LocalDeletion.fromSector(element))
             getPathsFromSector(element.id)?.paths?.forEach {
                 deleteRecursively(it)
             }
         }
-        is Path -> delete(element)
+        is Path -> {
+            delete(element)
+            notifyDeletion(LocalDeletion.fromPath(element))
+        }
     }
 }
