@@ -12,7 +12,10 @@
     <string name="action_previous">Anterior</string>
     <string name="action_next">Següent</string>
     <string name="action_update">Actualitza</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_confirm">Confirm</string>
     <string name="state_calculating">Calculant…</string>
+    <string name="search">Cerca…</string>
     <string name="none">Cap</string>
     <string name="item_home">Inici</string>
     <string name="item_favorites">Preferits</string>
@@ -58,6 +61,7 @@
     <string name="creation_error_edit_cancelled_toast">Edició Cancel·lada</string>
     <string name="creation_success">Creat satisfactòriament</string>
     <string name="creation_success_edit">Actualitzat satisfactòriament</string>
+    <string name="creation_deleted">Eliminat!</string>
     <string name="assert_number_fail">Per favor, introdueix un número vàlid.</string>
     <string name="form_id">ID de l\'Element</string>
     <string name="form_parent">Element pare</string>
@@ -89,6 +93,8 @@
     <string name="form_re_buildings">Reequipacions</string>
     <string name="form_description">Descripció</string>
     <string name="form_description_show">Mostra la Descripció</string>
+    <string name="form_day">Day</string>
+    <string name="form_month">Month</string>
     <string name="sun_time_none">Cap</string>
     <string name="sun_time_morning">De Matí</string>
     <string name="sun_time_afternoon">De Vesprada</string>
@@ -140,10 +146,30 @@
     <string name="path_view_grade_title">Grau</string>
     <string name="path_view_grade_message">El grau d\'aquesta via és:</string>
     <string name="safe_type_parabolt">Parabolts</string>
+    <plurals name="safe_type_parabolt">
+        <item quantity="one">%d Parabolt</item>
+        <item quantity="other">%d Parabolts</item>
+    </plurals>
     <string name="safe_type_buril">Burils</string>
+    <plurals name="safe_type_buril">
+        <item quantity="one">%d Buril</item>
+        <item quantity="other">%d Burils</item>
+    </plurals>
     <string name="safe_type_piton">Pitons</string>
+    <plurals name="safe_type_piton">
+        <item quantity="one">%d Piton</item>
+        <item quantity="other">%d Pitons</item>
+    </plurals>
     <string name="safe_type_spit">Spits</string>
+    <plurals name="safe_type_spit">
+        <item quantity="one">%d Spit</item>
+        <item quantity="other">%d Spits</item>
+    </plurals>
     <string name="safe_type_tensor">Tensors</string>
+    <plurals name="safe_type_tensor">
+        <item quantity="one">%d Tensor</item>
+        <item quantity="other">%d Tensors</item>
+    </plurals>
     <string name="required_type_cracker">Empotradors</string>
     <string name="required_type_friend">Friends</string>
     <string name="required_type_lanyard">Cordins</string>
@@ -162,13 +188,53 @@
     <string name="delete_confirmation_deleting">Eliminant element… Per favor, no abandones aquesta pàgina, tanques l\'app o apagues el dispositiu mentre duem a terme l\'operació…</string>
     <string name="delete_complete_toast">Element eliminat satisfactòriament</string>
     <string name="delete_error_toast">No s\'ha pogut eliminar</string>
+    <string name="block_dry_title">Path drying</string>
+    <string name="block_dry_message">This path has been reequipped, and has used some chemical compound, so it needs a few days to dry. We will keep this updated.</string>
+    <string name="block_build_title">Path under construction</string>
+    <string name="block_build_message">This path is being built or reconstructed. Please wait until the process is complete.</string>
+    <string name="block_bird_title">Nesting season</string>
+    <string name="block_bird_message">It\'s nesting season and there might be some nests on the way. It\'s forbidden to climb until nesting season ends.</string>
+    <string name="block_old_title">Old Path</string>
+    <string name="block_old_message">This path is really old and hasn\'t been reequipped for a long time. Climb under your responsibility.</string>
+    <string name="block_plants_title">Bushy Path</string>
+    <string name="block_plants_message">This path is not used much, and may have some bushes or plants in the way. Be careful with falling dirt, rocks or branches.</string>
+    <string name="block_rope_length_title">Rope length warning</string>
+    <string name="block_rope_length_message">This path requires a lengthy rope, be careful and remember to tie a knot at the end of the rope to make sure no slips occur.</string>
+    <string name="block_recurrence" formatted="true">From %1$s until %2$s.</string>
+    <string name="block_end_date" formatted="true">Until %s.</string>
+    <string name="block_new_title">Create new Block</string>
+    <string name="block_new_type">Block Type</string>
+    <string name="block_new_mode_title">Valid until</string>
+    <string name="block_new_mode_forever">Forever</string>
+    <string name="block_new_mode_recurrence">Recurrence</string>
+    <string name="block_new_mode_date">Date</string>
+    <string name="block_new_mode_recurrence_title">Every year</string>
+    <string name="block_new_mode_recurrence_from">From</string>
+    <string name="block_new_mode_recurrence_until">Until</string>
+    <string name="block_new_mode_end_date">End Date</string>
+    <plurals name="area_count">
+        <item quantity="one">%d area</item>
+        <item quantity="other">%d areas</item>
+    </plurals>
+    <plurals name="zone_count">
+        <item quantity="one">%d zone</item>
+        <item quantity="other">%d zones</item>
+    </plurals>
+    <plurals name="sector_count">
+        <item quantity="one">%d sector</item>
+        <item quantity="other">%d sectors</item>
+    </plurals>
+    <plurals name="path_count">
+        <item quantity="one">%d path</item>
+        <item quantity="other">%d paths</item>
+    </plurals>
+    <!-- CREDITS -->
     <string name="credit_icons8">Icona %s per %s</string>
     <string name="credit_icons8_anchor">Segur d\'Escalada</string>
     <string name="credit_icons8_rope">Corda</string>
     <string name="credit_icons8_climbing_helmet">Casc d\'Escalada</string>
     <string name="credit_icons8_quickdraw">Cinta express</string>
     <string name="credit_icons8_energy_absorber">Dissipador</string>
-    <string name="search">Cerca…</string>
-    <string name="action_edit">Editar</string>
-    <string name="creation_deleted">Eliminat!</string>
+    <string name="credit_icons8_bird">Bird</string>
+    <string name="credits_lordicon">Icons by Lordicon.com</string>
 </resources>
