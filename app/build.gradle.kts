@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -25,10 +27,28 @@ android {
         buildConfigField("String", "HOSTNAME", "\"backend.escalaralcoiaicomtat.org\"")
     }
 
+    signingConfigs {
+        create("release") {
+            val properties = Properties()
+            project.rootProject.file("local.properties").inputStream().use(properties::load)
+
+            val signingKeystorePassword: String = properties.getProperty("signingKeystorePassword")
+            val signingKeyAlias: String = properties.getProperty("signingKeyAlias")
+            val signingKeyPassword: String = properties.getProperty("signingKeyPassword")
+
+            storeFile = File(project.rootDir, "keystore.jks")
+            storePassword = signingKeystorePassword
+            keyAlias = signingKeyAlias
+            keyPassword = signingKeyPassword
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.getByName("release")
+            isDebuggable = false
         }
     }
 
