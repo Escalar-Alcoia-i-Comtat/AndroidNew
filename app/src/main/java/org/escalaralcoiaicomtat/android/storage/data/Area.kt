@@ -63,7 +63,7 @@ data class Area(
     )
 
     @Ignore
-    override val pluralRes: Int = R.plurals.area_count
+    override val pluralRes: Int = R.plurals.zone_count
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,

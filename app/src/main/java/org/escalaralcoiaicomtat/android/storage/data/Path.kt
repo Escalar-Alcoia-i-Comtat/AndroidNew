@@ -104,8 +104,8 @@ data class Path(
         )
     }
 
-    @Ignore
-    override val pluralRes: Int = R.plurals.path_count
+    @get:Ignore
+    override val pluralRes: Int get() = throw UnsupportedOperationException("Paths don't have any children")
 
     @Ignore
     val ropeLength: Long? = height?.let {

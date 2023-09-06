@@ -48,7 +48,7 @@ data class Zone(
     }
 
     @Ignore
-    override val pluralRes: Int = R.plurals.zone_count
+    override val pluralRes: Int = R.plurals.sector_count
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
