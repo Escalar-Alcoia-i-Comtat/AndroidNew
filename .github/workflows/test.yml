@@ -19,6 +19,12 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      - name: Prepare Gradle secure file
+        run: |
+          echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
+          echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
+          echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
+
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
       - name: Run tests
@@ -51,6 +57,12 @@ jobs:
           java-version: 17
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
+
+      - name: Prepare Gradle secure file
+        run: |
+          echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
+          echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
+          echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
 
       - name: Enable KVM group perms
         run: |

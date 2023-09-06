@@ -40,6 +40,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
+      - name: Prepare Gradle secure file
+        run: |
+          echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
+          echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
+          echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
+
       - name: Build
         run: ./gradlew --no-daemon app:assembleDebug
 
