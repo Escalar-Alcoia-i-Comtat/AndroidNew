@@ -62,4 +62,38 @@ data class Zone(
         "area_id" to areaId,
         "is_favorite" to isFavorite
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as Zone
+
+        if (id != other.id) return false
+        if (timestamp != other.timestamp) return false
+        if (displayName != other.displayName) return false
+        if (webUrl != other.webUrl) return false
+        if (image != other.image) return false
+        if (kmz != other.kmz) return false
+        if (point != other.point) return false
+        if (points != other.points) return false
+        if (areaId != other.areaId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + id.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + displayName.hashCode()
+        result = 31 * result + webUrl.hashCode()
+        result = 31 * result + image.hashCode()
+        result = 31 * result + kmz.hashCode()
+        result = 31 * result + (point?.hashCode() ?: 0)
+        result = 31 * result + points.hashCode()
+        result = 31 * result + areaId.hashCode()
+        return result
+    }
 }

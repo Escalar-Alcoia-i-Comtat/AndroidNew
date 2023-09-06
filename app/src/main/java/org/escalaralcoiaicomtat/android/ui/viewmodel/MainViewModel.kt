@@ -48,6 +48,10 @@ class MainViewModel(
     val creationOptionsList = MutableLiveData<List<DataEntity>>()
     val pendingCreateOperation = MutableLiveData<(DataEntity) -> Unit>()
 
+    val favoriteAreas = dao.getAllFavoriteAreasLive()
+    val favoriteZones = dao.getAllFavoriteZonesLive()
+    val favoriteSectors = dao.getAllFavoriteSectorsLive()
+
     val selectionWithCurrentDestination = MediatorLiveData<Pair<DataEntity?, NavDestination?>>().apply {
         addSource(_selection) {
             value = it to _currentDestination.value

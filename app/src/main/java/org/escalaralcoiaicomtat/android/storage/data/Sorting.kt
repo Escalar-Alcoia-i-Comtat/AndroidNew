@@ -7,14 +7,14 @@ package org.escalaralcoiaicomtat.android.storage.data
  * - [Sector]
  * - [Path]
  */
-inline fun <reified G : BaseEntity> Iterable<G>.sorted(): List<G> =
+fun <G : BaseEntity> Iterable<G>.sorted(): List<G> =
     if (any()) {
-        when (G::class) {
-            Area::class -> sortedBy { (it as Area).displayName }
+        when (first()) {
+            is Area -> sortedBy { (it as Area).displayName }
 
-            Zone::class -> sortedBy { (it as Zone).displayName }
+            is Zone -> sortedBy { (it as Zone).displayName }
 
-            Sector::class -> sortedWith(
+            is Sector -> sortedWith(
                 compareBy(
                     { (it as Sector).weight },
                     { sector ->
@@ -28,11 +28,13 @@ inline fun <reified G : BaseEntity> Iterable<G>.sorted(): List<G> =
                 )
             )
 
-            Path::class -> sortedBy { (it as Path).sketchId }
+            is Path -> sortedBy { (it as Path).sketchId }
 
-            else -> throw IllegalArgumentException(
-                "Got an invalid BaseEntity type: ${G::class.simpleName}"
-            )
+            is ImageEntity -> sortedBy { (it as ImageEntity).displayName }
+
+            is DataEntity -> sortedBy { (it as DataEntity).displayName }
+
+            else -> sortedBy { it.id }
         }
     } else {
         emptyList()

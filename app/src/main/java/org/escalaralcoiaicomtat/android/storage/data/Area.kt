@@ -88,4 +88,30 @@ data class Area(
             parcel.writeByte(if (isFavorite) 1 else 0)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as Area
+
+        if (id != other.id) return false
+        if (timestamp != other.timestamp) return false
+        if (displayName != other.displayName) return false
+        if (webUrl != other.webUrl) return false
+        if (image != other.image) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + id.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + displayName.hashCode()
+        result = 31 * result + webUrl.hashCode()
+        result = 31 * result + image.hashCode()
+        return result
+    }
 }

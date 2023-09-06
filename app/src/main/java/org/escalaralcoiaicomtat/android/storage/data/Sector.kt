@@ -65,4 +65,40 @@ data class Sector(
         "zone_id" to zoneId,
         "is_favorite" to isFavorite
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as Sector
+
+        if (id != other.id) return false
+        if (timestamp != other.timestamp) return false
+        if (displayName != other.displayName) return false
+        if (kidsApt != other.kidsApt) return false
+        if (sunTime != other.sunTime) return false
+        if (walkingTime != other.walkingTime) return false
+        if (image != other.image) return false
+        if (point != other.point) return false
+        if (weight != other.weight) return false
+        if (zoneId != other.zoneId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + id.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + displayName.hashCode()
+        result = 31 * result + kidsApt.hashCode()
+        result = 31 * result + sunTime.hashCode()
+        result = 31 * result + (walkingTime?.hashCode() ?: 0)
+        result = 31 * result + image.hashCode()
+        result = 31 * result + (point?.hashCode() ?: 0)
+        result = 31 * result + weight.hashCode()
+        result = 31 * result + zoneId.hashCode()
+        return result
+    }
 }

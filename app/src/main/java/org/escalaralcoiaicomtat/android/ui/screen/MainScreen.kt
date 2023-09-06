@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocationCity
 import androidx.compose.material.icons.outlined.Map
@@ -72,7 +74,7 @@ import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
-import org.escalaralcoiaicomtat.android.storage.data.Path
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
@@ -118,6 +120,13 @@ object Routes {
         }
     }
 
+    object NavigationFavorites : NavigationItem(
+        route = "favorites",
+        label = ILabel { stringResource(R.string.item_favorites) },
+        activeIcon = Icons.Filled.Bookmark,
+        defaultIcon = Icons.Outlined.BookmarkBorder
+    )
+
     object NavigationSettings : NavigationItem(
         route = "settings",
         label = ILabel { stringResource(R.string.item_settings) },
@@ -135,10 +144,7 @@ fun MainScreen(
     widthSizeClass: WindowWidthSizeClass,
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateOrEditArea: (Area?) -> Unit,
-    onCreateOrEditZone: (Area, Zone?) -> Unit,
-    onCreateOrEditSector: (Zone, Sector?) -> Unit,
-    onCreateOrEditPath: (Sector, Path?) -> Unit,
+    onCreateOrEdit: (ImageEntity?, ImageEntity?) -> Unit,
     onSectorView: (Sector) -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModel.Factory(
@@ -155,6 +161,10 @@ fun MainScreen(
     val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
 
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
+
+    val favoriteAreas by viewModel.favoriteAreas.observeAsState(initial = emptyList())
+    val favoriteZones by viewModel.favoriteZones.observeAsState(initial = emptyList())
+    val favoriteSectors by viewModel.favoriteSectors.observeAsState(initial = emptyList())
 
     var backProgress by remember { mutableStateOf<Float?>(null) }
 
@@ -238,8 +248,11 @@ fun MainScreen(
     }
 
     NavigationScaffold(
-        items = listOf(
+        items = listOfNotNull(
             Routes.NavigationHome,
+            Routes.NavigationFavorites.takeIf {
+                favoriteAreas.isNotEmpty() || favoriteZones.isNotEmpty() || favoriteSectors.isNotEmpty()
+            },
             Routes.NavigationSettings
         ),
         initialRoute = Routes.NavigationHome.createRoute(),
@@ -346,24 +359,24 @@ fun MainScreen(
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.LocationCity,
                             text = stringResource(R.string.new_area_title)
-                        ) { onCreateOrEditArea(null) },
+                        ) { onCreateOrEdit(null, null) },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
                         ) {
-                            viewModel.createChooser(Area::class) { onCreateOrEditZone(it, null) }
+                            viewModel.createChooser(Area::class) { onCreateOrEdit(it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
                         ) {
-                            viewModel.createChooser(Zone::class) { onCreateOrEditSector(it, null) }
+                            viewModel.createChooser(Zone::class) { onCreateOrEdit(it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
                         ) {
-                            viewModel.createChooser(Sector::class) { onCreateOrEditPath(it, null) }
+                            viewModel.createChooser(Sector::class) { onCreateOrEdit(it, null) }
                         }
                     ),
                     toggled = toggled,
@@ -428,10 +441,7 @@ fun MainScreen(
                     widthSizeClass,
                     backProgress,
                     onFavoriteToggle,
-                    onCreateOrEditArea,
-                    onCreateOrEditZone,
-                    onCreateOrEditSector,
-                    onCreateOrEditPath,
+                    onCreateOrEdit,
                     viewModel
                 )
             }
@@ -443,6 +453,23 @@ fun MainScreen(
                     .padding(horizontal = 8.dp)
             ) {
                 SettingsPage(onApiKeySubmit)
+            }
+
+            Routes.NavigationFavorites -> {
+                val favorites: List<ImageEntity> = listOf(favoriteAreas, favoriteZones, favoriteSectors).flatten()
+
+                DataList(
+                    list = favorites,
+                    childCount = { 0U },
+                    gridCellSize = 400.dp,
+                    imageHeight = 200.dp,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 12.dp),
+                    onClick = { viewModel.navigate(it) },
+                    onFavoriteToggle = onFavoriteToggle,
+                    onMove = null // Favorites cannot be reordered
+                )
             }
 
             else -> {}
@@ -458,10 +485,7 @@ fun MainScreen_Preview() {
             widthSizeClass = WindowWidthSizeClass.Compact,
             onApiKeySubmit = { CoroutineScope(Dispatchers.IO).launch { } },
             onFavoriteToggle = { CoroutineScope(Dispatchers.IO).launch { } },
-            onCreateOrEditArea = {},
-            onCreateOrEditZone = { _, _ -> },
-            onCreateOrEditSector = { _, _ -> },
-            onCreateOrEditPath = { _, _ -> },
+            onCreateOrEdit = { _, _ -> },
             onSectorView = {}
         )
     }

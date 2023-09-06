@@ -9,11 +9,8 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
@@ -22,7 +19,6 @@ import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyGridState
 import org.burnoutcrew.reorderable.reorderable
-import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.list.CreateCard
@@ -39,14 +35,10 @@ inline fun <reified T : ImageEntity> DataList(
     modifier: Modifier = Modifier,
     crossinline onClick: (T) -> Unit,
     crossinline onFavoriteToggle: (T) -> Job,
-    noinline onCreate: () -> Unit,
-    noinline onEdit: ((T) -> Unit)?,
+    noinline onCreate: (() -> Unit)? = null,
+    noinline onEdit: ((T) -> Unit)? = null,
     noinline onMove: ((from: Int, to: Int) -> Unit)? = null
 ) {
-    val context = LocalContext.current
-
-    val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
-
     if (list == null) {
         Box(modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else {
@@ -62,8 +54,7 @@ inline fun <reified T : ImageEntity> DataList(
             modifier = modifier.letIf(onMove != null) { it.reorderable(state) },
             state = state.gridState
         ) {
-            // TODO - hide if apiKey != null
-            if (list.isEmpty()) {
+            if (list.isEmpty() && onCreate == null) {
                 item {
                     // TODO - translate
                     Text("No items available")
@@ -71,7 +62,8 @@ inline fun <reified T : ImageEntity> DataList(
             }
             itemsIndexed(
                 items = list.sorted(),
-                key = { _, area -> area.id }
+                key = { _, item -> item.id },
+                contentType = { _, item -> item::class.simpleName }
             ) { index, item ->
                 ReorderableItem(
                     reorderableState = state,
@@ -95,7 +87,7 @@ inline fun <reified T : ImageEntity> DataList(
                     )
                 }
             }
-            if (apiKey != null) {
+            if (onCreate != null) {
                 item(key = "create") {
                     CreateCard(
                         imageHeight = imageHeight,

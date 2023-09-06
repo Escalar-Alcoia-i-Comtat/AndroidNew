@@ -49,6 +49,10 @@ interface DataDao {
     fun getAllAreasLive(): LiveData<List<Area>>
 
     @WorkerThread
+    @Query("SELECT * FROM areas WHERE isFavorite=1")
+    fun getAllFavoriteAreasLive(): LiveData<List<Area>>
+
+    @WorkerThread
     @Transaction
     @Query("SELECT * FROM areas WHERE id=:areaId")
     fun getZonesFromAreaLive(areaId: Long): LiveData<AreaWithZones>
@@ -84,6 +88,10 @@ interface DataDao {
     fun getAllZonesLive(): LiveData<List<Zone>>
 
     @WorkerThread
+    @Query("SELECT * FROM zones WHERE isFavorite=1")
+    fun getAllFavoriteZonesLive(): LiveData<List<Zone>>
+
+    @WorkerThread
     @Transaction
     @Query("SELECT * FROM zones WHERE id=:zoneId")
     fun getSectorsFromZoneLive(zoneId: Long): LiveData<ZoneWithSectors>
@@ -117,6 +125,10 @@ interface DataDao {
     @WorkerThread
     @Query("SELECT * FROM sectors")
     fun getAllSectorsLive(): LiveData<List<Sector>>
+
+    @WorkerThread
+    @Query("SELECT * FROM sectors WHERE isFavorite=1")
+    fun getAllFavoriteSectorsLive(): LiveData<List<Sector>>
 
     @WorkerThread
     @Transaction

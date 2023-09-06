@@ -29,6 +29,8 @@ import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
@@ -83,39 +85,45 @@ class MainActivity : AppCompatActivity() {
                 navController = navController,
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
-                onCreateOrEditArea = { area ->
-                    newAreaRequestLauncher.launch(area)
-                },
-                onCreateOrEditZone = { area, zone ->
-                    newZoneRequestLauncher.launch(
-                        if (zone == null)
-                            EditorActivity.Input.fromParent(area)
-                        else
-                            EditorActivity.Input.fromElement(area, zone)
-                    )
-                },
-                onCreateOrEditSector = { zone, sector ->
-                    newSectorRequestLauncher.launch(
-                        if (sector == null)
-                            EditorActivity.Input.fromParent(zone)
-                        else
-                            EditorActivity.Input.fromElement(zone, sector)
-                    )
-                },
-                onCreateOrEditPath = { sector, path ->
-                    newPathRequestLauncher.launch(
-                        if (path == null)
-                            EditorActivity.Input.fromParent(sector)
-                        else
-                            EditorActivity.Input.fromElement(sector, path)
-                    )
-                },
+                onCreateOrEdit = ::onCreateOrEdit,
                 onSectorView = {
                     sectorViewerRequestLauncher.launch(
                         SectorViewer.Input(it.id)
                     )
                 }
             )
+        }
+    }
+
+    private inline fun <P: ImageEntity, reified T: ImageEntity> onCreateOrEdit(parent: P?, item: T?) {
+        when (T::class) {
+            Area::class -> {
+                newAreaRequestLauncher.launch(item as Area?)
+            }
+            Zone::class -> {
+                newZoneRequestLauncher.launch(
+                    if (item == null)
+                        EditorActivity.Input.fromParent(parent!!)
+                    else
+                        EditorActivity.Input.fromElement(parent!!, item)
+                )
+            }
+            Sector::class -> {
+                newSectorRequestLauncher.launch(
+                    if (item == null)
+                        EditorActivity.Input.fromParent(parent!!)
+                    else
+                        EditorActivity.Input.fromElement(parent!!, item)
+                )
+            }
+            Path::class -> {
+                newPathRequestLauncher.launch(
+                    if (item == null)
+                        EditorActivity.Input.fromParent(parent!!)
+                    else
+                        EditorActivity.Input.fromElement(parent!!, item)
+                )
+            }
         }
     }
 

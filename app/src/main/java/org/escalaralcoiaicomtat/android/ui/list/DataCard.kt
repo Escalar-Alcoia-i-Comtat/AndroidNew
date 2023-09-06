@@ -166,15 +166,17 @@ fun <T: ImageEntity> DataCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            AssistChip(
-                onClick = { /*TODO*/ },
-                label = {
-                    Text(
-                        text = item.labelWithCount(childCount.toInt()),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            )
+            if (childCount > 0U) {
+                AssistChip(
+                    onClick = { /*TODO*/ },
+                    label = {
+                        Text(
+                            text = item.labelWithCount(childCount.toInt()),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
