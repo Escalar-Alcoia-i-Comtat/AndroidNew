@@ -12,7 +12,10 @@
     <string name="action_previous">Anterior</string>
     <string name="action_next">Següent</string>
     <string name="action_update">Actualitza</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_confirm">Confirmar</string>
     <string name="state_calculating">Calculant…</string>
+    <string name="search">Cerca…</string>
     <string name="none">Cap</string>
     <string name="item_home">Inici</string>
     <string name="item_favorites">Preferits</string>
@@ -58,6 +61,7 @@
     <string name="creation_error_edit_cancelled_toast">Edició Cancel·lada</string>
     <string name="creation_success">Creat satisfactòriament</string>
     <string name="creation_success_edit">Actualitzat satisfactòriament</string>
+    <string name="creation_deleted">Eliminat!</string>
     <string name="assert_number_fail">Per favor, introdueix un número vàlid.</string>
     <string name="form_id">ID de l\'Element</string>
     <string name="form_parent">Element pare</string>
@@ -76,7 +80,7 @@
     <string name="form_height">Altura</string>
     <string name="form_grade">Grau</string>
     <string name="form_ending">Reunió</string>
-    <string name="form_ending_info">Info</string>
+    <string name="form_ending_info">Informació</string>
     <string name="form_ending_inclination">Inclinació</string>
     <string name="form_string_count">Número de Cintes</string>
     <string name="form_count_title">Número de Segurs</string>
@@ -89,6 +93,8 @@
     <string name="form_re_buildings">Reequipacions</string>
     <string name="form_description">Descripció</string>
     <string name="form_description_show">Mostra la Descripció</string>
+    <string name="form_day">Dia</string>
+    <string name="form_month">Mes</string>
     <string name="sun_time_none">Cap</string>
     <string name="sun_time_morning">De Matí</string>
     <string name="sun_time_afternoon">De Vesprada</string>
@@ -140,10 +146,30 @@
     <string name="path_view_grade_title">Grau</string>
     <string name="path_view_grade_message">El grau d\'aquesta via és:</string>
     <string name="safe_type_parabolt">Parabolts</string>
+    <plurals name="safe_type_parabolt">
+        <item quantity="one">%d Parabolt</item>
+        <item quantity="other">%d Parabolts</item>
+    </plurals>
     <string name="safe_type_buril">Burils</string>
-    <string name="safe_type_piton">Pitons</string>
-    <string name="safe_type_spit">Spits</string>
+    <plurals name="safe_type_buril">
+        <item quantity="one">%d Buril</item>
+        <item quantity="other">%d Burils</item>
+    </plurals>
+    <string name="safe_type_piton">Claus</string>
+    <plurals name="safe_type_piton">
+        <item quantity="one">%d Clau</item>
+        <item quantity="other">%d Claus</item>
+    </plurals>
+    <string name="safe_type_spit">Espits</string>
+    <plurals name="safe_type_spit">
+        <item quantity="one">%d Espit</item>
+        <item quantity="other">%d Espits</item>
+    </plurals>
     <string name="safe_type_tensor">Tensors</string>
+    <plurals name="safe_type_tensor">
+        <item quantity="one">%d Tensor</item>
+        <item quantity="other">%d Tensors</item>
+    </plurals>
     <string name="required_type_cracker">Empotradors</string>
     <string name="required_type_friend">Friends</string>
     <string name="required_type_lanyard">Cordins</string>
@@ -162,13 +188,53 @@
     <string name="delete_confirmation_deleting">Eliminant element… Per favor, no abandones aquesta pàgina, tanques l\'app o apagues el dispositiu mentre duem a terme l\'operació…</string>
     <string name="delete_complete_toast">Element eliminat satisfactòriament</string>
     <string name="delete_error_toast">No s\'ha pogut eliminar</string>
+    <string name="block_dry_title">Secant</string>
+    <string name="block_dry_message">Aquesta via ha sigut reequipada, i ha fet servir algun tipus de compost químic, així que necessita alguns dies per a assecar. Mantindrem aquesta informació actualitzada.</string>
+    <string name="block_build_title">Via en construcció</string>
+    <string name="block_build_message">Aquesta via està sent equipada o reequipada. Per favor, espera per a escalar fins que s\'acabi.</string>
+    <string name="block_bird_title">Nidificació</string>
+    <string name="block_bird_message">És època de nidificació i potser hi ha nius a la via. Està prohibit escalar fins que acabi l\'època de nidificació.</string>
+    <string name="block_old_title">Via antiga</string>
+    <string name="block_old_message">Aquesta via és molt antiga, i no s\'ha reequipat des de fa molt de temps. Escala baix la teva responsabilitat.</string>
+    <string name="block_plants_title">Plantes</string>
+    <string name="block_plants_message">Aquesta via no es fa servir molt sovint, i potser té plantes o arbusts pel camí. Ves amb cura amb possibles caigudes de terra, pedres o branques.</string>
+    <string name="block_rope_length_title">Atenció a la longitud de la corda</string>
+    <string name="block_rope_length_message">Aquesta via necessita una corda llarga, ves amb cura i recorda fer un nuc al final de la corda per assegurar-se que no s\'escapa a través de l\'aparell assegurador.</string>
+    <string name="block_recurrence" formatted="true">Des de %1$s fins a %2$s.</string>
+    <string name="block_end_date" formatted="true">Fins a %s.</string>
+    <string name="block_new_title">Crea un nou bloqueig</string>
+    <string name="block_new_type">Tipus de Bloqueig</string>
+    <string name="block_new_mode_title">Vàlid fins a</string>
+    <string name="block_new_mode_forever">Sempre</string>
+    <string name="block_new_mode_recurrence">Repetició</string>
+    <string name="block_new_mode_date">Data</string>
+    <string name="block_new_mode_recurrence_title">Tots els anys</string>
+    <string name="block_new_mode_recurrence_from">Des de</string>
+    <string name="block_new_mode_recurrence_until">Fins a</string>
+    <string name="block_new_mode_end_date">Data de finalització</string>
+    <plurals name="area_count">
+        <item quantity="one">%d àrea</item>
+        <item quantity="other">%d àrees</item>
+    </plurals>
+    <plurals name="zone_count">
+        <item quantity="one">%d zona</item>
+        <item quantity="other">%d zones</item>
+    </plurals>
+    <plurals name="sector_count">
+        <item quantity="one">%d sector</item>
+        <item quantity="other">%d sectors</item>
+    </plurals>
+    <plurals name="path_count">
+        <item quantity="one">%d via</item>
+        <item quantity="other">%d vies</item>
+    </plurals>
+    <!-- CREDITS -->
     <string name="credit_icons8">Icona %s per %s</string>
     <string name="credit_icons8_anchor">Segur d\'Escalada</string>
     <string name="credit_icons8_rope">Corda</string>
     <string name="credit_icons8_climbing_helmet">Casc d\'Escalada</string>
     <string name="credit_icons8_quickdraw">Cinta express</string>
     <string name="credit_icons8_energy_absorber">Dissipador</string>
-    <string name="search">Cerca…</string>
-    <string name="action_edit">Editar</string>
-    <string name="creation_deleted">Eliminat!</string>
+    <string name="credit_icons8_bird">Ocells</string>
+    <string name="credits_lordicon">Icones per Lordicon.com</string>
 </resources>
