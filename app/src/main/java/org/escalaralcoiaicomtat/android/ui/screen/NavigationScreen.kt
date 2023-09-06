@@ -79,11 +79,14 @@ fun NavigationScreen(
                         navController.navigate(
                             Routes.NavigationHome.createRoute()
                         ) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                            try {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                            } catch (_: NoSuchElementException) {
                             }
                             // Avoid multiple copies of the same destination when
                             // re-selecting the same item
