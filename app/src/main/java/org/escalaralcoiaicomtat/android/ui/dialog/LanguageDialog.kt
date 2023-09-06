@@ -30,7 +30,7 @@ fun LanguageDialog(
         text = {
             LazyColumn {
                 items(
-                    listOf(null, Locale.ENGLISH)
+                    listOf(null, Locale.ENGLISH, Locale.forLanguageTag("ca"))
                 ) { locale ->
                     val localeDisplayName = locale?.let { locale.getDisplayName(locale) }
                         ?: stringResource(R.string.settings_language_default)
