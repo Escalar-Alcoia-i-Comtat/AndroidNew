@@ -61,7 +61,6 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
         val kidsApt by model.kidsApt.observeAsState(initial = false)
         val walkingTime by model.walkingTime.observeAsState(initial = "")
 
-        val webUrlFocusRequester = remember { FocusRequester() }
         val latitudeFocusRequester = remember { FocusRequester() }
         val longitudeFocusRequester = remember { FocusRequester() }
 
@@ -80,8 +79,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
             value = displayName,
             onValueChange = { model.displayName.value = it },
             label = stringResource(R.string.form_display_name),
-            modifier = Modifier.fillMaxWidth(),
-            nextFocusRequester = webUrlFocusRequester
+            modifier = Modifier.fillMaxWidth()
         )
 
         FormImagePicker(image, contentDescription = displayName, model.isLoadingImage) {
