@@ -8,7 +8,7 @@ class RequestException(
     val status: HttpStatusCode,
     responseJson: JSONObject
 ) : RuntimeException(
-    responseJson.getJSONObject("error").getString("message")
+    responseJson.getJSONObject("error").getStringOrNull("message")
 ) {
     private val errorJson: JSONObject = responseJson.getJSONObject("error")
 
