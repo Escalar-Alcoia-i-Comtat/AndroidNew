@@ -26,11 +26,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.activity.MainActivity
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
+import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.modifier.backAnimation
@@ -43,7 +46,7 @@ fun NavigationScreen(
     widthSizeClass: WindowWidthSizeClass,
     backProgress: Float?,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateOrEdit: (ImageEntity?, ImageEntity?) -> Unit,
+    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity, ImageEntity>,
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
@@ -106,7 +109,7 @@ fun NavigationScreen(
                         selected = area == selection,
                         showCreate = apiKey != null,
                         onClick = { viewModel.navigate(area) },
-                        onCreate = { onCreateOrEdit(area, null) }
+                        onCreate = { onCreateOrEdit(Zone::class, area, null) }
                     )
                     zones.takeIf { selection == area || (selection as? Zone)?.areaId == area.id }
                         ?.sorted()
@@ -118,7 +121,7 @@ fun NavigationScreen(
                                 selected = zone == selection,
                                 showCreate = apiKey != null,
                                 onClick = { viewModel.navigate(zone) },
-                                onCreate = { onCreateOrEdit(zone, null) }
+                                onCreate = { onCreateOrEdit(Sector::class, zone, null) }
                             )
                             sectors.takeIf { selection == zone }
                                 ?.sorted()
@@ -130,7 +133,7 @@ fun NavigationScreen(
                                         selected = sector == selection,
                                         showCreate = apiKey != null,
                                         onClick = { viewModel.navigate(sector) },
-                                        onCreate = { onCreateOrEdit(sector, null) }
+                                        onCreate = { onCreateOrEdit(Path::class, sector, null) }
                                     )
                                 }
                         }
@@ -151,8 +154,8 @@ fun NavigationScreen(
                         .padding(top = 12.dp),
                     onClick = { viewModel.navigate(it) },
                     onFavoriteToggle = onFavoriteToggle,
-                    onCreate = { onCreateOrEdit(null, null) },
-                    onEdit = apiKey?.let { { onCreateOrEdit(null, it) } },
+                    onCreate = apiKey?.let { { onCreateOrEdit(Area::class, null, null) } },
+                    onEdit = apiKey?.let { { onCreateOrEdit(Area::class, null, it) } },
                     onMove = null // Areas cannot be reordered
                 )
             }
@@ -171,8 +174,8 @@ fun NavigationScreen(
                         .backAnimation(backProgress),
                     onClick = { viewModel.navigate(it) },
                     onFavoriteToggle = onFavoriteToggle,
-                    onCreate = { onCreateOrEdit(data, null) },
-                    onEdit = apiKey?.let { { onCreateOrEdit(data, it) } },
+                    onCreate = apiKey?.let { { onCreateOrEdit(Zone::class, data, null) } },
+                    onEdit = apiKey?.let { { onCreateOrEdit(Zone::class, data, it) } },
                     onMove = null // Zones cannot be reordered
                 )
             }
@@ -191,8 +194,8 @@ fun NavigationScreen(
                         .backAnimation(backProgress),
                     onClick = { viewModel.navigate(it) },
                     onFavoriteToggle = onFavoriteToggle,
-                    onCreate = { onCreateOrEdit(data, null) },
-                    onEdit = apiKey?.let { { onCreateOrEdit(data, it) } },
+                    onCreate = apiKey?.let { { onCreateOrEdit(Sector::class, data, null) } },
+                    onEdit = apiKey?.let { { onCreateOrEdit(Sector::class, data, it) } },
                     onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
             }

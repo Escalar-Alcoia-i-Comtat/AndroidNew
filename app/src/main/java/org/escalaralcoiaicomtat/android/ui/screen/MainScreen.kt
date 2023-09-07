@@ -71,10 +71,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.activity.MainActivity
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
+import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
@@ -144,7 +146,7 @@ fun MainScreen(
     widthSizeClass: WindowWidthSizeClass,
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateOrEdit: (ImageEntity?, ImageEntity?) -> Unit,
+    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity, ImageEntity>,
     onSectorView: (Sector) -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModel.Factory(
@@ -359,24 +361,24 @@ fun MainScreen(
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.LocationCity,
                             text = stringResource(R.string.new_area_title)
-                        ) { onCreateOrEdit(null, null) },
+                        ) { onCreateOrEdit(Area::class, null, null) },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
                         ) {
-                            viewModel.createChooser(Area::class) { onCreateOrEdit(it, null) }
+                            viewModel.createChooser(Area::class) { onCreateOrEdit(Zone::class, it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
                         ) {
-                            viewModel.createChooser(Zone::class) { onCreateOrEdit(it, null) }
+                            viewModel.createChooser(Zone::class) { onCreateOrEdit(Sector::class, it, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
                         ) {
-                            viewModel.createChooser(Sector::class) { onCreateOrEdit(it, null) }
+                            viewModel.createChooser(Sector::class) { onCreateOrEdit(Path::class, it, null) }
                         }
                     ),
                     toggled = toggled,
@@ -485,7 +487,7 @@ fun MainScreen_Preview() {
             widthSizeClass = WindowWidthSizeClass.Compact,
             onApiKeySubmit = { CoroutineScope(Dispatchers.IO).launch { } },
             onFavoriteToggle = { CoroutineScope(Dispatchers.IO).launch { } },
-            onCreateOrEdit = { _, _ -> },
+            onCreateOrEdit = { _, _, _ -> },
             onSectorView = {}
         )
     }

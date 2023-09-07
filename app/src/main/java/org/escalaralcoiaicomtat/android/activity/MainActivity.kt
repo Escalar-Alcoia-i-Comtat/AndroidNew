@@ -18,6 +18,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.activity.MainActivity.ICreateOrEdit
 import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewAreaActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
@@ -36,6 +37,8 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.toast
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
@@ -85,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                 navController = navController,
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
-                onCreateOrEdit = ::onCreateOrEdit,
+                onCreateOrEdit = onCreateOrEdit,
                 onSectorView = {
                     sectorViewerRequestLauncher.launch(
                         SectorViewer.Input(it.id)
@@ -95,12 +98,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private inline fun <P: ImageEntity, reified T: ImageEntity> onCreateOrEdit(parent: P?, item: T?) {
-        when (T::class) {
-            Area::class -> {
+    private val onCreateOrEdit = ICreateOrEdit<ImageEntity, ImageEntity> { kClass, parent, item ->
+        when {
+            Area::class.isSuperclassOf(kClass) -> {
                 newAreaRequestLauncher.launch(item as Area?)
             }
-            Zone::class -> {
+
+            Zone::class.isSuperclassOf(kClass) -> {
                 newZoneRequestLauncher.launch(
                     if (item == null)
                         EditorActivity.Input.fromParent(parent!!)
@@ -108,7 +112,8 @@ class MainActivity : AppCompatActivity() {
                         EditorActivity.Input.fromElement(parent!!, item)
                 )
             }
-            Sector::class -> {
+
+            Sector::class.isSuperclassOf(kClass) -> {
                 newSectorRequestLauncher.launch(
                     if (item == null)
                         EditorActivity.Input.fromParent(parent!!)
@@ -116,7 +121,8 @@ class MainActivity : AppCompatActivity() {
                         EditorActivity.Input.fromElement(parent!!, item)
                 )
             }
-            Path::class -> {
+
+            Path::class.isSuperclassOf(kClass) -> {
                 newPathRequestLauncher.launch(
                     if (item == null)
                         EditorActivity.Input.fromParent(parent!!)
@@ -124,6 +130,8 @@ class MainActivity : AppCompatActivity() {
                         EditorActivity.Input.fromElement(parent!!, item)
                 )
             }
+
+            else -> throw IllegalArgumentException("Tried to create or edit unsupported type: ${kClass.simpleName}")
         }
     }
 
@@ -155,5 +163,13 @@ class MainActivity : AppCompatActivity() {
                 is Sector -> dao.update(data.copy(isFavorite = !data.isFavorite))
             }
         }
+    }
+
+    fun interface ICreateOrEdit<P : ImageEntity, T : ImageEntity> {
+        operator fun invoke(
+            itemKClass: KClass<*>,
+            parent: P?,
+            item: T?
+        )
     }
 }
