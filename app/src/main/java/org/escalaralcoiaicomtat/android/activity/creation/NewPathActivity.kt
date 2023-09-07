@@ -334,8 +334,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             val richEditorState = rememberRichTextState()
 
             LaunchedEffect(richEditorState) {
-                snapshotFlow { richEditorState.toMarkdown() }
-                    .collect { model.description.postValue(it) }
+                snapshotFlow { richEditorState.annotatedString }
+                    .collect { model.description.postValue(richEditorState.toMarkdown()) }
             }
 
             Row(
