@@ -38,7 +38,7 @@ jobs:
         run: |
           echo "Building ${{ steps.create_release.outputs.tag_name }}..."
           yes | $ANDROID_HOME/tools/bin/sdkmanager "build-tools;34.0.0"
-          bash ./gradlew :app:bundleRelease --stacktrace
+          bash ./gradlew :app:increaseVersionCode :app:bundleRelease --stacktrace
       - name: AAB Artifact
         id: aab_artifact
         uses: actions/upload-artifact@v3

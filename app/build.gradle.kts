@@ -1,3 +1,4 @@
+import java.time.LocalDateTime
 import java.util.Properties
 
 plugins {
@@ -11,11 +12,22 @@ android {
     namespace = "org.escalaralcoiaicomtat.android"
     compileSdk = 34
 
+    val versionPropsFile = project.rootProject.file("version.properties")
+    if (!versionPropsFile.canRead()) {
+        throw GradleException("Cannot read version.properties")
+    }
+    val versionProps = Properties().apply {
+        versionPropsFile.inputStream().use {
+            load(versionPropsFile.inputStream())
+        }
+    }
+    val code = versionProps.getProperty("VERSION_CODE").toInt()
+
     defaultConfig {
         applicationId = "org.escalaralcoiaicomtat.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = code
         versionName = "2.0.0-dev01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -85,6 +97,27 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+task("increaseVersionCode") {
+    doFirst {
+        val versionPropsFile = project.rootProject.file("version.properties")
+        if (!versionPropsFile.canRead()) {
+            throw GradleException("Cannot read version.properties")
+        }
+        val versionProps = Properties().apply {
+            versionPropsFile.inputStream().use {
+                load(versionPropsFile.inputStream())
+            }
+        }
+        val code = versionProps.getProperty("VERSION_CODE").toInt() + 1
+        versionProps["VERSION_CODE"] = code.toString()
+        versionPropsFile.outputStream().use {
+            val date = LocalDateTime.now()
+            versionProps.store(it, "Updated at $date")
+        }
+        println("Increased version code to $code")
+    }
 }
 
 val roomVersion by project.properties
