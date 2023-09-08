@@ -221,7 +221,7 @@
     <string name="block_new_mode_forever">Sempre</string>
     <string name="block_new_mode_recurrence">Repetició</string>
     <string name="block_new_mode_date">Data</string>
-    <string name="block_new_mode_recurrence_title">Tots els anys</string>
+    <string name="block_new_mode_recurrence_title">Cada any</string>
     <string name="block_new_mode_recurrence_from">Des de</string>
     <string name="block_new_mode_recurrence_until">Fins a</string>
     <string name="block_new_mode_end_date">Data de finalització</string>
