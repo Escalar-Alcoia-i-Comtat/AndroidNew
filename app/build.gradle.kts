@@ -155,7 +155,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Jetpack Compose - Rich Editor
-    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-beta02")
+    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-beta03")
 
     // Room Database
     implementation("androidx.room:room-runtime:$roomVersion")
