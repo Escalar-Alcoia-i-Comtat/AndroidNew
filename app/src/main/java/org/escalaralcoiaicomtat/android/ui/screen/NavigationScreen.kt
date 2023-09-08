@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.ui.screen
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -18,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,6 +39,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.modifier.backAnimation
+import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
@@ -52,6 +55,7 @@ fun NavigationScreen(
     val context = LocalContext.current
 
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
+    val hasEverSynchronized by Preferences.hasEverSynchronized(context).collectAsState(initial = false)
 
     val database = AppDatabase.getInstance(context.applicationContext)
     val dao = database.dataDao()
@@ -141,9 +145,19 @@ fun NavigationScreen(
             }
         }
     ) {
-        when (val data = selection) {
+        val data = selection
+        when {
+            // First synchronization
+            !hasEverSynchronized -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
             // Areas List
-            null -> {
+            data == null -> {
                 DataList(
                     list = areas,
                     childCount = { area -> zones.count { it.areaId == area.id }.toUInt() },
@@ -160,7 +174,7 @@ fun NavigationScreen(
                 )
             }
             // Zones List
-            is Area -> {
+            data is Area -> {
                 val areaWithZones by dao.getZonesFromAreaLive(data.id).observeAsState()
 
                 DataList(
@@ -180,7 +194,7 @@ fun NavigationScreen(
                 )
             }
             // Sectors List
-            is Zone -> {
+            data is Zone -> {
                 val sectorsFromZone by dao.getSectorsFromZoneLive(data.id).observeAsState()
 
                 DataList(
