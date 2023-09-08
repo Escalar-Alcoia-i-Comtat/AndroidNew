@@ -1,6 +1,5 @@
 package org.escalaralcoiaicomtat.android.ui.form
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material3.DropdownMenuItem
@@ -19,7 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +28,7 @@ fun <T : Any> FormDropdown(
     options: List<T>,
     label: String?,
     modifier: Modifier = Modifier,
-    icon: (@get:DrawableRes @Composable (T) -> Int)? = null,
+    icon: (@Composable (T) -> ImageVector)? = null,
     toString: @Composable (T) -> String = { it.toString() }
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -92,7 +91,7 @@ fun <T : Any> FormDropdown(
                         )
                     },
                     leadingIcon = icon?.invoke(option)?.let {
-                        { Icon(painterResource(it), toString(option)) }
+                        { Icon(it, toString(option)) }
                     },
                     onClick = {
                         onSelectionChanged(option)

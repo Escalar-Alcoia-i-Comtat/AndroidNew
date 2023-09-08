@@ -35,6 +35,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
@@ -108,6 +109,11 @@ import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
 import org.escalaralcoiaicomtat.android.ui.dialog.AddBlockDialog
+import org.escalaralcoiaicomtat.android.ui.icons.ClimbingAnchor
+import org.escalaralcoiaicomtat.android.ui.icons.ClimbingShoes
+import org.escalaralcoiaicomtat.android.ui.icons.EnergyAbsorber
+import org.escalaralcoiaicomtat.android.ui.icons.Quickdraw
+import org.escalaralcoiaicomtat.android.ui.icons.Rope
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
@@ -580,7 +586,7 @@ class SectorViewer : AppCompatActivity() {
                     }
 
                     CardWithIconAndTitle(
-                        iconRes = type.iconRes,
+                        icon = type.icon,
                         title = stringResource(type.titleRes),
                         message = stringResource(type.messageRes),
                         modifier = Modifier
@@ -646,7 +652,7 @@ class SectorViewer : AppCompatActivity() {
                 }
                 path.grade?.let { grade ->
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.climbing_shoes,
+                        icon = Icons.Filled.ClimbingShoes,
                         title = stringResource(R.string.path_view_grade_title),
                         message = stringResource(R.string.path_view_grade_message),
                         modifier = Modifier
@@ -664,7 +670,7 @@ class SectorViewer : AppCompatActivity() {
                 }
                 path.ropeLength?.let { ropeLength ->
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.rope,
+                        icon = Icons.Filled.Rope,
                         title = stringResource(R.string.path_view_height_title),
                         message = stringResource(
                             R.string.path_view_height_message,
@@ -678,7 +684,7 @@ class SectorViewer : AppCompatActivity() {
                 }
                 path.stringCount?.takeIf { it > 0 }?.let { stringCount ->
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.quickdraw,
+                        icon = Icons.Filled.Quickdraw,
                         title = stringResource(R.string.path_view_quickdraw_count_title),
                         message = stringResource(
                             R.string.path_view_quickdraw_count_message,
@@ -698,7 +704,7 @@ class SectorViewer : AppCompatActivity() {
                     path.tensors?.let { list.appendLine("- ${it.text}") }
 
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.climbing_anchor,
+                        icon = Icons.Filled.ClimbingAnchor,
                         title = stringResource(R.string.path_view_count_title),
                         message = stringResource(
                             R.string.path_view_count_message,
@@ -719,7 +725,7 @@ class SectorViewer : AppCompatActivity() {
                     path.stapes?.let { list.appendLine("- ${it.text}") }
 
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.energy_absorber,
+                        icon = Icons.Filled.EnergyAbsorber,
                         title = stringResource(R.string.path_view_required_title),
                         message = stringResource(
                             R.string.path_view_required_message,
@@ -732,7 +738,7 @@ class SectorViewer : AppCompatActivity() {
                 }
                 path.description?.takeIf { path.showDescription }?.let { description ->
                     CardWithIconAndTitle(
-                        iconRes = R.drawable.baseline_description,
+                        icon = Icons.Filled.Description,
                         title = stringResource(R.string.path_view_description),
                         message = description,
                         modifier = Modifier

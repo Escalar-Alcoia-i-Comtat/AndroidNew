@@ -20,6 +20,9 @@
     <string name="search">Search…</string>
     <string name="none">None</string>
 
+    <string name="intro_1_title">Welcome to Escalar Alcoià i Comtat</string>
+    <string name="intro_1_message">There\'s some important information you need to know before using the app. Slide to the right or press the bottom right button to continue.</string>
+
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
     <string name="item_settings">Settings</string>
@@ -261,22 +264,4 @@
         <item quantity="one">%d path</item>
         <item quantity="other">%d paths</item>
     </plurals>
-
-    <!-- CREDITS -->
-    <string name="credit_icons8">%s icon by %s</string>
-    <string name="credit_icons8_anchor">Climbing Anchor</string>
-    <string name="credit_icons8_anchor_link" translatable="false">https://icons8.com/icon/9175/climbing-anchor</string>
-    <string name="credit_icons8_rope">Rope</string>
-    <string name="credit_icons8_rope_link" translatable="false">https://icons8.com/icon/6059/rope</string>
-    <string name="credit_icons8_climbing_helmet">Climbing Helmet</string>
-    <string name="credit_icons8_climbing_helmet_link" translatable="false">https://icons8.com/icon/6041/climbing-helmet</string>
-    <string name="credit_icons8_quickdraw">Quickdraw</string>
-    <string name="credit_icons8_quickdraw_link" translatable="false">https://icons8.com/icon/6021/quickdraw</string>
-    <string name="credit_icons8_energy_absorber">Energy Absorber</string>
-    <string name="credit_icons8_energy_absorber_link" translatable="false">https://icons8.com/icon/6030/energy-absorber</string>
-    <string name="credit_icons8_bird">Bird</string>
-    <string name="credit_icons8_bird_link" translatable="false">https://icons8.com/icon/Ot1pAvaUiBg1/parakeet</string>
-    
-    <string name="credits_lordicon">Icons by Lordicon.com</string>
-    <string name="credits_lordicon_link" translatable="false">https://lordicon.com</string>
 </resources>
