@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "59aab16d379c4453c37b9be7451e4567",
+    "identityHash": "0dc6e7de362fc1b0e271c0e3b7729d05",
     "entities": [
       {
         "tableName": "areas",
@@ -56,7 +56,7 @@
       },
       {
         "tableName": "zones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, `kmz` TEXT NOT NULL, `point` TEXT, `points` TEXT NOT NULL, `areaId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, `kmz` TEXT NOT NULL, `point` TEXT, `points` TEXT NOT NULL, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -107,8 +107,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "areaId",
-            "columnName": "areaId",
+            "fieldPath": "parentId",
+            "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -130,7 +130,7 @@
       },
       {
         "tableName": "sectors",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `kidsApt` INTEGER NOT NULL, `sunTime` TEXT NOT NULL, `walkingTime` INTEGER, `image` TEXT NOT NULL, `point` TEXT, `weight` TEXT NOT NULL, `zoneId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `kidsApt` INTEGER NOT NULL, `sunTime` TEXT NOT NULL, `walkingTime` INTEGER, `image` TEXT NOT NULL, `point` TEXT, `weight` TEXT NOT NULL, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -187,8 +187,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "zoneId",
-            "columnName": "zoneId",
+            "fieldPath": "parentId",
+            "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -210,7 +210,7 @@
       },
       {
         "tableName": "paths",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `sketchId` INTEGER NOT NULL, `height` INTEGER, `grade` TEXT, `ending` TEXT, `pitches` TEXT, `stringCount` INTEGER, `paraboltCount` INTEGER, `burilCount` INTEGER, `pitonCount` INTEGER, `spitCount` INTEGER, `tensorCount` INTEGER, `crackerRequired` INTEGER NOT NULL, `friendRequired` INTEGER NOT NULL, `lanyardRequired` INTEGER NOT NULL, `nailRequired` INTEGER NOT NULL, `pitonRequired` INTEGER NOT NULL, `stapesRequired` INTEGER NOT NULL, `showDescription` INTEGER NOT NULL, `description` TEXT, `builder` TEXT, `reBuilder` TEXT, `sectorId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `sketchId` INTEGER NOT NULL, `height` INTEGER, `grade` TEXT, `ending` TEXT, `pitches` TEXT, `stringCount` INTEGER, `paraboltCount` INTEGER, `burilCount` INTEGER, `pitonCount` INTEGER, `spitCount` INTEGER, `tensorCount` INTEGER, `crackerRequired` INTEGER NOT NULL, `friendRequired` INTEGER NOT NULL, `lanyardRequired` INTEGER NOT NULL, `nailRequired` INTEGER NOT NULL, `pitonRequired` INTEGER NOT NULL, `stapesRequired` INTEGER NOT NULL, `showDescription` INTEGER NOT NULL, `description` TEXT, `builder` TEXT, `reBuilder` TEXT, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -357,8 +357,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "sectorId",
-            "columnName": "sectorId",
+            "fieldPath": "parentId",
+            "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -464,7 +464,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '59aab16d379c4453c37b9be7451e4567')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0dc6e7de362fc1b0e271c0e3b7729d05')"
     ]
   }
 }

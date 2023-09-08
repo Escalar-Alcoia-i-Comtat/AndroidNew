@@ -7,6 +7,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 
 data class ZoneWithSectors(
     @Embedded val zone: Zone,
-    @Relation(parentColumn = "id", entityColumn = "zoneId")
+    @Relation(parentColumn = "id", entityColumn = "parentId")
     val sectors: List<Sector>
 )

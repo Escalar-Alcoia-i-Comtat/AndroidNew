@@ -7,6 +7,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 
 data class SectorWithPaths(
     @Embedded val sector: Sector,
-    @Relation(parentColumn = "id", entityColumn = "sectorId")
+    @Relation(parentColumn = "id", entityColumn = "parentId")
     val paths: List<Path>
 )
