@@ -38,6 +38,11 @@ android {
 
         buildConfigField("String", "PROTOCOL", "\"https\"")
         buildConfigField("String", "HOSTNAME", "\"backend.escalaralcoiaicomtat.org\"")
+        buildConfigField(
+            "Boolean",
+            "PRODUCTION",
+            (version.contains("dev") || version.contains("beta")).toString()
+        )
     }
 
     signingConfigs {
@@ -57,6 +62,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("Boolean", "PRODUCTION", "false")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
