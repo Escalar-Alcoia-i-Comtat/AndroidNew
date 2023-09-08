@@ -300,7 +300,7 @@ fun AddBlockDialog(
                                 endDate?.atStartOfDay(ZoneId.systemDefault())
                             else
                                 null,
-                            pathId = pathId
+                            parentId = pathId
                         )
                     )
                 },

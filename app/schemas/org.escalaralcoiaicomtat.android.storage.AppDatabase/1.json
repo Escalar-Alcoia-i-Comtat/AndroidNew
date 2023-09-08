@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0dc6e7de362fc1b0e271c0e3b7729d05",
+    "identityHash": "68e386434cafc1d8da117979e99b39e9",
     "entities": [
       {
         "tableName": "areas",
@@ -380,7 +380,7 @@
       },
       {
         "tableName": "blocking",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `type` TEXT NOT NULL, `recurrence` TEXT, `endDate` TEXT, `pathId` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `type` TEXT NOT NULL, `recurrence` TEXT, `endDate` TEXT, `parentId` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -413,8 +413,8 @@
             "notNull": false
           },
           {
-            "fieldPath": "pathId",
-            "columnName": "pathId",
+            "fieldPath": "parentId",
+            "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -464,7 +464,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0dc6e7de362fc1b0e271c0e3b7729d05')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68e386434cafc1d8da117979e99b39e9')"
     ]
   }
 }

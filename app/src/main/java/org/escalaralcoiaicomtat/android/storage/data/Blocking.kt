@@ -27,7 +27,7 @@ data class Blocking(
     val type: BlockingTypes,
     val recurrence: BlockingRecurrenceYearly?,
     val endDate: ZonedDateTime?,
-    val pathId: Long
+    override val parentId: Long
 ) : BaseEntity(), JsonSerializable {
     companion object: JsonSerializer<Blocking> {
         override fun fromJson(json: JSONObject): Blocking = Blocking(
@@ -79,6 +79,6 @@ data class Blocking(
         "type" to type,
         "recurrence" to recurrence,
         "end_date" to endDate?.toString(),
-        "path_id" to pathId
+        "path_id" to parentId
     )
 }

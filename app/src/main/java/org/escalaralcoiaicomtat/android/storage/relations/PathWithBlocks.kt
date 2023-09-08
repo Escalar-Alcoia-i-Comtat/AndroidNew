@@ -7,6 +7,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Path
 
 data class PathWithBlocks(
     @Embedded val path: Path,
-    @Relation(parentColumn = "id", entityColumn = "pathId")
+    @Relation(parentColumn = "id", entityColumn = "parentId")
     val blocks: List<Blocking>
 )

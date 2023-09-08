@@ -202,7 +202,7 @@ interface DataDao {
     suspend fun getAllBlocks(): List<Blocking>
 
     @WorkerThread
-    @Query("SELECT * FROM blocking WHERE pathId=:path")
+    @Query("SELECT * FROM blocking WHERE parentId=:path")
     suspend fun getAllBlocks(path: Long): List<Blocking>
 
 
