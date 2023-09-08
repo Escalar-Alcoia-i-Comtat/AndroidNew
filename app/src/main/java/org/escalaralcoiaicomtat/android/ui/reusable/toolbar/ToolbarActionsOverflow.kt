@@ -5,8 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.PlainTooltipBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,14 +33,18 @@ data class ToolbarAction(
  * @param actions The action buttons to display.
  * @param maxItems The maximum amount of icons to display, including overflow.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("UnusedReceiverParameter")
 fun RowScope.ToolbarActionsOverflow(actions: List<ToolbarAction>, maxItems: Int = 3) {
     if (actions.isEmpty()) return
 
     val actionsToDisplay = actions.subList(0, minOf(actions.size, maxItems))
     for (action in actionsToDisplay) {
-        IconButton(onClick = action.onClick) {
-            Icon(action.icon, action.contentDescription)
+        PlainTooltipBox(tooltip = { Text(action.label) }) {
+            IconButton(onClick = action.onClick) {
+                Icon(action.icon, action.contentDescription)
+            }
         }
     }
 
