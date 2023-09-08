@@ -17,6 +17,9 @@
     <string name="action_view_video">Veure Vídeo</string>
     <string name="action_done">Llest</string>
     <string name="action_skip">Omet</string>
+    <string name="action_more">More</string>
+    <string name="action_info">Information</string>
+    <string name="action_favorite">Mark as Favorite</string>
     <string name="state_calculating">Calculant…</string>
     <string name="search">Cerca…</string>
     <string name="none">Cap</string>
