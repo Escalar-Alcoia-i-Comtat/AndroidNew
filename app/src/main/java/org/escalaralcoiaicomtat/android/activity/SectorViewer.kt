@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +38,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -124,6 +126,8 @@ import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.DropdownChip
 import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
+import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarAction
+import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarActionsOverflow
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
 import org.escalaralcoiaicomtat.android.utils.canBeResolved
@@ -175,8 +179,8 @@ class SectorViewer : AppCompatActivity() {
         viewModel.loadSector(this, sectorId)
 
         onBackPressedDispatcher.addCallback(this) {
-            if (viewModel.selectionIndex.value != null) {
-                viewModel.selectionIndex.postValue(null)
+            if (viewModel.selection.value != null) {
+                viewModel.selection.postValue(null)
             } else {
                 setResult(Activity.RESULT_CANCELED)
                 finish()
@@ -184,6 +188,8 @@ class SectorViewer : AppCompatActivity() {
         }
 
         setContentThemed {
+            val windowSizeClass = calculateWindowSizeClass(activity = this)
+
             val sector by viewModel.sector.observeAsState()
             val paths by viewModel.paths.observeAsState()
 
@@ -255,33 +261,41 @@ class SectorViewer : AppCompatActivity() {
                                     }
                                 },
                                 actions = {
-                                    if (apiKey != null) {
-                                        IconButton(
-                                            onClick = {
+                                    ToolbarActionsOverflow(
+                                        actions = listOfNotNull(
+                                            ToolbarAction(
+                                                Icons.Outlined.Info,
+                                                stringResource(R.string.action_info)
+                                            ) {
+                                                viewModel.selection.postValue(Model.Selection.SectorInformation)
+                                            }.takeIf {
+                                                windowSizeClass.widthSizeClass != WindowWidthSizeClass.Expanded
+                                            },
+                                            ToolbarAction(
+                                                Icons.Rounded.Edit,
+                                                stringResource(R.string.action_edit)
+                                            ) {
                                                 newSectorLauncher.launch(
                                                     EditorActivity.Input.fromElement(sector)
                                                 )
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Rounded.Edit,
-                                                stringResource(R.string.action_edit)
-                                            )
-                                        }
-
-                                        IconButton(
-                                            onClick = {
+                                            }.takeIf { apiKey != null },
+                                            ToolbarAction(
+                                                Icons.Rounded.Add,
+                                                stringResource(R.string.action_create)
+                                            ) {
                                                 newPathLauncher.launch(
                                                     EditorActivity.Input.fromParent(sector)
                                                 )
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Rounded.Add,
-                                                stringResource(R.string.action_create)
-                                            )
+                                            }.takeIf { apiKey != null }
+                                        ),
+                                        maxItems = when(windowSizeClass.widthSizeClass) {
+                                            WindowWidthSizeClass.Compact -> 2
+                                            WindowWidthSizeClass.Medium -> 3
+                                            WindowWidthSizeClass.Expanded -> 5
+                                            // Fallback for edge cases
+                                            else -> 2
                                         }
-                                    }
+                                    )
 
                                     /* todo - filter
                                     IconButton(
@@ -352,7 +366,7 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
-        if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
+        if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) {
             SidePathsView(sector, paths, blocks, apiKey)
         }
 
@@ -383,7 +397,7 @@ class SectorViewer : AppCompatActivity() {
                     )
                 }
 
-                if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact) {
+                if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Expanded) {
                     BottomPathsView(sector, paths)
                 }
             }
@@ -406,16 +420,27 @@ class SectorViewer : AppCompatActivity() {
     fun BottomPathsView(sector: Sector, paths: List<Path>) {
         val apiKey by Preferences.getApiKey(this).collectAsState(initial = null)
 
-        val selectionIndex by viewModel.selectionIndex.observeAsState()
+        val selection by viewModel.selection.observeAsState()
 
         val blocks by viewModel.blocks.observeAsState(initial = emptyMap())
 
         AnimatedContent(
-            targetState = selectionIndex,
+            targetState = selection,
             label = "paths-list"
-        ) { selectedIndex ->
+        ) { selected ->
+            val selectedIndex = if (selected is Model.Selection.Index)
+                selected.index
+            else
+                null
             val path = selectedIndex?.let(paths::get)
-            if (path == null) {
+            val showingSectorInformation = selected is Model.Selection.SectorInformation
+
+            if (showingSectorInformation) {
+                SectorInformation(
+                    sector = sector,
+                    modifier = Modifier.fillMaxHeight(.5f)
+                ) { viewModel.selection.postValue(null) }
+            } else if (path == null) {
                 LazyColumn(
                     modifier = Modifier.fillMaxHeight(.35f)
                 ) {
@@ -424,32 +449,32 @@ class SectorViewer : AppCompatActivity() {
                         key = { _, path -> path.id }
                     ) { index, path ->
                         PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
-                            viewModel.selectionIndex.postValue(index)
+                            viewModel.selection.postValue(Model.Selection.Index(index))
                         }
                     }
                 }
             } else {
                 PathInformation(
-                    path,
+                    path = path,
                     blocks = blocks[path] ?: emptyList(),
                     apiKey = apiKey,
                     modifier = Modifier.fillMaxHeight(.5f),
                     onNextRequested = if (selectedIndex >= paths.size)
                         null
                     else {
-                        { viewModel.selectionIndex.postValue(selectedIndex + 1) }
+                        { viewModel.selection.postValue(Model.Selection.Index(selectedIndex + 1)) }
                     },
                     onPreviousRequested = if (selectedIndex <= 0)
                         null
                     else {
-                        { viewModel.selectionIndex.postValue(selectedIndex - 1) }
+                        { viewModel.selection.postValue(Model.Selection.Index(selectedIndex - 1)) }
                     },
                     onEditRequested = {
                         newPathLauncher.launch(
                             EditorActivity.Input.fromElement(sector, path)
                         )
                     }
-                ) { viewModel.selectionIndex.postValue(null) }
+                ) { viewModel.selection.postValue(null) }
             }
         }
     }
@@ -466,91 +491,13 @@ class SectorViewer : AppCompatActivity() {
                 .weight(1f)
                 .padding(horizontal = 8.dp)
         ) {
-            val selectedPath by viewModel.selectionIndex.observeAsState()
+            val selection by viewModel.selection.observeAsState()
+            val selectedIndex = (selection as? Model.Selection.Index)?.index
 
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
-                stickyHeader(
-                    key = "sector-information-title",
-                    contentType = "title"
-                ) {
-                    Text(
-                        text = stringResource(R.string.list_sector_information_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                }
-                if (sector.kidsApt) {
-                    item(
-                        key = "sector-children-apt",
-                        contentType = "sector-info"
-                    ) {
-                        InfoRow(
-                            icon = Icons.Rounded.ChildFriendly,
-                            iconContentDescription = stringResource(R.string.sector_kids_apt_title),
-                            title = stringResource(R.string.sector_kids_apt_title),
-                            subtitle = stringResource(R.string.sector_kids_apt_message)
-                        )
-                    }
-                }
-                item(
-                    key = "sector-sun-time",
-                    contentType = "sector-info"
-                ) {
-                    val sunTime = sector.sunTime
-
-                    InfoRow(
-                        icon = sunTime.icon,
-                        iconContentDescription = stringResource(sunTime.label),
-                        title = stringResource(sunTime.title),
-                        subtitle = stringResource(sunTime.message)
-                    )
-                }
-                if (sector.point != null) {
-                    item(
-                        key = "sector-point",
-                        contentType = "sector-info"
-                    ) {
-                        val point = sector.point
-
-                        InfoRow(
-                            icon = Icons.Rounded.Place,
-                            iconContentDescription = stringResource(R.string.info_point_description),
-                            title = stringResource(R.string.info_zone_location),
-                            subtitle = "${point.latitude}, ${point.longitude}",
-                            actions = listOfNotNull(
-                                point
-                                    .uri(sector.displayName)
-                                    .viewIntent
-                                    .apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    .takeIf { it.canBeResolved(this@SectorViewer) }
-                                    ?.let { intent ->
-                                        Icons.Rounded.Map to {
-                                            startActivity(intent)
-                                        }
-                                    }
-                            )
-                        )
-                    }
-                }
-                if (sector.walkingTime != null) {
-                    item(
-                        key = "sector-walking-time",
-                        contentType = "sector-info"
-                    ) {
-                        val walkingTime = sector.walkingTime
-
-                        InfoRow(
-                            icon = Icons.Rounded.DirectionsWalk,
-                            iconContentDescription = stringResource(R.string.sector_walking_time_title),
-                            title = stringResource(R.string.sector_walking_time_title),
-                            subtitle = stringResource(R.string.sector_walking_time_message, walkingTime)
-                        )
-                    }
-                }
+                populateSectorInformation(sector)
 
                 stickyHeader(
                     key = "sector-children-title",
@@ -564,13 +511,13 @@ class SectorViewer : AppCompatActivity() {
                 }
                 itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
                     PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
-                        viewModel.selectionIndex.postValue(index)
+                        viewModel.selection.postValue(Model.Selection.Index(index))
                     }
                 }
             }
 
             AnimatedContent(
-                targetState = selectedPath,
+                targetState = selectedIndex,
                 label = "animate-bottom-path-info",
                 transitionSpec = {
                     if (targetState == null || initialState == null) {
@@ -589,8 +536,8 @@ class SectorViewer : AppCompatActivity() {
                         fadeIn() togetherWith fadeOut()
                     }
                 }
-            ) { selectedIndex ->
-                val path = selectedIndex?.let(paths::get)
+            ) { index ->
+                val path = index?.let(paths::get)
                 if (path != null) {
                     PathInformation(
                         path,
@@ -599,23 +546,106 @@ class SectorViewer : AppCompatActivity() {
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
-                        onNextRequested = if (selectedIndex + 1 >= paths.size)
+                        onNextRequested = if (index + 1 >= paths.size)
                             null
                         else {
-                            { viewModel.selectionIndex.postValue(selectedIndex + 1) }
+                            { viewModel.selection.postValue(Model.Selection.Index(index + 1)) }
                         },
-                        onPreviousRequested = if (selectedIndex <= 0)
+                        onPreviousRequested = if (index <= 0)
                             null
                         else {
-                            { viewModel.selectionIndex.postValue(selectedIndex - 1) }
+                            { viewModel.selection.postValue(Model.Selection.Index(index - 1)) }
                         },
                         onEditRequested = {
                             newPathLauncher.launch(
                                 EditorActivity.Input.fromElement(sector, path)
                             )
                         }
-                    ) { viewModel.selectionIndex.postValue(null) }
+                    ) { viewModel.selection.postValue(null) }
                 }
+            }
+        }
+    }
+
+    private fun LazyListScope.populateSectorInformation(sector: Sector) {
+        stickyHeader(
+            key = "sector-information-title",
+            contentType = "title"
+        ) {
+            Text(
+                text = stringResource(R.string.list_sector_information_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+        if (sector.kidsApt) {
+            item(
+                key = "sector-children-apt",
+                contentType = "sector-info"
+            ) {
+                InfoRow(
+                    icon = Icons.Rounded.ChildFriendly,
+                    iconContentDescription = stringResource(R.string.sector_kids_apt_title),
+                    title = stringResource(R.string.sector_kids_apt_title),
+                    subtitle = stringResource(R.string.sector_kids_apt_message)
+                )
+            }
+        }
+        item(
+            key = "sector-sun-time",
+            contentType = "sector-info"
+        ) {
+            val sunTime = sector.sunTime
+
+            InfoRow(
+                icon = sunTime.icon,
+                iconContentDescription = stringResource(sunTime.label),
+                title = stringResource(sunTime.title),
+                subtitle = stringResource(sunTime.message)
+            )
+        }
+        if (sector.point != null) {
+            item(
+                key = "sector-point",
+                contentType = "sector-info"
+            ) {
+                val point = sector.point
+
+                InfoRow(
+                    icon = Icons.Rounded.Place,
+                    iconContentDescription = stringResource(R.string.info_point_description),
+                    title = stringResource(R.string.info_zone_location),
+                    subtitle = "${point.latitude}, ${point.longitude}",
+                    actions = listOfNotNull(
+                        point
+                            .uri(sector.displayName)
+                            .viewIntent
+                            .apply {
+                                setPackage("com.google.android.apps.maps")
+                            }
+                            .takeIf { it.canBeResolved(this@SectorViewer) }
+                            ?.let { intent ->
+                                Icons.Rounded.Map to {
+                                    startActivity(intent)
+                                }
+                            }
+                    )
+                )
+            }
+        }
+        if (sector.walkingTime != null) {
+            item(
+                key = "sector-walking-time",
+                contentType = "sector-info"
+            ) {
+                val walkingTime = sector.walkingTime
+
+                InfoRow(
+                    icon = Icons.Rounded.DirectionsWalk,
+                    iconContentDescription = stringResource(R.string.sector_walking_time_title),
+                    title = stringResource(R.string.sector_walking_time_title),
+                    subtitle = stringResource(R.string.sector_walking_time_message, walkingTime)
+                )
             }
         }
     }
@@ -880,6 +910,36 @@ class SectorViewer : AppCompatActivity() {
         }
     }
 
+    /**
+     * A dialog used in mobile-UI for displaying the Sector's information.
+     */
+    @Composable
+    fun SectorInformation(sector: Sector, modifier: Modifier, onDismissRequested: () -> Unit) {
+        OutlinedCard(
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            modifier = modifier
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = sector.displayName,
+                    modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                IconButton(onClick = onDismissRequested) {
+                    Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
+                }
+            }
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+            ) {
+                populateSectorInformation(sector)
+            }
+        }
+    }
+
     class Model(application: Application) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
         private val dao = database.dataDao()
@@ -893,7 +953,7 @@ class SectorViewer : AppCompatActivity() {
         private val _blocks = MutableLiveData<Map<Path, List<Blocking>>>()
         val blocks: LiveData<Map<Path, List<Blocking>>> get() = _blocks
 
-        val selectionIndex: MutableLiveData<Int?> = MutableLiveData(null)
+        val selection: MutableLiveData<Selection?> = MutableLiveData(null)
 
         fun loadSector(lifecycleOwner: LifecycleOwner, sectorId: Long) =
             viewModelScope.launch(Dispatchers.IO) {
@@ -943,6 +1003,12 @@ class SectorViewer : AppCompatActivity() {
                 LocalDeletion(type = "block", deleteId = blocking.id)
             )
             dao.delete(blocking)
+        }
+
+        sealed class Selection {
+            data class Index(val index: Int) : Selection()
+
+            data object SectorInformation : Selection()
         }
     }
 
