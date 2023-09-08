@@ -77,7 +77,7 @@ fun IntroPage(
                 icon = icon,
                 contentDescription = title,
                 modifier = Modifier
-                    .padding(top = 172.dp, bottom = 36.dp)
+                    .padding(top = 156.dp, bottom = 36.dp)
                     .size(96.dp),
                 tint = iconColor
             )
