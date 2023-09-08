@@ -98,6 +98,7 @@ import net.engawapg.lib.zoomable.zoomable
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.activity.creation.NewPathActivity
+import org.escalaralcoiaicomtat.android.activity.creation.NewSectorActivity
 import org.escalaralcoiaicomtat.android.exception.remote.RequestException
 import org.escalaralcoiaicomtat.android.network.EndpointUtils
 import org.escalaralcoiaicomtat.android.network.bodyAsJson
@@ -154,6 +155,8 @@ class SectorViewer : AppCompatActivity() {
     }
 
     private val viewModel: Model by viewModels()
+
+    private val newSectorLauncher = registerForActivityResult(NewSectorActivity.Contract) {}
 
     private val newPathLauncher = registerForActivityResult(NewPathActivity.Contract) {}
 
@@ -253,6 +256,19 @@ class SectorViewer : AppCompatActivity() {
                                 },
                                 actions = {
                                     if (apiKey != null) {
+                                        IconButton(
+                                            onClick = {
+                                                newSectorLauncher.launch(
+                                                    EditorActivity.Input.fromElement(sector)
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Rounded.Edit,
+                                                stringResource(R.string.action_edit)
+                                            )
+                                        }
+
                                         IconButton(
                                             onClick = {
                                                 newPathLauncher.launch(
@@ -901,7 +917,7 @@ class SectorViewer : AppCompatActivity() {
         fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
             val apiKey = Preferences.getApiKey(getApplication()).first()
 
-            ktorHttpClient.post(EndpointUtils.getUrl("block/${blocking.pathId}")) {
+            ktorHttpClient.post(EndpointUtils.getUrl("block/${blocking.parentId}")) {
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
                 setBody(blocking.toJson().toString())
             }.apply {

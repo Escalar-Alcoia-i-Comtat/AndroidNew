@@ -142,6 +142,12 @@ abstract class EditorActivity<
                 parent.id,
                 element.id
             )
+
+            fun fromElement(element: BaseEntity) = Input(
+                null,
+                element.parentId,
+                element.id
+            )
         }
     }
 
