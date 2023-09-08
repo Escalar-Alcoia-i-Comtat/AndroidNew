@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import org.escalaralcoiaicomtat.android.R
@@ -42,7 +43,7 @@ fun RowScope.ToolbarActionsOverflow(actions: List<ToolbarAction>, maxItems: Int 
     val actionsToDisplay = actions.subList(0, minOf(actions.size, maxItems))
     for (action in actionsToDisplay) {
         PlainTooltipBox(tooltip = { Text(action.label) }) {
-            IconButton(onClick = action.onClick) {
+            IconButton(onClick = action.onClick, modifier = Modifier.tooltipAnchor()) {
                 Icon(action.icon, action.contentDescription)
             }
         }
