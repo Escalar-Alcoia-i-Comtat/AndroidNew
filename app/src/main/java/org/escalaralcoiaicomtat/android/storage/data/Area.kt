@@ -62,6 +62,9 @@ data class Area(
         }
     )
 
+    override val parentId: Long
+        get() = throw UnsupportedOperationException("Areas don't have parents.")
+
     @Ignore
     override val pluralRes: Int = R.plurals.zone_count
 

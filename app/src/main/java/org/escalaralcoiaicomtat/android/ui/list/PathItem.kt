@@ -109,7 +109,7 @@ fun PathItem_Preview() {
                     description = "",
                     builder = null,
                     reBuilder = null,
-                    sectorId = 0
+                    parentId = 0
                 ),
                 blocks = emptyList(),
                 apiKey = null

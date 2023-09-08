@@ -29,7 +29,7 @@ data class Zone(
     val kmz: String,
     val point: LatLng?,
     val points: List<DataPoint>,
-    val areaId: Long,
+    override val parentId: Long,
     override val isFavorite: Boolean = false
 ) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Zone> {
@@ -62,7 +62,7 @@ data class Zone(
         "kmz" to kmz,
         "point" to point,
         "points" to points,
-        "area_id" to areaId,
+        "area_id" to parentId,
         "is_favorite" to isFavorite
     )
 
@@ -81,7 +81,7 @@ data class Zone(
         if (kmz != other.kmz) return false
         if (point != other.point) return false
         if (points != other.points) return false
-        if (areaId != other.areaId) return false
+        if (parentId != other.parentId) return false
 
         return true
     }
@@ -96,7 +96,7 @@ data class Zone(
         result = 31 * result + kmz.hashCode()
         result = 31 * result + (point?.hashCode() ?: 0)
         result = 31 * result + points.hashCode()
-        result = 31 * result + areaId.hashCode()
+        result = 31 * result + parentId.hashCode()
         return result
     }
 }

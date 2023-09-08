@@ -7,6 +7,8 @@ abstract class BaseEntity {
     abstract val id: Long
     abstract val timestamp: Instant
 
+    abstract val parentId: Long
+
     override fun toString(): String = "${this::class.simpleName}[id=$id]"
 
     override fun equals(other: Any?): Boolean {

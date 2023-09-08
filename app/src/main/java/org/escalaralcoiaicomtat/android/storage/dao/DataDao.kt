@@ -167,11 +167,11 @@ interface DataDao {
 
     @WorkerThread
     @Transaction
-    @Query("SELECT * FROM paths WHERE sectorId=:sectorId")
+    @Query("SELECT * FROM paths WHERE parentId=:sectorId")
     suspend fun getPathWithBlocks(sectorId: Long): List<PathWithBlocks>
 
     @Transaction
-    @Query("SELECT * FROM paths WHERE sectorId=:sectorId")
+    @Query("SELECT * FROM paths WHERE parentId=:sectorId")
     fun getPathWithBlocksLive(sectorId: Long): LiveData<List<PathWithBlocks>>
 
     @Query("SELECT builder FROM paths")

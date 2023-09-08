@@ -30,7 +30,7 @@ data class Sector(
     override val image: String,
     val point: LatLng?,
     val weight: String,
-    val zoneId: Long,
+    override val parentId: Long,
     override val isFavorite: Boolean = false
 ) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Sector> {
@@ -65,7 +65,7 @@ data class Sector(
         "image" to image,
         "point" to point,
         "weight" to weight,
-        "zone_id" to zoneId,
+        "zone_id" to parentId,
         "is_favorite" to isFavorite
     )
 
@@ -85,7 +85,7 @@ data class Sector(
         if (image != other.image) return false
         if (point != other.point) return false
         if (weight != other.weight) return false
-        if (zoneId != other.zoneId) return false
+        if (parentId != other.parentId) return false
 
         return true
     }
@@ -101,7 +101,7 @@ data class Sector(
         result = 31 * result + image.hashCode()
         result = 31 * result + (point?.hashCode() ?: 0)
         result = 31 * result + weight.hashCode()
-        result = 31 * result + zoneId.hashCode()
+        result = 31 * result + parentId.hashCode()
         return result
     }
 }

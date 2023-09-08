@@ -68,7 +68,7 @@ object SampleDataProvider {
         description = null,
         builder = null,
         reBuilder = null,
-        sectorId = 0L,
+        parentId = 0L,
         isFavorite = false
     )
 }

@@ -34,9 +34,9 @@ class TestDataDao {
     fun test_recursiveDeletion() {
         runBlocking {
             val areaId = dao.insert(SampleDataProvider.SampleArea)
-            val zoneId = dao.insert(SampleDataProvider.SampleZone.copy(areaId = areaId))
-            val sectorId = dao.insert(SampleDataProvider.SampleSector.copy(zoneId = zoneId))
-            val pathId = dao.insert(SampleDataProvider.SamplePath.copy(sectorId = sectorId))
+            val zoneId = dao.insert(SampleDataProvider.SampleZone.copy(parentId = areaId))
+            val sectorId = dao.insert(SampleDataProvider.SampleSector.copy(parentId = zoneId))
+            val pathId = dao.insert(SampleDataProvider.SamplePath.copy(parentId = sectorId))
 
             val area = dao.getArea(areaId)
             dao.deleteRecursively(area!!)

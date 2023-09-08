@@ -59,7 +59,7 @@ data class Path(
     val builder: Builder?,
     val reBuilder: List<Builder>?,
 
-    val sectorId: Long,
+    override val parentId: Long,
 
     override val isFavorite: Boolean = false
 ) : DataEntity(), JsonSerializable {
@@ -215,7 +215,7 @@ data class Path(
         "builder" to builder,
         "re_builder" to reBuilder,
 
-        "sector_id" to sectorId,
+        "sector_id" to parentId,
         
         "is_favorite" to isFavorite
     )

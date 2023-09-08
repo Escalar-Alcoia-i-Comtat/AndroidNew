@@ -115,9 +115,9 @@ fun NavigationScreen(
                         onClick = { viewModel.navigate(area) },
                         onCreate = { onCreateOrEdit(Zone::class, area, null) }
                     )
-                    zones.takeIf { selection == area || (selection as? Zone)?.areaId == area.id }
+                    zones.takeIf { selection == area || (selection as? Zone)?.parentId == area.id }
                         ?.sorted()
-                        ?.filter { it.areaId == area.id }
+                        ?.filter { it.parentId == area.id }
                         ?.forEach { zone ->
                             SideNavigationItem(
                                 label = zone.displayName,
@@ -129,7 +129,7 @@ fun NavigationScreen(
                             )
                             sectors.takeIf { selection == zone }
                                 ?.sorted()
-                                ?.filter { it.zoneId == zone.id }
+                                ?.filter { it.parentId == zone.id }
                                 ?.forEach { sector ->
                                     SideNavigationItem(
                                         label = sector.displayName,
@@ -162,7 +162,7 @@ fun NavigationScreen(
                     kClass = Area::class,
                     parent = null,
                     list = areas,
-                    childCount = { area -> zones.count { it.areaId == area.id }.toUInt() },
+                    childCount = { area -> zones.count { it.parentId == area.id }.toUInt() },
                     gridCellSize = 400.dp,
                     imageHeight = 200.dp,
                     modifier = Modifier
@@ -183,7 +183,7 @@ fun NavigationScreen(
                     kClass = Zone::class,
                     parent = data,
                     list = areaWithZones?.zones,
-                    childCount = { zone -> sectors.count { it.zoneId == zone.id }.toUInt() },
+                    childCount = { zone -> sectors.count { it.parentId == zone.id }.toUInt() },
                     gridCellSize = 210.dp,
                     imageHeight = 300.dp,
                     modifier = Modifier
@@ -205,7 +205,7 @@ fun NavigationScreen(
                     kClass = Sector::class,
                     parent = data,
                     list = sectorsFromZone?.sectors,
-                    childCount = { sector -> paths.count { it.sectorId == sector.id }.toUInt() },
+                    childCount = { sector -> paths.count { it.parentId == sector.id }.toUInt() },
                     gridCellSize = 400.dp,
                     imageHeight = 200.dp,
                     modifier = Modifier
