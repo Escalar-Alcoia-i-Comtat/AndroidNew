@@ -108,6 +108,9 @@ data class Path(
     override val pluralRes: Int get() = throw UnsupportedOperationException("Paths don't have any children")
 
     @Ignore
+    override val childrenTitleRes: Int = -1
+
+    @Ignore
     val ropeLength: Long? = height?.let {
         val minLength = it * 2
         val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)

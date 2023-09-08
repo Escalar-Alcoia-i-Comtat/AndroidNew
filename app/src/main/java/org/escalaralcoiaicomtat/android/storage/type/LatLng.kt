@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.storage.type
 
+import android.net.Uri
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
@@ -40,6 +41,16 @@ data class LatLng(
         "latitude" to latitude,
         "longitude" to longitude
     )
+
+    val uri: Uri = Uri.parse("geo:$latitude,$longitude")
+
+    fun uri(label: String): Uri {
+        val builder = StringBuilder(uri.toString())
+        builder.append("?q=$latitude,$longitude")
+        val labelValue = label.replace(' ', '+')
+        builder.append("($labelValue)")
+        return Uri.parse(builder.toString())
+    }
 
     override fun toString(): String = toJson().toString()
 

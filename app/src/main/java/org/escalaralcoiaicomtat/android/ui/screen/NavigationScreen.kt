@@ -159,6 +159,8 @@ fun NavigationScreen(
             // Areas List
             data == null -> {
                 DataList(
+                    kClass = Area::class,
+                    parent = null,
                     list = areas,
                     childCount = { area -> zones.count { it.areaId == area.id }.toUInt() },
                     gridCellSize = 400.dp,
@@ -178,6 +180,8 @@ fun NavigationScreen(
                 val areaWithZones by dao.getZonesFromAreaLive(data.id).observeAsState()
 
                 DataList(
+                    kClass = Zone::class,
+                    parent = data,
                     list = areaWithZones?.zones,
                     childCount = { zone -> sectors.count { it.zoneId == zone.id }.toUInt() },
                     gridCellSize = 210.dp,
@@ -198,6 +202,8 @@ fun NavigationScreen(
                 val sectorsFromZone by dao.getSectorsFromZoneLive(data.id).observeAsState()
 
                 DataList(
+                    kClass = Sector::class,
+                    parent = data,
                     list = sectorsFromZone?.sectors,
                     childCount = { sector -> paths.count { it.sectorId == sector.id }.toUInt() },
                     gridCellSize = 400.dp,

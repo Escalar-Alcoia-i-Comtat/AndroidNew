@@ -38,6 +38,13 @@
     <string name="item_favorites">Favorites</string>
     <string name="item_settings">Settings</string>
 
+    <string name="info_point_description">Location</string>
+    <string name="info_zone_location">Zone Location</string>
+
+    <string name="list_zone_information_title">Zone Information</string>
+    <string name="list_area_children">Zones</string>
+    <string name="list_zone_children">Sectors</string>
+
     <string name="list_item_favorite">Favorite</string>
     <string name="list_item_download">Download</string>
     <string name="list_item_create">Create New</string>

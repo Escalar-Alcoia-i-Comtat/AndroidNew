@@ -50,6 +50,9 @@ data class Zone(
     @Ignore
     override val pluralRes: Int = R.plurals.sector_count
 
+    @Ignore
+    override val childrenTitleRes: Int = R.string.list_zone_children
+
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
         "timestamp" to timestamp,

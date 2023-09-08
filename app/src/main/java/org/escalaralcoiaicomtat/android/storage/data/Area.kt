@@ -65,6 +65,9 @@ data class Area(
     @Ignore
     override val pluralRes: Int = R.plurals.zone_count
 
+    @Ignore
+    override val childrenTitleRes: Int = R.string.list_area_children
+
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
         "timestamp" to timestamp,

@@ -461,6 +461,8 @@ fun MainScreen(
                 val favorites: List<ImageEntity> = listOf(favoriteAreas, favoriteZones, favoriteSectors).flatten()
 
                 DataList(
+                    kClass = ImageEntity::class,
+                    parent = null,
                     list = favorites,
                     childCount = { 0U },
                     gridCellSize = 400.dp,

@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.utils
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 
@@ -21,4 +22,9 @@ object UriUtils {
         }
         return result
     }
+
+    /**
+     * Provides a new [Intent] with [Intent.ACTION_VIEW] as action, and this uri as data.
+     */
+    val Uri.viewIntent: Intent get() = Intent(Intent.ACTION_VIEW, this)
 }
