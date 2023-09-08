@@ -663,11 +663,15 @@ class SectorViewer : AppCompatActivity() {
                     }
                 }
                 Text(
-                    text = path.displayName,
+                    text = "${path.sketchId} - ",
                     modifier = Modifier
-                        .weight(1f)
                         .padding(start = 8.dp),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = path.displayName,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium
                 )
                 if (apiKey != null) {
                     IconButton(onClick = { showingCreateBlockDialog = true }) {
