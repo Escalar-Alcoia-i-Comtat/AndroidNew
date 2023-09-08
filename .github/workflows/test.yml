@@ -1,6 +1,12 @@
 name: Development tests
 
-on: push
+on:
+  push:
+    paths:
+      - 'app/**'
+      - '*.gradle.kts'
+      - '*.properties'
+      - 'gradle/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

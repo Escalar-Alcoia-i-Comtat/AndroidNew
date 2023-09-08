@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'app/**'
+      - '*.gradle.kts'
+      - '*.properties'
+      - 'gradle/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
