@@ -111,9 +111,10 @@ fun NavigationScreen(
                         label = area.displayName,
                         depth = 0,
                         selected = area == selection,
-                        showCreate = apiKey != null,
+                        isEditable = apiKey != null,
                         onClick = { viewModel.navigate(area) },
-                        onCreate = { onCreateOrEdit(Zone::class, area, null) }
+                        onCreate = { onCreateOrEdit(Zone::class, area, null) },
+                        onEdit = { onCreateOrEdit(Area::class, null, area) }
                     )
                     zones.takeIf { selection == area || (selection as? Zone)?.parentId == area.id }
                         ?.sorted()
@@ -123,9 +124,10 @@ fun NavigationScreen(
                                 label = zone.displayName,
                                 depth = 1,
                                 selected = zone == selection,
-                                showCreate = apiKey != null,
+                                isEditable = apiKey != null,
                                 onClick = { viewModel.navigate(zone) },
-                                onCreate = { onCreateOrEdit(Sector::class, zone, null) }
+                                onCreate = { onCreateOrEdit(Sector::class, zone, null) },
+                                onEdit = { onCreateOrEdit(Zone::class, area, zone) }
                             )
                             sectors.takeIf { selection == zone }
                                 ?.sorted()
@@ -135,9 +137,10 @@ fun NavigationScreen(
                                         label = sector.displayName,
                                         depth = 2,
                                         selected = sector == selection,
-                                        showCreate = apiKey != null,
+                                        isEditable = apiKey != null,
                                         onClick = { viewModel.navigate(sector) },
-                                        onCreate = { onCreateOrEdit(Path::class, sector, null) }
+                                        onCreate = { onCreateOrEdit(Path::class, sector, null) },
+                                        onEdit = { onCreateOrEdit(Sector::class, zone, sector) }
                                     )
                                 }
                         }

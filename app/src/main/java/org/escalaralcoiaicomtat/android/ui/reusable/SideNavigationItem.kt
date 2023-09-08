@@ -1,9 +1,11 @@
 package org.escalaralcoiaicomtat.android.ui.reusable
 
 import androidx.annotation.IntRange
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,9 +22,10 @@ fun SideNavigationItem(
     label: String,
     @IntRange(from = 0, to = 2) depth: Int,
     selected: Boolean,
-    showCreate: Boolean,
+    isEditable: Boolean,
     onClick: () -> Unit,
-    onCreate: () -> Unit
+    onCreate: () -> Unit,
+    onEdit: () -> Unit
 ) {
     NavigationDrawerItem(
         label = {
@@ -38,14 +41,20 @@ fun SideNavigationItem(
         selected = selected,
         onClick = onClick.takeIf { !selected } ?: {},
         badge = {
-            if (showCreate) {
-                IconButton(
-                    onClick = onCreate
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.action_create)
-                    )
+            if (isEditable) {
+                Row {
+                    IconButton(onClick = onCreate) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = stringResource(R.string.action_create)
+                        )
+                    }
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Rounded.Edit,
+                            contentDescription = stringResource(R.string.action_edit)
+                        )
+                    }
                 }
             }
         },
