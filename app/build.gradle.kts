@@ -22,13 +22,14 @@ android {
         }
     }
     val code = versionProps.getProperty("VERSION_CODE").toInt()
+    val version = versionProps.getProperty("VERSION_NAME")
 
     defaultConfig {
         applicationId = "org.escalaralcoiaicomtat.android"
         minSdk = 24
         targetSdk = 34
         versionCode = code
-        versionName = "2.0.0-dev02"
+        versionName = version
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
