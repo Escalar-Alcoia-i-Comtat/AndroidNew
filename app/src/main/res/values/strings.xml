@@ -14,6 +14,9 @@
     <string name="action_update">Update</string>
     <string name="action_edit">Edit</string>
     <string name="action_confirm">Confirm</string>
+    <string name="action_view_video">View Video</string>
+    <string name="action_done">Done</string>
+    <string name="action_skip">Skip</string>
 
     <string name="state_calculating">Calculating…</string>
 
@@ -22,6 +25,14 @@
 
     <string name="intro_1_title">Welcome to Escalar Alcoià i Comtat</string>
     <string name="intro_1_message">There\'s some important information you need to know before using the app. Slide to the right or press the bottom right button to continue.</string>
+    <string name="intro_2_title">Attention!</string>
+    <string name="intro_2_message">Climbing is a sport considered risky, everyone who practices it has to worry about its knowledge and correct execution. From this web-guide, we are not responsible for any type of accident. Nor are we responsible for the equipment in the climbing areas, named here.</string>
+    <string name="intro_3_title">Know your material</string>
+    <string name="intro_3_message">Make sure you properly know how to use the material you are using. Most accidents occur because of bad usages of the safety material. Here\'s a video where it\'s explained how to use the Grigri from Pezl: one of the most commonly used belaying equipment.</string>
+    <string name="intro_4_title">Take care of children</string>
+    <string name="intro_4_message">If you climb with your children, make sure it\'s safe for them. Use proper equipment, warn them about the hazards of climbing, and make sure they are well informed. Each sector has information to make sure there\'s a safe place to stay.</string>
+    <string name="intro_5_title">Enjoy!</string>
+    <string name="intro_5_message">You are ready to access the app! Don\'t hesitate in contacting us if you find any data wrong or inaccurate.</string>
 
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>

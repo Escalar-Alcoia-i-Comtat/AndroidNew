@@ -16,6 +16,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings"
 val apiKeyPreference = stringPreferencesKey("api_key")
 val everSynchronized = booleanPreferencesKey("every_sync")
 val lastSync = longPreferencesKey("last_sync")
+val shownIntro = booleanPreferencesKey("shown_intro")
 
 object Preferences {
     fun getApiKey(context: Context) = context.dataStore
@@ -30,6 +31,11 @@ object Preferences {
         .data
         .map { it[lastSync]?.let(Instant::ofEpochMilli) }
 
+    fun hasShownIntro(context: Context) = context.dataStore
+        .data
+        .map { it[shownIntro] ?: false }
+
+
     suspend fun setApiKey(context: Context, value: String) =
         context.dataStore.edit { it[apiKeyPreference] = value }
 
@@ -38,4 +44,7 @@ object Preferences {
 
     suspend fun setLastSync(context: Context, value: Instant) =
         context.dataStore.edit { it[lastSync] = value.toEpochMilli() }
+
+    suspend fun markIntroShown(context: Context) = context.dataStore
+        .edit { it[shownIntro] = true }
 }

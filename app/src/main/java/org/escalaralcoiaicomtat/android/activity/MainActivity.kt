@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.activity
 
 import android.app.Application
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.viewModels
@@ -15,6 +16,8 @@ import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
@@ -77,6 +80,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val hasShownIntro = Preferences.hasShownIntro(this)
+        CoroutineScope(Dispatchers.IO).launch {
+            hasShownIntro.collect { shown ->
+                if (!shown) {
+                    startActivity(
+                        Intent(this@MainActivity, IntroActivity::class.java)
+                    )
+                }
+            }
+        }
 
         setContentThemed {
             val windowSizeClass = calculateWindowSizeClass(this)

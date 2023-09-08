@@ -36,6 +36,9 @@
             android:parentActivityName=".activity.MainActivity" />
 
         <activity
+            android:name=".activity.IntroActivity" />
+
+        <activity
             android:name=".activity.creation.NewAreaActivity"
             android:parentActivityName=".activity.MainActivity" />
         <activity
