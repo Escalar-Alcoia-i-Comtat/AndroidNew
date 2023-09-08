@@ -40,8 +40,12 @@ import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.ChildFriendly
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -118,7 +122,10 @@ import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.DropdownChip
+import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
+import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
+import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import timber.log.Timber
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -330,70 +337,7 @@ class SectorViewer : AppCompatActivity() {
         }
 
         if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                val selectedPath by viewModel.selectionIndex.observeAsState()
-
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
-                        PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
-                            viewModel.selectionIndex.postValue(index)
-                        }
-                    }
-                }
-
-                AnimatedContent(
-                    targetState = selectedPath,
-                    label = "animate-bottom-path-info",
-                    transitionSpec = {
-                        if (targetState == null || initialState == null) {
-                            // moving from open to closed, or from closed to open
-                            slideInVertically { -it } togetherWith slideOutVertically { it }
-                        } else if (initialState != null && targetState != null) {
-                            // moving from one path to another
-                            if (initialState!! < targetState!!) {
-                                // moving from left to right
-                                slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                            } else {
-                                // moving from right to left
-                                slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-                            }
-                        } else {
-                            fadeIn() togetherWith fadeOut()
-                        }
-                    }
-                ) { selectedIndex ->
-                    val path = selectedIndex?.let(paths::get)
-                    if (path != null) {
-                        PathInformation(
-                            path,
-                            apiKey = apiKey,
-                            blocks = blocks[path] ?: emptyList(),
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            onNextRequested = if (selectedIndex + 1 >= paths.size)
-                                null
-                            else {
-                                { viewModel.selectionIndex.postValue(selectedIndex + 1) }
-                            },
-                            onPreviousRequested = if (selectedIndex <= 0)
-                                null
-                            else {
-                                { viewModel.selectionIndex.postValue(selectedIndex - 1) }
-                            },
-                            onEditRequested = {
-                                newPathLauncher.launch(
-                                    EditorActivity.Input.fromElement(sector, path)
-                                )
-                            }
-                        ) { viewModel.selectionIndex.postValue(null) }
-                    }
-                }
-            }
+            SidePathsView(sector, paths, blocks, apiKey)
         }
 
         imageFile?.let { image ->
@@ -490,6 +434,172 @@ class SectorViewer : AppCompatActivity() {
                         )
                     }
                 ) { viewModel.selectionIndex.postValue(null) }
+            }
+        }
+    }
+
+    @Composable
+    fun RowScope.SidePathsView(
+        sector: Sector,
+        paths: List<Path>,
+        blocks: Map<Path, List<Blocking>>,
+        apiKey: String?
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
+        ) {
+            val selectedPath by viewModel.selectionIndex.observeAsState()
+
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                stickyHeader(
+                    key = "sector-information-title",
+                    contentType = "title"
+                ) {
+                    Text(
+                        text = stringResource(R.string.list_sector_information_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+                if (sector.kidsApt) {
+                    item(
+                        key = "sector-children-apt",
+                        contentType = "sector-info"
+                    ) {
+                        InfoRow(
+                            icon = Icons.Rounded.ChildFriendly,
+                            iconContentDescription = stringResource(R.string.sector_kids_apt_title),
+                            title = stringResource(R.string.sector_kids_apt_title),
+                            subtitle = stringResource(R.string.sector_kids_apt_message)
+                        )
+                    }
+                }
+                item(
+                    key = "sector-sun-time",
+                    contentType = "sector-info"
+                ) {
+                    val sunTime = sector.sunTime
+
+                    InfoRow(
+                        icon = sunTime.icon,
+                        iconContentDescription = stringResource(sunTime.label),
+                        title = stringResource(sunTime.title),
+                        subtitle = stringResource(sunTime.message)
+                    )
+                }
+                if (sector.point != null) {
+                    item(
+                        key = "sector-point",
+                        contentType = "sector-info"
+                    ) {
+                        val point = sector.point
+
+                        InfoRow(
+                            icon = Icons.Rounded.Place,
+                            iconContentDescription = stringResource(R.string.info_point_description),
+                            title = stringResource(R.string.info_zone_location),
+                            subtitle = "${point.latitude}, ${point.longitude}",
+                            actions = listOfNotNull(
+                                point
+                                    .uri(sector.displayName)
+                                    .viewIntent
+                                    .apply {
+                                        setPackage("com.google.android.apps.maps")
+                                    }
+                                    .takeIf { it.canBeResolved(this@SectorViewer) }
+                                    ?.let { intent ->
+                                        Icons.Rounded.Map to {
+                                            startActivity(intent)
+                                        }
+                                    }
+                            )
+                        )
+                    }
+                }
+                if (sector.walkingTime != null) {
+                    item(
+                        key = "sector-walking-time",
+                        contentType = "sector-info"
+                    ) {
+                        val walkingTime = sector.walkingTime
+
+                        InfoRow(
+                            icon = Icons.Rounded.DirectionsWalk,
+                            iconContentDescription = stringResource(R.string.sector_walking_time_title),
+                            title = stringResource(R.string.sector_walking_time_title),
+                            subtitle = stringResource(R.string.sector_walking_time_message, walkingTime)
+                        )
+                    }
+                }
+
+                stickyHeader(
+                    key = "sector-children-title",
+                    contentType = "title"
+                ) {
+                    Text(
+                        text = stringResource(sector.childrenTitleRes),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+                itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
+                    PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
+                        viewModel.selectionIndex.postValue(index)
+                    }
+                }
+            }
+
+            AnimatedContent(
+                targetState = selectedPath,
+                label = "animate-bottom-path-info",
+                transitionSpec = {
+                    if (targetState == null || initialState == null) {
+                        // moving from open to closed, or from closed to open
+                        slideInVertically { -it } togetherWith slideOutVertically { it }
+                    } else if (initialState != null && targetState != null) {
+                        // moving from one path to another
+                        if (initialState!! < targetState!!) {
+                            // moving from left to right
+                            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                        } else {
+                            // moving from right to left
+                            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                        }
+                    } else {
+                        fadeIn() togetherWith fadeOut()
+                    }
+                }
+            ) { selectedIndex ->
+                val path = selectedIndex?.let(paths::get)
+                if (path != null) {
+                    PathInformation(
+                        path,
+                        apiKey = apiKey,
+                        blocks = blocks[path] ?: emptyList(),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        onNextRequested = if (selectedIndex + 1 >= paths.size)
+                            null
+                        else {
+                            { viewModel.selectionIndex.postValue(selectedIndex + 1) }
+                        },
+                        onPreviousRequested = if (selectedIndex <= 0)
+                            null
+                        else {
+                            { viewModel.selectionIndex.postValue(selectedIndex - 1) }
+                        },
+                        onEditRequested = {
+                            newPathLauncher.launch(
+                                EditorActivity.Input.fromElement(sector, path)
+                            )
+                        }
+                    ) { viewModel.selectionIndex.postValue(null) }
+                }
             }
         }
     }

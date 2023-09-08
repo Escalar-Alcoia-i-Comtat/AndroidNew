@@ -53,7 +53,7 @@ data class Sector(
     override val pluralRes: Int = R.plurals.path_count
 
     @Ignore
-    override val childrenTitleRes: Int = -1
+    override val childrenTitleRes: Int = R.string.list_sector_children
 
     override fun toJson(): JSONObject = jsonOf(
         "id" to id,
