@@ -38,6 +38,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
@@ -263,6 +265,7 @@ class SectorViewer : AppCompatActivity() {
                                 actions = {
                                     ToolbarActionsOverflow(
                                         actions = listOfNotNull(
+                                            // Sector Information
                                             ToolbarAction(
                                                 Icons.Outlined.Info,
                                                 stringResource(R.string.action_info)
@@ -271,6 +274,17 @@ class SectorViewer : AppCompatActivity() {
                                             }.takeIf {
                                                 windowSizeClass.widthSizeClass != WindowWidthSizeClass.Expanded
                                             },
+                                            // Favorite
+                                            ToolbarAction(
+                                                if (sector.isFavorite)
+                                                    Icons.Outlined.Bookmark
+                                                else
+                                                    Icons.Outlined.BookmarkBorder,
+                                                stringResource(R.string.action_favorite)
+                                            ) {
+                                                viewModel.toggleSectorFavorite()
+                                            },
+                                            // Edit
                                             ToolbarAction(
                                                 Icons.Rounded.Edit,
                                                 stringResource(R.string.action_edit)
@@ -279,6 +293,7 @@ class SectorViewer : AppCompatActivity() {
                                                     EditorActivity.Input.fromElement(sector)
                                                 )
                                             }.takeIf { apiKey != null },
+                                            // Create
                                             ToolbarAction(
                                                 Icons.Rounded.Add,
                                                 stringResource(R.string.action_create)
@@ -288,7 +303,7 @@ class SectorViewer : AppCompatActivity() {
                                                 )
                                             }.takeIf { apiKey != null }
                                         ),
-                                        maxItems = when(windowSizeClass.widthSizeClass) {
+                                        maxItems = when (windowSizeClass.widthSizeClass) {
                                             WindowWidthSizeClass.Compact -> 2
                                             WindowWidthSizeClass.Medium -> 3
                                             WindowWidthSizeClass.Expanded -> 5
@@ -925,7 +940,9 @@ class SectorViewer : AppCompatActivity() {
             ) {
                 Text(
                     text = sector.displayName,
-                    modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconButton(onClick = onDismissRequested) {
@@ -933,7 +950,9 @@ class SectorViewer : AppCompatActivity() {
                 }
             }
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
             ) {
                 populateSectorInformation(sector)
             }
@@ -1003,6 +1022,21 @@ class SectorViewer : AppCompatActivity() {
                 LocalDeletion(type = "block", deleteId = blocking.id)
             )
             dao.delete(blocking)
+        }
+
+        /**
+         * Toggles the favorite status of the currently loaded sector. Does nothing if no sector
+         * is loaded.
+         */
+        fun toggleSectorFavorite() {
+            val sector = _sector.value ?: return
+
+            viewModelScope.launch(Dispatchers.IO) {
+                val newSector = sector.copy(isFavorite = !sector.isFavorite)
+                Timber.i("Updating isFavorite of Sector #${sector.id} to ${sector.isFavorite}")
+                dao.update(newSector)
+                _sector.postValue(newSector)
+            }
         }
 
         sealed class Selection {

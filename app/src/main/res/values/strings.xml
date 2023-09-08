@@ -19,6 +19,7 @@
     <string name="action_skip">Skip</string>
     <string name="action_more">More</string>
     <string name="action_info">Information</string>
+    <string name="action_favorite">Mark as Favorite</string>
 
     <string name="state_calculating">Calculating…</string>
 

@@ -86,6 +86,7 @@ data class Sector(
         if (point != other.point) return false
         if (weight != other.weight) return false
         if (parentId != other.parentId) return false
+        if (isFavorite != other.isFavorite) return false
 
         return true
     }
