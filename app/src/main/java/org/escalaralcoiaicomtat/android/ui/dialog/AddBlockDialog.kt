@@ -136,7 +136,7 @@ fun AddBlockDialog(
                     options = BlockingTypes.entries,
                     label = stringResource(R.string.block_new_type),
                     toString = { stringResource(it.titleRes) },
-                    icon = { it.iconRes },
+                    icon = { it.icon },
                     modifier = Modifier.fillMaxWidth()
                 )
 
