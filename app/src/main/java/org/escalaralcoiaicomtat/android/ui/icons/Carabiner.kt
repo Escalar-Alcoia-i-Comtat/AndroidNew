@@ -15,10 +15,10 @@ val Icons.Filled.Carabiner: ImageVector
         }
         _carabiner = ImageVector.Builder(
             name = "Carabiner",
-            defaultWidth = 200.0.dp,
-            defaultHeight = 200.0.dp,
-            viewportWidth = 200.0F,
-            viewportHeight = 200.0F,
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24F,
+            viewportHeight = 24F,
         ).materialPath {
             verticalLineToRelative(0.0F)
             moveTo(13.8125F, 2.0F)

@@ -15,10 +15,10 @@ val Icons.Filled.ClimbingShoes: ImageVector
         }
         _climbingShoes = ImageVector.Builder(
             name = "ClimbingShoes",
-            defaultWidth = 200.0.dp,
-            defaultHeight = 200.0.dp,
-            viewportWidth = 200.0F,
-            viewportHeight = 200.0F,
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24F,
+            viewportHeight = 24F,
         ).materialPath {
             verticalLineToRelative(0.0F)
             moveTo(19.5F, 2.0F)
