@@ -14,9 +14,22 @@
     <string name="action_update">Actualitza</string>
     <string name="action_edit">Editar</string>
     <string name="action_confirm">Confirmar</string>
+    <string name="action_view_video">Veure Vídeo</string>
+    <string name="action_done">Llest</string>
+    <string name="action_skip">Omet</string>
     <string name="state_calculating">Calculant…</string>
     <string name="search">Cerca…</string>
     <string name="none">Cap</string>
+    <string name="intro_1_title">Benvingut a Escalar Alcoià i Comtat</string>
+    <string name="intro_1_message">Hi ha informació important que has de saber abans de fer servir l\'app. Llista cap a la dreta o toca el botó de baix a la dreta per a continuar.</string>
+    <string name="intro_2_title">Atenció!</string>
+    <string name="intro_2_message">L\'escalada és un esport considerat de risc, tot el que el practiqui ha de preocupar-se del seu coneixement i correcta execució. Des d\'aquesta guia, no ens fem responsables de cap mena d\'accident. Tampoc ens fem responsables dels equipaments de les zones d\'escalada, ací anomenades.</string>
+    <string name="intro_3_title">Coneix el teu material</string>
+    <string name="intro_3_message">Assegura\'t de conèixer el material que fas servir. La gran part d\'accidents ocorren a causa d\'un mal ús del material de seguretat. Proporcionem un vídeo on s\'explica el correcte funcionament i ús del Grigri de Petzl: un dels asseguradors més utilitzats avui en dia.</string>
+    <string name="intro_4_title">Cuida dels nens</string>
+    <string name="intro_4_message">Si escales amb nens, preocupa\'t per la seva seguretat. Si escalen, fes servir el material adequa\'t, i informa\'ls i adverteix-los dels perills de l\'escalada. Cada sector té informació sobre la seguretat del peu de via per a nens.</string>
+    <string name="intro_5_title">Gaudeix!</string>
+    <string name="intro_5_message">Ja estàs llest per accedir a l\'aplicació! No dubtes en contactar amb nosaltres si trobes cap dada incorrecta o inexacta.</string>
     <string name="item_home">Inici</string>
     <string name="item_favorites">Preferits</string>
     <string name="item_settings">Configuració</string>
@@ -228,13 +241,4 @@
         <item quantity="one">%d via</item>
         <item quantity="other">%d vies</item>
     </plurals>
-    <!-- CREDITS -->
-    <string name="credit_icons8">Icona %s per %s</string>
-    <string name="credit_icons8_anchor">Segur d\'Escalada</string>
-    <string name="credit_icons8_rope">Corda</string>
-    <string name="credit_icons8_climbing_helmet">Casc d\'Escalada</string>
-    <string name="credit_icons8_quickdraw">Cinta express</string>
-    <string name="credit_icons8_energy_absorber">Dissipador</string>
-    <string name="credit_icons8_bird">Ocells</string>
-    <string name="credits_lordicon">Icones per Lordicon.com</string>
 </resources>
