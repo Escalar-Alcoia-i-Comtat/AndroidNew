@@ -17,6 +17,9 @@
     <string name="action_view_video">View Video</string>
     <string name="action_done">Done</string>
     <string name="action_skip">Omitir</string>
+    <string name="action_more">More</string>
+    <string name="action_info">Information</string>
+    <string name="action_favorite">Mark as Favorite</string>
     <string name="state_calculating">Calculating…</string>
     <string name="search">Buscar…</string>
     <string name="none">Ninguna</string>
