@@ -117,14 +117,6 @@ data class Path(
         minLength
     }
 
-    /**
-     * Checks whether any of the count variables ([paraboltCount], [burilCount], [pitonCount],
-     * [spitCount], [tensorCount]) is not null.
-     */
-    @Ignore
-    val anyCount: Boolean = paraboltCount != null || burilCount != null || pitonCount != null ||
-        spitCount != null || tensorCount != null
-
     @Ignore
     val parabolts: SafesCount? = paraboltCount
         ?.takeIf { it > 0 }
@@ -149,6 +141,14 @@ data class Path(
     val tensors: SafesCount? = tensorCount
         ?.takeIf { it > 0 }
         ?.let { SafesCount(it, R.plurals.safe_type_tensor, R.string.safe_type_tensor) }
+
+    /**
+     * Checks whether any of the count variables ([parabolts], [burils], [pitons], [spits],
+     * [tensors]) is not null.
+     */
+    @Ignore
+    val anyCount: Boolean = parabolts != null || burils != null || pitons != null || spits != null
+        || tensors != null
 
     /**
      * Returns true if any of [crackerRequired], [friendRequired], [lanyardRequired], [nailRequired],
