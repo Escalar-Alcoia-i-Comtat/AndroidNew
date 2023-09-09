@@ -36,12 +36,12 @@ jobs:
           echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
 
-      - name: Build AAB
-        id: build_aab
+      - name: Build
+        id: build
         run: |
           echo "Building ${{ steps.create_release.outputs.tag_name }}..."
           yes | $ANDROID_HOME/tools/bin/sdkmanager "build-tools;34.0.0"
-          bash ./gradlew :app:increaseVersionCode :app:bundleRelease --stacktrace
+          bash ./gradlew :app:increaseVersionCode :app:bundleRelease :app:assembleRelease --stacktrace
 
       - name: Commit version.properties
         id: commit_version
@@ -50,13 +50,6 @@ jobs:
           commit_message: Increased Version Code
           file_pattern: 'version.properties'
           branch: master
-
-      - name: Build APK
-        id: build_apk
-        run: |
-          echo "Building ${{ steps.create_release.outputs.tag_name }}..."
-          yes | $ANDROID_HOME/tools/bin/sdkmanager "build-tools;34.0.0"
-          bash ./gradlew :app:assembleRelease --stacktrace
 
       - name: Create Github release
         id: release_github
