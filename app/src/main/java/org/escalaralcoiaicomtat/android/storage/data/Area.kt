@@ -8,7 +8,6 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.R
-import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
@@ -26,8 +25,7 @@ data class Area(
     override val timestamp: Instant,
     override val displayName: String,
     val webUrl: Uri,
-    override val image: String,
-    override val isFavorite: Boolean = false,
+    override val image: String
 ) : ImageEntity(), JsonSerializable, Parcelable {
     companion object CREATOR : JsonSerializer<Area>, Parcelable.Creator<Area> {
         override fun fromJson(json: JSONObject): Area = Area(
@@ -35,8 +33,7 @@ data class Area(
             json.getInstant("timestamp"),
             json.getString("display_name"),
             json.getString("web_url").let(Uri::parse),
-            json.getString("image"),
-            json.getBooleanOrNull("is_favorite") ?: false
+            json.getString("image")
         )
 
         override fun createFromParcel(parcel: Parcel): Area = Area(parcel)
@@ -54,12 +51,7 @@ data class Area(
             @Suppress("DEPRECATION")
             parcel.readParcelable(Uri::class.java.classLoader)!!
         },
-        parcel.readString()!!,
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            parcel.readBoolean()
-        } else {
-            parcel.readByte().toInt() == 1
-        }
+        parcel.readString()!!
     )
 
     override val parentId: Long
@@ -76,8 +68,7 @@ data class Area(
         "timestamp" to timestamp,
         "display_name" to displayName,
         "web_url" to webUrl,
-        "image" to image,
-        "is_favorite" to isFavorite
+        "image" to image
     )
 
     override fun describeContents(): Int = 0
@@ -88,11 +79,6 @@ data class Area(
         parcel.writeString(displayName)
         parcel.writeParcelable(webUrl, 0)
         parcel.writeString(image)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            parcel.writeBoolean(isFavorite)
-        } else {
-            parcel.writeByte(if (isFavorite) 1 else 0)
-        }
     }
 
     override fun equals(other: Any?): Boolean {

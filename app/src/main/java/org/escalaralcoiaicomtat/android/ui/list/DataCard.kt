@@ -54,7 +54,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.network.NetworkObserver.Companion.rememberNetworkObserver
+import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
+import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import timber.log.Timber
@@ -76,6 +80,8 @@ fun <T: ImageEntity> DataCard(
     val isNetworkAvailable by networkObserver.isNetworkAvailable.observeAsState()
 
     val filesCrate = FilesCrate.rememberInstance()
+    val appDatabase = AppDatabase.rememberInstance()
+    val userDao = appDatabase.userDao()
 
     val imageFile by item.rememberImageFile().observeAsState()
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
@@ -83,8 +89,14 @@ fun <T: ImageEntity> DataCard(
     var isDownloading by remember { mutableStateOf(false) }
     var isTogglingFavorite by remember { mutableStateOf(false) }
 
-    val isDownloaded by FilesCrate.getInstance(context)
-        .existsLive(item.imageUUID)
+    val isDownloaded by filesCrate.existsLive(item.imageUUID)
+    val isFavoriteLive = when (item) {
+        is Area -> userDao.getAreaLive(item.id)
+        is Zone -> userDao.getZoneLive(item.id)
+        is Sector -> userDao.getSectorLive(item.id)
+        else -> throw IllegalArgumentException("Item type is not supported: ${item::class.simpleName}")
+    }
+    val isFavorite by isFavoriteLive.observeAsState()
 
     var isShowingDeleteDialog by remember { mutableStateOf(false) }
     if (isShowingDeleteDialog)
@@ -190,11 +202,11 @@ fun <T: ImageEntity> DataCard(
                 enabled = !isTogglingFavorite
             ) {
                 AnimatedContent(
-                    targetState = item,
+                    targetState = isFavorite,
                     label = "animate-favorite"
-                ) {
+                ) { favorite ->
                     Icon(
-                        if (it.isFavorite)
+                        if (favorite != null)
                             Icons.Rounded.Bookmark
                         else
                             Icons.Rounded.BookmarkBorder,

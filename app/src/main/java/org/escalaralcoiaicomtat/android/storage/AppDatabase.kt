@@ -2,6 +2,9 @@ package org.escalaralcoiaicomtat.android.storage
 
 import android.content.Context
 import androidx.annotation.VisibleForTesting
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -11,16 +14,21 @@ import org.escalaralcoiaicomtat.android.storage.converters.Converters
 import org.escalaralcoiaicomtat.android.storage.converters.JavaConverters
 import org.escalaralcoiaicomtat.android.storage.converters.ListConverters
 import org.escalaralcoiaicomtat.android.storage.dao.DataDao
+import org.escalaralcoiaicomtat.android.storage.dao.UserDao
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
 
 @Database(
     entities = [
-        Area::class, Zone::class, Sector::class, Path::class, Blocking::class, LocalDeletion::class
+        Area::class, Zone::class, Sector::class, Path::class, Blocking::class, LocalDeletion::class,
+        FavoriteArea::class, FavoriteZone::class, FavoriteSector::class
     ],
     version = 1
 )
@@ -41,7 +49,15 @@ abstract class AppDatabase : RoomDatabase() {
                 .build()
                 .also { instance = it }
         }
+
+        @Composable
+        fun rememberInstance(): AppDatabase {
+            val context = LocalContext.current
+            return remember { getInstance(context) }
+        }
     }
 
     abstract fun dataDao(): DataDao
+
+    abstract fun userDao(): UserDao
 }

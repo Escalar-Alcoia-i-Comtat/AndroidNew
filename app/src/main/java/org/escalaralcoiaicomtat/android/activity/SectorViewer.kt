@@ -82,10 +82,15 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.ktor.client.request.header
@@ -109,11 +114,14 @@ import org.escalaralcoiaicomtat.android.network.bodyAsJson
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.dao.toggleFavorite
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
+import org.escalaralcoiaicomtat.android.storage.relations.PathWithBlocks
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
@@ -160,7 +168,17 @@ class SectorViewer : AppCompatActivity() {
         override fun parseResult(resultCode: Int, intent: Intent?): Void? = null
     }
 
-    private val viewModel: Model by viewModels()
+    private val viewModel: Model by viewModels {
+        val extras = intent.extras
+        val sectorId = extras?.getLong(EXTRA_SECTOR_ID, -1)
+        if (sectorId == null || sectorId < 0) {
+            Timber.e("Sector ID not specified, going back...")
+            setResult(Activity.RESULT_CANCELED)
+            finish()
+        }
+
+        Model.Factory(sectorId ?: -1)
+    }
 
     private val newSectorLauncher = registerForActivityResult(NewSectorActivity.Contract) {}
 
@@ -178,8 +196,6 @@ class SectorViewer : AppCompatActivity() {
             return
         }
 
-        viewModel.loadSector(this, sectorId)
-
         onBackPressedDispatcher.addCallback(this) {
             if (viewModel.selection.value != null) {
                 viewModel.selection.postValue(null)
@@ -194,6 +210,9 @@ class SectorViewer : AppCompatActivity() {
 
             val sector by viewModel.sector.observeAsState()
             val paths by viewModel.paths.observeAsState()
+
+            val apiKey by viewModel.apiKey.observeAsState()
+            val isFavorite by viewModel.isFavorite.observeAsState()
 
             val filters = remember { mutableStateListOf<Filter>() }
 
@@ -240,8 +259,6 @@ class SectorViewer : AppCompatActivity() {
 
             Scaffold(
                 topBar = {
-                    val apiKey by Preferences.getApiKey(this).collectAsState(initial = null)
-
                     AnimatedContent(
                         targetState = sector,
                         label = "action-bar-visibility"
@@ -267,8 +284,8 @@ class SectorViewer : AppCompatActivity() {
                                         actions = listOfNotNull(
                                             // Sector Information
                                             ToolbarAction(
-                                                Icons.Outlined.Info,
-                                                stringResource(R.string.action_info)
+                                                { Icons.Outlined.Info },
+                                                { stringResource(R.string.action_info) }
                                             ) {
                                                 viewModel.selection.postValue(Model.Selection.SectorInformation)
                                             }.takeIf {
@@ -276,18 +293,20 @@ class SectorViewer : AppCompatActivity() {
                                             },
                                             // Favorite
                                             ToolbarAction(
-                                                if (sector.isFavorite)
-                                                    Icons.Outlined.Bookmark
-                                                else
-                                                    Icons.Outlined.BookmarkBorder,
-                                                stringResource(R.string.action_favorite)
+                                                {
+                                                    if (isFavorite != null)
+                                                        Icons.Outlined.Bookmark
+                                                    else
+                                                        Icons.Outlined.BookmarkBorder
+                                                },
+                                                { stringResource(R.string.action_favorite) }
                                             ) {
                                                 viewModel.toggleSectorFavorite()
                                             },
                                             // Edit
                                             ToolbarAction(
-                                                Icons.Rounded.Edit,
-                                                stringResource(R.string.action_edit)
+                                                { Icons.Rounded.Edit },
+                                                { stringResource(R.string.action_edit) }
                                             ) {
                                                 newSectorLauncher.launch(
                                                     EditorActivity.Input.fromElement(sector)
@@ -295,8 +314,8 @@ class SectorViewer : AppCompatActivity() {
                                             }.takeIf { apiKey != null },
                                             // Create
                                             ToolbarAction(
-                                                Icons.Rounded.Add,
-                                                stringResource(R.string.action_create)
+                                                { Icons.Rounded.Add },
+                                                { stringResource(R.string.action_create) }
                                             ) {
                                                 newPathLauncher.launch(
                                                     EditorActivity.Input.fromParent(sector)
@@ -959,12 +978,17 @@ class SectorViewer : AppCompatActivity() {
         }
     }
 
-    class Model(application: Application) : AndroidViewModel(application) {
+    class Model(application: Application, private val sectorId: Long) :
+        AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
-        private val dao = database.dataDao()
+        private val dataDao = database.dataDao()
+        private val userDao = database.userDao()
 
         private val _sector = MutableLiveData<Sector>()
         val sector: LiveData<Sector?> get() = _sector
+
+        private var _isFavorite: LiveData<FavoriteSector?> = userDao.getSectorLive(sectorId)
+        val isFavorite: LiveData<FavoriteSector?> get() = _isFavorite
 
         private val _paths = MutableLiveData<List<Path>>()
         val paths: LiveData<List<Path>> get() = _paths
@@ -974,24 +998,34 @@ class SectorViewer : AppCompatActivity() {
 
         val selection: MutableLiveData<Selection?> = MutableLiveData(null)
 
-        fun loadSector(lifecycleOwner: LifecycleOwner, sectorId: Long) =
-            viewModelScope.launch(Dispatchers.IO) {
-                val sector = dao.getSector(sectorId)
+        val apiKey = Preferences.getApiKey(application).asLiveData(Dispatchers.Main)
+
+        private lateinit var _pathWithBlocks: LiveData<List<PathWithBlocks>>
+        private val pathWithBlocksObserver = Observer<List<PathWithBlocks>> { pathsWithBlocks ->
+            val list = pathsWithBlocks.map { it.path }.sorted()
+
+            _paths.postValue(list)
+            _blocks.postValue(
+                pathsWithBlocks.associate { it.path to it.blocks }
+            )
+        }
+
+        init {
+            if (sectorId >= 0) viewModelScope.launch(Dispatchers.IO) {
+                val sector = dataDao.getSector(sectorId)
                     ?: throw IllegalArgumentException("Could not find sector with id $sectorId")
                 _sector.postValue(sector)
 
-                val paths = dao.getPathWithBlocksLive(sector.id)
+                _pathWithBlocks = dataDao.getPathWithBlocksLive(sector.id)
                 withContext(Dispatchers.Main) {
-                    paths.observe(lifecycleOwner) { pathsWithBlocks ->
-                        val list = pathsWithBlocks.map { it.path }.sorted()
-
-                        _paths.postValue(list)
-                        _blocks.postValue(
-                            pathsWithBlocks.associate { it.path to it.blocks }
-                        )
-                    }
+                    _pathWithBlocks.observeForever(pathWithBlocksObserver)
                 }
             }
+        }
+
+        override fun onCleared() {
+            _pathWithBlocks.removeObserver(pathWithBlocksObserver)
+        }
 
         fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
             val apiKey = Preferences.getApiKey(getApplication()).first()
@@ -1005,7 +1039,7 @@ class SectorViewer : AppCompatActivity() {
                     Timber.d("Created block successfully.")
 
                     val element = bodyAsJson().getJSONObject("element").let(Blocking::fromJson)
-                    dao.insert(element)
+                    dataDao.insert(element)
                 } else {
                     Timber.e("Could not create block in server.")
                     throw RequestException(status, bodyAsJson())
@@ -1014,14 +1048,14 @@ class SectorViewer : AppCompatActivity() {
         }
 
         fun updateBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
-            dao.update(blocking)
+            dataDao.update(blocking)
         }
 
         fun deleteBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
-            dao.notifyDeletion(
+            dataDao.notifyDeletion(
                 LocalDeletion(type = "block", deleteId = blocking.id)
             )
-            dao.delete(blocking)
+            dataDao.delete(blocking)
         }
 
         /**
@@ -1032,17 +1066,27 @@ class SectorViewer : AppCompatActivity() {
             val sector = _sector.value ?: return
 
             viewModelScope.launch(Dispatchers.IO) {
-                val newSector = sector.copy(isFavorite = !sector.isFavorite)
-                Timber.i("Updating isFavorite of Sector #${sector.id} to ${sector.isFavorite}")
-                dao.update(newSector)
-                _sector.postValue(newSector)
+                userDao.toggleFavorite(sector)
             }
         }
+
 
         sealed class Selection {
             data class Index(val index: Int) : Selection()
 
             data object SectorInformation : Selection()
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        class Factory(private val sectorId: Long) : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[APPLICATION_KEY])
+
+                return Model(application, sectorId) as T
+            }
         }
     }
 

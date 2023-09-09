@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
@@ -20,8 +21,12 @@ import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
+import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
+import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
 import org.escalaralcoiaicomtat.android.ui.screen.Routes
 import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
@@ -35,7 +40,8 @@ class MainViewModel(
     private val onSectorView: (Sector) -> Unit
 ) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
-    private val dao = database.dataDao()
+    private val dataDao = database.dataDao()
+    private val userDao = database.userDao()
 
     private val syncWorkers = SyncWorker.getLive(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
@@ -45,12 +51,25 @@ class MainViewModel(
 
     private val _currentDestination = MutableLiveData<NavDestination>()
 
-    val creationOptionsList = MutableLiveData<List<DataEntity>>()
-    val pendingCreateOperation = MutableLiveData<(DataEntity) -> Unit>()
+    val creationOptionsList = MutableLiveData<List<DataEntity>?>()
+    val pendingCreateOperation = MutableLiveData<((DataEntity) -> Unit)?>()
 
-    val favoriteAreas = dao.getAllFavoriteAreasLive()
-    val favoriteZones = dao.getAllFavoriteZonesLive()
-    val favoriteSectors = dao.getAllFavoriteSectorsLive()
+    val favoriteAreas = userDao.getAllAreasLive()
+    val favoriteZones = userDao.getAllZonesLive()
+    val favoriteSectors = userDao.getAllSectorsLive()
+
+    private val _favorites = MutableLiveData<List<ImageEntity>>()
+    val favorites: LiveData<List<ImageEntity>> get() = _favorites
+
+    private val favoriteAreasObserver = Observer<List<FavoriteArea>> {
+        updateFavorites()
+    }
+    private val favoriteZonesObserver = Observer<List<FavoriteZone>> {
+        updateFavorites()
+    }
+    private val favoriteSectorsObserver = Observer<List<FavoriteSector>> {
+        updateFavorites()
+    }
 
     val selectionWithCurrentDestination = MediatorLiveData<Pair<DataEntity?, NavDestination?>>().apply {
         addSource(_selection) {
@@ -61,13 +80,19 @@ class MainViewModel(
         }
     }
 
+    init {
+        favoriteAreas.observeForever(favoriteAreasObserver)
+        favoriteZones.observeForever(favoriteZonesObserver)
+        favoriteSectors.observeForever(favoriteSectorsObserver)
+    }
+
     fun load(areaId: Long?, zoneId: Long?) = viewModelScope.launch(Dispatchers.IO) {
         if (zoneId != null) {
             Timber.d("Loading zone $zoneId...")
-            _selection.postValue(dao.getZone(zoneId))
+            _selection.postValue(dataDao.getZone(zoneId))
         } else if (areaId != null) {
             Timber.d("Loading area $areaId...")
-            _selection.postValue(dao.getArea(areaId))
+            _selection.postValue(dataDao.getArea(areaId))
         } else {
             _selection.postValue(null)
         }
@@ -117,7 +142,7 @@ class MainViewModel(
 
         Timber.d("Moving sector from $from to $to")
         // Get a list of all the sectors in the zone
-        val sectors = dao.getSectorsFromZone(zone.id)?.sectors ?: return@launch
+        val sectors = dataDao.getSectorsFromZone(zone.id)?.sectors ?: return@launch
         // Sort the sectors by current weight, and make sure the list is mutable
         val sortedSectors = sectors.sortedBy { it.weight }.toMutableList()
         // Move the desired item
@@ -131,7 +156,7 @@ class MainViewModel(
                 )
             }
         // Update the database entries
-        for (sector in updatedSectors) dao.update(sector)
+        for (sector in updatedSectors) dataDao.update(sector)
     }
 
     /**
@@ -147,9 +172,9 @@ class MainViewModel(
      */
     fun <T: DataEntity> createChooser(type: KClass<T>, operation: (T) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         val list = when(type) {
-            Area::class -> dao.getAllAreas()
-            Zone::class -> dao.getAllZones()
-            Sector::class -> dao.getAllSectors()
+            Area::class -> dataDao.getAllAreas()
+            Zone::class -> dataDao.getAllZones()
+            Sector::class -> dataDao.getAllSectors()
             else -> throw IllegalArgumentException("Could not select as parent ${type.simpleName}")
         }
         pendingCreateOperation.postValue {
@@ -162,6 +187,26 @@ class MainViewModel(
     fun dismissChooser() {
         pendingCreateOperation.postValue(null)
         creationOptionsList.postValue(null)
+    }
+
+    private fun updateFavorites() = viewModelScope.launch(Dispatchers.IO) {
+        val areas = favoriteAreas.value ?: emptyList()
+        val zones = favoriteZones.value ?: emptyList()
+        val sectors = favoriteSectors.value ?: emptyList()
+
+        val favorites = mutableListOf<ImageEntity>()
+
+        for (favorite in areas) {
+            dataDao.getArea(favorite.areaId)?.let(favorites::add)
+        }
+        for (favorite in zones) {
+            dataDao.getZone(favorite.zoneId)?.let(favorites::add)
+        }
+        for (favorite in sectors) {
+            dataDao.getSector(favorite.sectorId)?.let(favorites::add)
+        }
+
+        _favorites.postValue(favorites)
     }
 
     companion object {

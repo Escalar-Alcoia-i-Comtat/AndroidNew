@@ -165,9 +165,7 @@ fun MainScreen(
 
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
 
-    val favoriteAreas by viewModel.favoriteAreas.observeAsState(initial = emptyList())
-    val favoriteZones by viewModel.favoriteZones.observeAsState(initial = emptyList())
-    val favoriteSectors by viewModel.favoriteSectors.observeAsState(initial = emptyList())
+    val favorites by viewModel.favorites.observeAsState(initial = emptyList())
 
     var backProgress by remember { mutableStateOf<Float?>(null) }
 
@@ -253,9 +251,7 @@ fun MainScreen(
     NavigationScaffold(
         items = listOfNotNull(
             Routes.NavigationHome,
-            Routes.NavigationFavorites.takeIf {
-                favoriteAreas.isNotEmpty() || favoriteZones.isNotEmpty() || favoriteSectors.isNotEmpty()
-            },
+            Routes.NavigationFavorites.takeIf { favorites.isNotEmpty() },
             Routes.NavigationSettings
         ),
         initialRoute = Routes.NavigationHome.createRoute(),
@@ -484,8 +480,6 @@ fun MainScreen(
             }
 
             Routes.NavigationFavorites -> {
-                val favorites: List<ImageEntity> = listOf(favoriteAreas, favoriteZones, favoriteSectors).flatten()
-
                 DataList(
                     kClass = ImageEntity::class,
                     parent = null,

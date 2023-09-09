@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "68e386434cafc1d8da117979e99b39e9",
+    "identityHash": "03c9b2b44ed673ac98b581b9b4361795",
     "entities": [
       {
         "tableName": "areas",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -37,12 +37,6 @@
             "columnName": "image",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "isFavorite",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -56,7 +50,7 @@
       },
       {
         "tableName": "zones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, `kmz` TEXT NOT NULL, `point` TEXT, `points` TEXT NOT NULL, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `webUrl` TEXT NOT NULL, `image` TEXT NOT NULL, `kmz` TEXT NOT NULL, `point` TEXT, `points` TEXT NOT NULL, `parentId` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -111,12 +105,6 @@
             "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "isFavorite",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -130,7 +118,7 @@
       },
       {
         "tableName": "sectors",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `kidsApt` INTEGER NOT NULL, `sunTime` TEXT NOT NULL, `walkingTime` INTEGER, `image` TEXT NOT NULL, `point` TEXT, `weight` TEXT NOT NULL, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `kidsApt` INTEGER NOT NULL, `sunTime` TEXT NOT NULL, `walkingTime` INTEGER, `image` TEXT NOT NULL, `point` TEXT, `weight` TEXT NOT NULL, `parentId` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -191,12 +179,6 @@
             "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "isFavorite",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -210,7 +192,7 @@
       },
       {
         "tableName": "paths",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `sketchId` INTEGER NOT NULL, `height` INTEGER, `grade` TEXT, `ending` TEXT, `pitches` TEXT, `stringCount` INTEGER, `paraboltCount` INTEGER, `burilCount` INTEGER, `pitonCount` INTEGER, `spitCount` INTEGER, `tensorCount` INTEGER, `crackerRequired` INTEGER NOT NULL, `friendRequired` INTEGER NOT NULL, `lanyardRequired` INTEGER NOT NULL, `nailRequired` INTEGER NOT NULL, `pitonRequired` INTEGER NOT NULL, `stapesRequired` INTEGER NOT NULL, `showDescription` INTEGER NOT NULL, `description` TEXT, `builder` TEXT, `reBuilder` TEXT, `parentId` INTEGER NOT NULL, `isFavorite` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `displayName` TEXT NOT NULL, `sketchId` INTEGER NOT NULL, `height` INTEGER, `grade` TEXT, `ending` TEXT, `pitches` TEXT, `stringCount` INTEGER, `paraboltCount` INTEGER, `burilCount` INTEGER, `pitonCount` INTEGER, `spitCount` INTEGER, `tensorCount` INTEGER, `crackerRequired` INTEGER NOT NULL, `friendRequired` INTEGER NOT NULL, `lanyardRequired` INTEGER NOT NULL, `nailRequired` INTEGER NOT NULL, `pitonRequired` INTEGER NOT NULL, `stapesRequired` INTEGER NOT NULL, `showDescription` INTEGER NOT NULL, `description` TEXT, `builder` TEXT, `reBuilder` TEXT, `parentId` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -361,12 +343,6 @@
             "columnName": "parentId",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "isFavorite",
-            "columnName": "isFavorite",
-            "affinity": "INTEGER",
-            "notNull": true
           }
         ],
         "primaryKey": {
@@ -459,12 +435,90 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "favorite_areas",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `areaId` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "areaId",
+            "columnName": "areaId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "favorite_zones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `zoneId` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zoneId",
+            "columnName": "zoneId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "favorite_sectors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sectorId` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sectorId",
+            "columnName": "sectorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68e386434cafc1d8da117979e99b39e9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '03c9b2b44ed673ac98b581b9b4361795')"
     ]
   }
 }

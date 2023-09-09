@@ -7,7 +7,6 @@ import androidx.compose.ui.res.pluralStringResource
 
 abstract class DataEntity : BaseEntity() {
     abstract val displayName: String
-    abstract val isFavorite: Boolean
 
     @get:PluralsRes
     protected abstract val pluralRes: Int

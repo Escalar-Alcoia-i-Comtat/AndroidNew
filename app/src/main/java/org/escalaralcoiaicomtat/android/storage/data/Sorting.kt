@@ -17,14 +17,7 @@ fun <G : BaseEntity> Iterable<G>.sorted(): List<G> =
             is Sector -> sortedWith(
                 compareBy(
                     { (it as Sector).weight },
-                    { sector ->
-                        sector as Sector
-                        if (sector.isFavorite) {
-                            "\u0000${sector.displayName}"
-                        } else {
-                            sector.displayName
-                        }
-                    }
+                    { (it as Sector).displayName }
                 )
             )
 

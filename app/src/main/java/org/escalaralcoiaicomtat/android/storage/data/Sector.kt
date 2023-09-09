@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
-import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getEnum
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
@@ -30,8 +29,7 @@ data class Sector(
     override val image: String,
     val point: LatLng?,
     val weight: String,
-    override val parentId: Long,
-    override val isFavorite: Boolean = false
+    override val parentId: Long
 ) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Sector> {
         override fun fromJson(json: JSONObject): Sector = Sector(
@@ -44,8 +42,7 @@ data class Sector(
             json.getString("image"),
             json.getSerializable<LatLng, LatLng.Companion>("point"),
             json.getString("weight"),
-            json.getLong("zone_id"),
-            json.getBooleanOrNull("is_favorite") ?: false
+            json.getLong("zone_id")
         )
     }
 
@@ -65,8 +62,7 @@ data class Sector(
         "image" to image,
         "point" to point,
         "weight" to weight,
-        "zone_id" to parentId,
-        "is_favorite" to isFavorite
+        "zone_id" to parentId
     )
 
     override fun equals(other: Any?): Boolean {
@@ -86,7 +82,6 @@ data class Sector(
         if (point != other.point) return false
         if (weight != other.weight) return false
         if (parentId != other.parentId) return false
-        if (isFavorite != other.isFavorite) return false
 
         return true
     }

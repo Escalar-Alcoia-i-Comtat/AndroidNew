@@ -31,6 +31,7 @@ import org.escalaralcoiaicomtat.android.network.EndpointUtils
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.storage.dao.toggleFavorite
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
@@ -152,7 +153,7 @@ class MainActivity : AppCompatActivity() {
 
     class Model(application: Application) : AndroidViewModel(application) {
         private val database = AppDatabase.getInstance(application)
-        private val dao = database.dataDao()
+        private val userDao = database.userDao()
 
         fun trySubmittingApiKey(apiKey: String): Job = viewModelScope.launch {
             ktorHttpClient.submitFormWithBinaryData(
@@ -172,9 +173,9 @@ class MainActivity : AppCompatActivity() {
 
         fun toggleFavorite(data: DataEntity): Job = viewModelScope.launch {
             when (data) {
-                is Area -> dao.update(data.copy(isFavorite = !data.isFavorite))
-                is Zone -> dao.update(data.copy(isFavorite = !data.isFavorite))
-                is Sector -> dao.update(data.copy(isFavorite = !data.isFavorite))
+                is Area -> userDao.toggleFavorite(data)
+                is Zone -> userDao.toggleFavorite(data)
+                is Sector -> userDao.toggleFavorite(data)
             }
         }
     }

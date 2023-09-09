@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.DataPoint
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
-import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getJSONObjectOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
@@ -29,8 +28,7 @@ data class Zone(
     val kmz: String,
     val point: LatLng?,
     val points: List<DataPoint>,
-    override val parentId: Long,
-    override val isFavorite: Boolean = false
+    override val parentId: Long
 ) : ImageEntity(), JsonSerializable {
     companion object: JsonSerializer<Zone> {
         override fun fromJson(json: JSONObject): Zone = Zone(
@@ -42,8 +40,7 @@ data class Zone(
             json.getString("kmz"),
             json.getJSONObjectOrNull("point")?.let(LatLng::fromJson),
             json.getJSONArray("points").serialize(DataPoint),
-            json.getLong("area_id"),
-            json.getBooleanOrNull("is_favorite") ?: false
+            json.getLong("area_id")
         )
     }
 
@@ -62,8 +59,7 @@ data class Zone(
         "kmz" to kmz,
         "point" to point,
         "points" to points,
-        "area_id" to parentId,
-        "is_favorite" to isFavorite
+        "area_id" to parentId
     )
 
     override fun equals(other: Any?): Boolean {

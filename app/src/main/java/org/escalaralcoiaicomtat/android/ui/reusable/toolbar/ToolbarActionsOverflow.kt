@@ -21,9 +21,9 @@ import androidx.compose.ui.res.stringResource
 import org.escalaralcoiaicomtat.android.R
 
 data class ToolbarAction(
-    val icon: ImageVector,
-    val label: String,
-    val contentDescription: String? = label,
+    val icon: @Composable () -> ImageVector,
+    val label: @Composable () -> String,
+    val contentDescription: @Composable () -> String? = label,
     val onClick: () -> Unit
 )
 
@@ -42,9 +42,9 @@ fun RowScope.ToolbarActionsOverflow(actions: List<ToolbarAction>, maxItems: Int 
 
     val actionsToDisplay = actions.subList(0, minOf(actions.size, maxItems))
     for (action in actionsToDisplay) {
-        PlainTooltipBox(tooltip = { Text(action.label) }) {
+        PlainTooltipBox(tooltip = { Text(action.label()) }) {
             IconButton(onClick = action.onClick, modifier = Modifier.tooltipAnchor()) {
-                Icon(action.icon, action.contentDescription)
+                Icon(action.icon(), action.contentDescription())
             }
         }
     }
@@ -61,7 +61,7 @@ fun RowScope.ToolbarActionsOverflow(actions: List<ToolbarAction>, maxItems: Int 
     DropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
         for (action in overflowActions) {
             DropdownMenuItem(
-                text = { Text(action.label) },
+                text = { Text(action.label()) },
                 onClick = action.onClick
             )
         }

@@ -10,7 +10,6 @@ import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.RequiredMaterial
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
-import org.escalaralcoiaicomtat.android.utils.getBooleanOrNull
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
@@ -59,9 +58,7 @@ data class Path(
     val builder: Builder?,
     val reBuilder: List<Builder>?,
 
-    override val parentId: Long,
-
-    override val isFavorite: Boolean = false
+    override val parentId: Long
 ) : DataEntity(), JsonSerializable {
     companion object : JsonSerializer<Path> {
         override fun fromJson(json: JSONObject): Path = Path(
@@ -98,9 +95,7 @@ data class Path(
             json.getSerializableOrNull<Builder, Builder.Companion>("builder"),
             json.getSerializableArrayOrNull<Builder, Builder.Companion>("re_builder"),
 
-            json.getLong("sector_id"),
-
-            json.getBooleanOrNull("is_favorite") ?: false
+            json.getLong("sector_id")
         )
     }
 
@@ -215,8 +210,6 @@ data class Path(
         "builder" to builder,
         "re_builder" to reBuilder,
 
-        "sector_id" to parentId,
-        
-        "is_favorite" to isFavorite
+        "sector_id" to parentId
     )
 }
