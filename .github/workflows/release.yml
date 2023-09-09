@@ -72,6 +72,16 @@ jobs:
           mkdir -p changelog
           echo "${{ fromJSON(steps.release_github.outputs.assets)[0].description }}" > changelog/whatsnew-en
 
+      - name: Set release track
+        id: release_track
+        run: |
+          cond=${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-dev') }};
+          if [ "$cond" = true ] ; then
+          echo '::set-output name=release_track::beta';
+          else
+          echo '::set-output name=release_track::production';
+          fi
+
       - name: Upload to Play Store
         id: upload_play_store
         uses: r0adkll/upload-google-play@v1.1.1
@@ -79,7 +89,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_GOOGLE_CLOUD_JSON }}
           packageName: org.escalaralcoiaicomtat.android
           releaseFiles: ./app/build/outputs/bundle/release/app-release.aab
-          track: production
+          track: ${{steps.release_track.outputs.release_track}}
           inAppUpdatePriority: 2
           # mappingFile: ./base/build/outputs/mapping/release/mapping.txt
           whatsNewDirectory: ./changelog
