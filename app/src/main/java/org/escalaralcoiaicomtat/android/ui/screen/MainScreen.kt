@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -146,7 +147,7 @@ fun MainScreen(
     widthSizeClass: WindowWidthSizeClass,
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity, ImageEntity>,
+    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>,
     onSectorView: (Sector) -> Unit,
     viewModel: MainViewModel = viewModel(
         factory = MainViewModel.Factory(
@@ -348,6 +349,31 @@ fun MainScreen(
                             )
                         }
                     }
+                },
+                actions = {
+                    val selection by viewModel.selection.observeAsState()
+
+                    AnimatedContent(
+                        targetState = selection,
+                        label = "edit-button"
+                    ) { data ->
+                        if (apiKey != null && data != null) {
+                            IconButton(
+                                onClick = {
+                                    if (data is Area) {
+                                        onCreateOrEdit(Area::class, null, data)
+                                    } else if (data is Zone) {
+                                        onCreateOrEdit(Zone::class, data.parentId, data)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Edit,
+                                    stringResource(R.string.action_edit)
+                                )
+                            }
+                        }
+                    }
                 }
             )
         },
@@ -366,19 +392,19 @@ fun MainScreen(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
                         ) {
-                            viewModel.createChooser(Area::class) { onCreateOrEdit(Zone::class, it, null) }
+                            viewModel.createChooser(Area::class) { onCreateOrEdit(Zone::class, it.id, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
                         ) {
-                            viewModel.createChooser(Zone::class) { onCreateOrEdit(Sector::class, it, null) }
+                            viewModel.createChooser(Zone::class) { onCreateOrEdit(Sector::class, it.id, null) }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
                         ) {
-                            viewModel.createChooser(Sector::class) { onCreateOrEdit(Path::class, it, null) }
+                            viewModel.createChooser(Sector::class) { onCreateOrEdit(Path::class, it.id, null) }
                         }
                     ),
                     toggled = toggled,

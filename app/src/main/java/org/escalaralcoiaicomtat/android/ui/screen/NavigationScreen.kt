@@ -49,7 +49,7 @@ fun NavigationScreen(
     widthSizeClass: WindowWidthSizeClass,
     backProgress: Float?,
     onFavoriteToggle: (DataEntity) -> Job,
-    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity, ImageEntity>,
+    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>,
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
@@ -113,7 +113,7 @@ fun NavigationScreen(
                         selected = area == selection,
                         isEditable = apiKey != null,
                         onClick = { viewModel.navigate(area) },
-                        onCreate = { onCreateOrEdit(Zone::class, area, null) },
+                        onCreate = { onCreateOrEdit(Zone::class, area.id, null) },
                         onEdit = { onCreateOrEdit(Area::class, null, area) }
                     )
                     zones.takeIf { selection == area || (selection as? Zone)?.parentId == area.id }
@@ -126,8 +126,8 @@ fun NavigationScreen(
                                 selected = zone == selection,
                                 isEditable = apiKey != null,
                                 onClick = { viewModel.navigate(zone) },
-                                onCreate = { onCreateOrEdit(Sector::class, zone, null) },
-                                onEdit = { onCreateOrEdit(Zone::class, area, zone) }
+                                onCreate = { onCreateOrEdit(Sector::class, zone.id, null) },
+                                onEdit = { onCreateOrEdit(Zone::class, area.id, zone) }
                             )
                             sectors.takeIf { selection == zone }
                                 ?.sorted()
@@ -139,8 +139,8 @@ fun NavigationScreen(
                                         selected = sector == selection,
                                         isEditable = apiKey != null,
                                         onClick = { viewModel.navigate(sector) },
-                                        onCreate = { onCreateOrEdit(Path::class, sector, null) },
-                                        onEdit = { onCreateOrEdit(Sector::class, zone, sector) }
+                                        onCreate = { onCreateOrEdit(Path::class, sector.id, null) },
+                                        onEdit = { onCreateOrEdit(Sector::class, zone.id, sector) }
                                     )
                                 }
                         }
@@ -195,8 +195,8 @@ fun NavigationScreen(
                         .backAnimation(backProgress),
                     onClick = { viewModel.navigate(it) },
                     onFavoriteToggle = onFavoriteToggle,
-                    onCreate = apiKey?.let { { onCreateOrEdit(Zone::class, data, null) } },
-                    onEdit = apiKey?.let { { onCreateOrEdit(Zone::class, data, it) } },
+                    onCreate = apiKey?.let { { onCreateOrEdit(Zone::class, data.id, null) } },
+                    onEdit = apiKey?.let { { onCreateOrEdit(Zone::class, data.id, it) } },
                     onMove = null // Zones cannot be reordered
                 )
             }
@@ -217,8 +217,8 @@ fun NavigationScreen(
                         .backAnimation(backProgress),
                     onClick = { viewModel.navigate(it) },
                     onFavoriteToggle = onFavoriteToggle,
-                    onCreate = apiKey?.let { { onCreateOrEdit(Sector::class, data, null) } },
-                    onEdit = apiKey?.let { { onCreateOrEdit(Sector::class, data, it) } },
+                    onCreate = apiKey?.let { { onCreateOrEdit(Sector::class, data.id, null) } },
+                    onEdit = apiKey?.let { { onCreateOrEdit(Sector::class, data.id, it) } },
                     onMove = { from, to -> viewModel.moveSector(from, to) }
                 )
             }

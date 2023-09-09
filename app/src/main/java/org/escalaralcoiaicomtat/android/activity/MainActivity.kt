@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val onCreateOrEdit = ICreateOrEdit<ImageEntity, ImageEntity> { kClass, parent, item ->
+    private val onCreateOrEdit = ICreateOrEdit<ImageEntity> { kClass, parentId, item ->
         when {
             Area::class.isSuperclassOf(kClass) -> {
                 newAreaRequestLauncher.launch(item as Area?)
@@ -121,27 +121,27 @@ class MainActivity : AppCompatActivity() {
             Zone::class.isSuperclassOf(kClass) -> {
                 newZoneRequestLauncher.launch(
                     if (item == null)
-                        EditorActivity.Input.fromParent(parent!!)
+                        EditorActivity.Input.fromParent(parentId!!)
                     else
-                        EditorActivity.Input.fromElement(parent!!, item)
+                        EditorActivity.Input.fromElement(parentId!!, item)
                 )
             }
 
             Sector::class.isSuperclassOf(kClass) -> {
                 newSectorRequestLauncher.launch(
                     if (item == null)
-                        EditorActivity.Input.fromParent(parent!!)
+                        EditorActivity.Input.fromParent(parentId!!)
                     else
-                        EditorActivity.Input.fromElement(parent!!, item)
+                        EditorActivity.Input.fromElement(parentId!!, item)
                 )
             }
 
             Path::class.isSuperclassOf(kClass) -> {
                 newPathRequestLauncher.launch(
                     if (item == null)
-                        EditorActivity.Input.fromParent(parent!!)
+                        EditorActivity.Input.fromParent(parentId!!)
                     else
-                        EditorActivity.Input.fromElement(parent!!, item)
+                        EditorActivity.Input.fromElement(parentId!!, item)
                 )
             }
 
@@ -179,10 +179,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun interface ICreateOrEdit<P : ImageEntity, T : ImageEntity> {
+    fun interface ICreateOrEdit<T : ImageEntity> {
         operator fun invoke(
             itemKClass: KClass<*>,
-            parent: P?,
+            parentId: Long?,
             item: T?
         )
     }

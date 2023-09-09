@@ -118,33 +118,35 @@ abstract class EditorActivity<
         const val RESULT_DELETE_OK = 7
 
         const val EXTRA_PARENT_ID: String = "parentId"
-        const val EXTRA_PARENT_NAME: String = "parentName"
         const val EXTRA_ELEMENT_ID: String = "elementId"
 
         const val RESULT_EXCEPTION: String = "exception"
     }
 
     data class Input(
-        val parentName: String?,
         val parentId: Long?,
         val elementId: Long?
     ) {
         constructor(
-            parentName: String,
             parentId: Long
-        ) : this(parentName, parentId, null)
+        ) : this(parentId, null)
 
         companion object {
-            fun fromParent(parent: DataEntity) = Input(parent.displayName, parent.id)
+            fun fromParent(parentId: Long) = Input(parentId)
 
-            fun fromElement(parent: DataEntity, element: BaseEntity) = Input(
-                parent.displayName,
+            fun fromParent(parent: BaseEntity) = Input(parent.id)
+
+            fun fromElement(parentId: Long, element: BaseEntity) = Input(
+                parentId,
+                element.id
+            )
+
+            fun fromElement(parent: BaseEntity, element: BaseEntity) = Input(
                 parent.id,
                 element.id
             )
 
             fun fromElement(element: BaseEntity) = Input(
-                null,
                 element.parentId,
                 element.id
             )
@@ -171,7 +173,6 @@ abstract class EditorActivity<
         override fun createIntent(context: Context, input: Input?): Intent =
             Intent(context, kClass.java).apply {
                 putExtra(EXTRA_PARENT_ID, input?.parentId)
-                putExtra(EXTRA_PARENT_NAME, input?.parentName)
                 putExtra(EXTRA_ELEMENT_ID, input?.elementId)
             }
 
