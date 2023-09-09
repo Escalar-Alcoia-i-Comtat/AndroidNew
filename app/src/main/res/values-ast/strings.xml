@@ -17,6 +17,9 @@
     <string name="action_view_video">View Video</string>
     <string name="action_done">Done</string>
     <string name="action_skip">Skip</string>
+    <string name="action_more">More</string>
+    <string name="action_info">Information</string>
+    <string name="action_favorite">Mark as Favorite</string>
     <string name="state_calculating">Calculating…</string>
     <string name="search">Search…</string>
     <string name="none">None</string>
@@ -33,6 +36,18 @@
     <string name="item_home">Home</string>
     <string name="item_favorites">Favorites</string>
     <string name="item_settings">Settings</string>
+    <string name="info_point_description">Location</string>
+    <string name="info_zone_location">Zone Location</string>
+    <string name="info_sector_location">Sector Location</string>
+    <string name="list_zone_information_title">Zone Information</string>
+    <string name="list_sector_information_title">Sector Information</string>
+    <string name="list_area_children">Zones</string>
+    <string name="list_zone_children">Sectors</string>
+    <string name="list_sector_children">Routes</string>
+    <string name="sector_kids_apt_title">Kids Apt</string>
+    <string name="sector_kids_apt_message">This sector has safe places where children can stay without being hurt.</string>
+    <string name="sector_walking_time_title">Walking Time</string>
+    <string name="sector_walking_time_message">It takes approximately %d minutes walking from the parking site to the sector.</string>
     <string name="list_item_favorite">Favorite</string>
     <string name="list_item_download">Download</string>
     <string name="list_item_create">Create New</string>
@@ -60,11 +75,11 @@
     <string name="new_area_title">Create New Area</string>
     <string name="new_zone_title">Create New Zone</string>
     <string name="new_sector_title">Create New Sector</string>
-    <string name="new_path_title">Create New Path</string>
+    <string name="new_path_title">Create New Route</string>
     <string name="edit_area_title">Modify Area</string>
     <string name="edit_zone_title">Modify Zone</string>
     <string name="edit_sector_title">Modify Sector</string>
-    <string name="edit_path_title">Modify Path</string>
+    <string name="edit_path_title">Modify Route</string>
     <string name="new_element_choose_title">Choose a parent</string>
     <string name="creation_step_compressing">Compressing image…</string>
     <string name="creation_step_uploading">Uploading… %.2f %%</string>
@@ -109,9 +124,17 @@
     <string name="form_day">Day</string>
     <string name="form_month">Month</string>
     <string name="sun_time_none">None</string>
+    <string name="sun_time_none_title">No sun</string>
+    <string name="sun_time_none_message">The sun doesn\'t reach this sector in the whole day.</string>
     <string name="sun_time_morning">Morning</string>
+    <string name="sun_time_morning_title">Morning sun</string>
+    <string name="sun_time_morning_message">This sector is sunny during the morning.</string>
     <string name="sun_time_afternoon">Afternoon</string>
+    <string name="sun_time_afternoon_title">Afternoon sun</string>
+    <string name="sun_time_afternoon_message">This sector is sunny during the afternoon.</string>
     <string name="sun_time_day">Day</string>
+    <string name="sun_time_day_title">All-day sun</string>
+    <string name="sun_time_day_message">This sector is sunny all the day.</string>
     <string name="ending_none">None</string>
     <string name="ending_plate">Plate</string>
     <string name="ending_plate_ring">Plate Ring</string>
@@ -148,16 +171,16 @@
     <string name="notification_sync_title">Running Synchronization…</string>
     <string name="notification_sync_message">Synchronizing device\'s data with server\'s.</string>
     <string name="path_view_quickdraw_count_title">Quickdraw Count</string>
-    <string name="path_view_quickdraw_count_message">This path has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</string>
+    <string name="path_view_quickdraw_count_message">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</string>
     <string name="path_view_height_title">Height</string>
-    <string name="path_view_height_message">This path is %d meters high. It\'t recommended to bring a %d meters rope.</string>
+    <string name="path_view_height_message">This route is %d meters high. It\'t recommended to bring a %d meters rope.</string>
     <string name="path_view_count_title">Installed safes</string>
-    <string name="path_view_count_message">Here\'s more information about the safes installed in the path:\n%s</string>
+    <string name="path_view_count_message">Here\'s more information about the safes installed in the route:\n%s</string>
     <string name="path_view_required_title">Required Material</string>
-    <string name="path_view_required_message">This path requires some extra material to be used together with the already installed on the wall, if any. This is:\n%s</string>
+    <string name="path_view_required_message">This route requires some extra material to be used together with the already installed on the wall, if any. This is:\n%s</string>
     <string name="path_view_description">More Information</string>
     <string name="path_view_grade_title">Grade</string>
-    <string name="path_view_grade_message">The grade of this path is:</string>
+    <string name="path_view_grade_message">The grade of this route is:</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
@@ -201,18 +224,18 @@
     <string name="delete_confirmation_deleting">Deleting element… Please, do not leave this page, close the app, of turn off the device while we work into it…</string>
     <string name="delete_complete_toast">Element deleted successfully</string>
     <string name="delete_error_toast">Could not complete deletion</string>
-    <string name="block_dry_title">Path drying</string>
-    <string name="block_dry_message">This path has been reequipped, and has used some chemical compound, so it needs a few days to dry. We will keep this updated.</string>
-    <string name="block_build_title">Path under construction</string>
-    <string name="block_build_message">This path is being built or reconstructed. Please wait until the process is complete.</string>
+    <string name="block_dry_title">Route drying</string>
+    <string name="block_dry_message">This route has been reequipped, and has used some chemical compound, so it needs a few days to dry. We will keep this updated.</string>
+    <string name="block_build_title">Route under construction</string>
+    <string name="block_build_message">This route is being built or reconstructed. Please wait until the process is complete.</string>
     <string name="block_bird_title">Nesting season</string>
     <string name="block_bird_message">It\'s nesting season and there might be some nests on the way. It\'s forbidden to climb until nesting season ends.</string>
-    <string name="block_old_title">Old Path</string>
-    <string name="block_old_message">This path is really old and hasn\'t been reequipped for a long time. Climb under your responsibility.</string>
-    <string name="block_plants_title">Bushy Path</string>
-    <string name="block_plants_message">This path is not used much, and may have some bushes or plants in the way. Be careful with falling dirt, rocks or branches.</string>
+    <string name="block_old_title">Old Route</string>
+    <string name="block_old_message">This route is really old and hasn\'t been reequipped for a long time. Climb under your responsibility.</string>
+    <string name="block_plants_title">Bushy Route</string>
+    <string name="block_plants_message">This route is not used much, and may have some bushes or plants in the way. Be careful with falling dirt, rocks or branches.</string>
     <string name="block_rope_length_title">Rope length warning</string>
-    <string name="block_rope_length_message">This path requires a lengthy rope, be careful and remember to tie a knot at the end of the rope to make sure no slips occur.</string>
+    <string name="block_rope_length_message">This route requires a lengthy rope, be careful and remember to tie a knot at the end of the rope to make sure no slips occur.</string>
     <string name="block_recurrence" formatted="true">From %1$s until %2$s.</string>
     <string name="block_end_date" formatted="true">Until %s.</string>
     <string name="block_new_title">Create new Block</string>
@@ -238,7 +261,7 @@
         <item quantity="other">%d sectors</item>
     </plurals>
     <plurals name="path_count">
-        <item quantity="one">%d path</item>
-        <item quantity="other">%d paths</item>
+        <item quantity="one">%d route</item>
+        <item quantity="other">%d routes</item>
     </plurals>
 </resources>
