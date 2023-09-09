@@ -96,6 +96,7 @@ import org.escalaralcoiaicomtat.android.utils.toast
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
+import java.util.UUID
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
@@ -205,6 +206,7 @@ abstract class EditorActivity<
                 contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
                     val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
                     model.image.postValue(bitmap)
+                    model.imageUUID.postValue(null)
                 }
                 model.isLoadingImage.postValue(false)
             }
@@ -561,6 +563,11 @@ abstract class EditorActivity<
         val image = MutableLiveData<Bitmap?>(null)
 
         /**
+         * Stores the original imageUUID if any. Used for checking if image has been updated.
+         */
+        val imageUUID = MutableLiveData<UUID?>(null)
+
+        /**
          * Used together with [kmzData] to hold the currently selected KMZ file if any. This
          * variable stores the name of the KMZ file selected.
          */
@@ -599,7 +606,7 @@ abstract class EditorActivity<
 
         val parent = MutableLiveData<ParentType>()
 
-        val element = MutableLiveData<ElementType>()
+        val element = MutableLiveData<ElementType?>()
 
         /**
          * For appending all the data required for creating the object in the server. Will be sent
@@ -668,6 +675,8 @@ abstract class EditorActivity<
                         Timber.d("Loaded element's data. Posting and filling...")
                         element.postValue(child)
 
+                        (child as? ImageEntity?)?.let { imageUUID.postValue(it.imageUUID) }
+
                         fill(child)
                     } else {
                         Timber.w("Tried to load a non-existing child. ID: $elementId")
@@ -693,14 +702,26 @@ abstract class EditorActivity<
             withContext(Dispatchers.IO) {
                 isCreating.postValue(CreationStep.Compressing)
 
-                val imageBytes = image.value?.let { image ->
-                    Timber.d("Compressing image...")
-                    ByteArrayOutputStream()
-                        .apply {
-                            image.compress(BitmapCompat.WEBP_LOSSLESS, 100, this)
-                        }
-                        .toByteArray()
-                }
+                val originalUUID = (element.value as? ImageEntity?)?.imageUUID
+                val currentImageUUID = imageUUID.value
+
+                val imageBytes = if (
+                // if creating new area
+                    originalUUID == null ||
+                    // or image updated
+                    currentImageUUID == null ||
+                    originalUUID != currentImageUUID
+                )
+                    image.value?.let { image ->
+                        Timber.d("Compressing image...")
+                        ByteArrayOutputStream()
+                            .apply {
+                                image.compress(BitmapCompat.WEBP_LOSSLESS, 100, this)
+                            }
+                            .toByteArray()
+                    }
+                else
+                    null
 
                 val extraData = prepareData()
 

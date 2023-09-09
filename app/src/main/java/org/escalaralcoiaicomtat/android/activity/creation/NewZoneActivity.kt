@@ -298,6 +298,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model
             addSource(kmzName) { value = checkRequirements() }
             addSource(latitude) { value = checkRequirements() }
             addSource(longitude) { value = checkRequirements() }
+            addSource(points) { value = checkRequirements() }
         }
 
         override suspend fun fill(child: Zone) {
@@ -306,6 +307,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model
             latitude.postValue(child.point?.latitude?.toString())
             longitude.postValue(child.point?.longitude?.toString())
             points.postValue(child.points)
+            kmzName.postValue(child.kmz)
 
             child.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
@@ -325,7 +327,11 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model
                 LatLng(latitude.value!!.toDouble(), longitude.value!!.toDouble()),
                 element.value?.point
             )
-            appendDifference("points", points, element.value?.points)
+            appendDifference(
+                "points",
+                points.value ?: emptyList(),
+                element.value?.points ?: emptyList()
+            )
             append("area", parentId!!)
         }
 
