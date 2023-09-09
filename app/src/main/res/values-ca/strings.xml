@@ -72,6 +72,10 @@
     <string name="settings_security_lock_api_key_wrong">Clau d\'API incorrecta</string>
     <string name="settings_info_version">Versió de l\'Aplicació</string>
     <string name="settings_info_build">Número de Construcció de l\'App</string>
+    <string name="settings_info_source_code_title">Codi Font</string>
+    <string name="settings_info_source_code_message">El codi font d\'aquesta aplicació està disponible a GitHub. Toca per a veure.</string>
+    <string name="settings_info_translations_title">Traduccions</string>
+    <string name="settings_info_translations_message">Les traduccions d\'aquesta app estan disponibles a Crowdin, per a qui vulgui traduir l\'aplicació al seu idioma. Toca per a veure.</string>
     <string name="new_area_title">Crea una nova Àrea</string>
     <string name="new_zone_title">Crea una zova Zona</string>
     <string name="new_sector_title">Crea un nou Sector</string>
