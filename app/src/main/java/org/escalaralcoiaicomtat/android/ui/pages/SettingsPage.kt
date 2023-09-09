@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
@@ -39,6 +40,7 @@ import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.files.FilesCrate
 import org.escalaralcoiaicomtat.android.ui.dialog.ApiKeyDialog
 import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
+import org.escalaralcoiaicomtat.android.utils.launchUrl
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import java.time.ZoneId
@@ -210,6 +212,26 @@ fun SettingsPage(
             clipboardManager.setText(
                 buildAnnotatedString { append(BuildConfig.VERSION_CODE.toString()) }
             )
+        }
+    )
+    ListItem(
+        leadingContent = {
+            Icon(Icons.Outlined.Code, stringResource(R.string.settings_info_source_code_title))
+        },
+        headlineContent = { Text(stringResource(R.string.settings_info_source_code_title)) },
+        supportingContent = { Text(stringResource(R.string.settings_info_source_code_message)) },
+        modifier = Modifier.clickable {
+            context.launchUrl("https://github.com/Escalar-Alcoia-i-Comtat/AndroidNew")
+        }
+    )
+    ListItem(
+        leadingContent = {
+            Icon(Icons.Outlined.Language, stringResource(R.string.settings_info_translations_title))
+        },
+        headlineContent = { Text(stringResource(R.string.settings_info_translations_title)) },
+        supportingContent = { Text(stringResource(R.string.settings_info_translations_message)) },
+        modifier = Modifier.clickable {
+            context.launchUrl("https://crowdin.com/project/escalar-alcoia-i-comtat")
         }
     )
 }
