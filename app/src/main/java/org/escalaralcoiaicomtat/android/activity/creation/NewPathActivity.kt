@@ -40,7 +40,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -152,7 +151,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         val grade by model.grade.observeAsState()
         val ending by model.ending.observeAsState()
 
-        val pitches = model.pitches
+        val pitches by model.pitches.observeAsState()
 
         val stringCount by model.stringCount.observeAsState()
         val paraboltCount by model.paraboltCount.observeAsState()
@@ -315,7 +314,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        PitchesEditor(pitches)
+        PitchesEditor(pitches ?: emptyList())
 
         BuilderField(
             liveData = model.builder,
@@ -411,7 +410,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
     }
 
     @Composable
-    fun PitchesEditor(pitches: MutableList<PitchInfo>) {
+    fun PitchesEditor(pitches: List<PitchInfo>) {
         val localDensity = LocalDensity.current
 
         var addButtonWidth by remember { mutableStateOf(0.dp) }
@@ -526,7 +525,11 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                             pitchEndingInfo,
                             pitchEndingInclination
                         )
-                        model.pitches.add(pitchInfo)
+                        synchronized(model.pitches) {
+                            val list = (model.pitches.value ?: emptyList()).toMutableList()
+                            list.add(pitchInfo)
+                            model.pitches.postValue(list)
+                        }
 
                         // Clear all fields
                         pitchGrade = null
@@ -668,7 +671,11 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
                 IconButton(
                     onClick = {
-                        model.pitches.removeAt(index)
+                        synchronized(model.pitches) {
+                            val list = (model.pitches.value ?: emptyList()).toMutableList()
+                            list.removeAt(index)
+                            model.pitches.postValue(list)
+                        }
                     },
                     modifier = Modifier.onGloballyPositioned {
                         deleteButtonWidth = with(localDensity) { it.size.width.toDp() }
@@ -739,7 +746,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
     @Composable
     fun BuilderField(
-        liveData: MutableLiveData<Builder>,
+        liveData: MutableLiveData<Builder?>,
         modifier: Modifier = Modifier
     ) {
         Row(
@@ -772,21 +779,21 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
     }
 
     @Composable
-    fun ReBuildersEditor(reBuilders: List<Builder>) {
+    fun ReBuildersEditor(reBuilders: List<Builder>?) {
         FormListCreator(
-            list = reBuilders,
+            list = reBuilders ?: emptyList(),
             title = stringResource(R.string.form_re_buildings),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             inputContent = {
-                val reBuilder = MutableLiveData<Builder>()
+                val reBuilder = MutableLiveData<Builder?>()
 
                 BuilderField(liveData = reBuilder, modifier = Modifier.weight(1f))
 
                 IconButton(
                     onClick = {
-                        model.reBuilders.value = reBuilders.toMutableList().apply {
+                        model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
                             reBuilder.value
                         }
                     },
@@ -810,7 +817,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
                 IconButton(
                     onClick = {
-                        model.reBuilders.value = reBuilders.toMutableList().apply {
+                        model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
                             removeAt(index)
                         }
                     }
@@ -879,19 +886,19 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         val displayName = MutableLiveData<String>()
         val sketchId = MutableLiveData<String>()
 
-        val height = MutableLiveData<String>()
-        val grade = MutableLiveData<GradeValue>()
-        val ending = MutableLiveData<Ending>()
+        val height = MutableLiveData<String?>()
+        val grade = MutableLiveData<GradeValue?>()
+        val ending = MutableLiveData<Ending?>()
 
-        val pitches = mutableStateListOf<PitchInfo>()
+        val pitches = MutableLiveData<List<PitchInfo>?>()
 
-        val stringCount = MutableLiveData<String>()
+        val stringCount = MutableLiveData<String?>()
 
-        val paraboltCount = MutableLiveData<String>()
-        val burilCount = MutableLiveData<String>()
-        val pitonCount = MutableLiveData<String>()
-        val spitCount = MutableLiveData<String>()
-        val tensorCount = MutableLiveData<String>()
+        val paraboltCount = MutableLiveData<String?>()
+        val burilCount = MutableLiveData<String?>()
+        val pitonCount = MutableLiveData<String?>()
+        val spitCount = MutableLiveData<String?>()
+        val tensorCount = MutableLiveData<String?>()
 
         val crackerRequired = MutableLiveData(false)
         val friendRequired = MutableLiveData(false)
@@ -901,10 +908,10 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         val stapesRequired = MutableLiveData(false)
 
         val showDescription = MutableLiveData(false)
-        val description = MutableLiveData<String>()
+        val description = MutableLiveData<String?>()
 
-        val builder = MutableLiveData<Builder>()
-        val reBuilders = MutableLiveData<List<Builder>>()
+        val builder = MutableLiveData<Builder?>()
+        val reBuilders = MutableLiveData<List<Builder>?>()
 
         /**
          * Used for displaying the current sector's image in the side of the screen.
@@ -945,7 +952,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             grade.postValue(child.grade)
             ending.postValue(child.ending)
 
-            child.pitches?.let(pitches::addAll)
+            pitches.postValue(child.pitches)
 
             stringCount.postValue(child.stringCount?.toString())
 
@@ -1025,20 +1032,28 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             property: (PitchInfo) -> T,
             copy: (item: PitchInfo, value: T?) -> PitchInfo
         ) {
-            val item = pitches.removeAt(index)
-            pitches.add(
-                index,
-                if (property(item) == value)
-                    copy(item, null)
-                else
-                    copy(item, value)
-            )
+            synchronized(pitches) {
+                val list = (pitches.value ?: emptyList()).toMutableList()
+                val item = list.removeAt(index)
+                list.add(
+                    index,
+                    if (property(item) == value)
+                        copy(item, null)
+                    else
+                        copy(item, value)
+                )
+                pitches.postValue(list)
+            }
         }
 
         fun movePitch(from: ItemPosition, to: ItemPosition) {
             try {
                 Timber.d("Moving pitch from ${from.index} to ${to.index}")
-                pitches.add(to.index, pitches.removeAt(from.index))
+                synchronized(pitches) {
+                    val list = (pitches.value ?: emptyList()).toMutableList()
+                    list.add(to.index, list.removeAt(from.index))
+                    pitches.postValue(list)
+                }
             } catch (_: IndexOutOfBoundsException) {
                 Timber.w("Could not move pitch from ${from.index} to ${to.index}: Out of bounds")
             }
