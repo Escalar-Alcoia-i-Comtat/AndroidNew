@@ -150,10 +150,7 @@ fun MainScreen(
     onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>,
     onSectorView: (Sector) -> Unit,
     viewModel: MainViewModel = viewModel(
-        factory = MainViewModel.Factory(
-            navController,
-            onSectorView
-        )
+        factory = MainViewModel.Factory(onSectorView)
     )
 ) {
     val context = LocalContext.current

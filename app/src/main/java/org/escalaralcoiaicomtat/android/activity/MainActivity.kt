@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.activity
 
 import android.app.Application
+import android.app.assist.AssistContent
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultCallback
@@ -8,8 +9,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
@@ -40,6 +43,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
+import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 import org.escalaralcoiaicomtat.android.utils.toast
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSuperclassOf
@@ -47,6 +51,10 @@ import kotlin.reflect.full.isSuperclassOf
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
     private val model by viewModels<Model>()
+
+    private val mainViewModel: MainViewModel by viewModels {
+        MainViewModel.Factory(onSectorView)
+    }
 
     private val resultCallback = ActivityResultCallback<EditorActivity.Result> { result ->
         when (result) {
@@ -98,19 +106,35 @@ class MainActivity : AppCompatActivity() {
 
             val navController = rememberNavController()
 
+            LaunchedEffect(navController) {
+                mainViewModel.navController = navController
+            }
+
             MainScreen(
                 widthSizeClass = windowSizeClass.widthSizeClass,
                 navController = navController,
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
                 onCreateOrEdit = onCreateOrEdit,
-                onSectorView = {
-                    sectorViewerRequestLauncher.launch(
-                        SectorViewer.Input(it.id)
-                    )
-                }
+                onSectorView = onSectorView
             )
         }
+    }
+
+    override fun onProvideAssistContent(outContent: AssistContent?) {
+        super.onProvideAssistContent(outContent)
+
+        mainViewModel.selection.observe(this) { entity ->
+            val uri = (entity as? Area)?.webUrl ?: (entity as? Zone)?.webUrl
+
+            outContent?.webUri = uri
+        }
+    }
+
+    private val onSectorView: (Sector) -> Unit = {
+        sectorViewerRequestLauncher.launch(
+            SectorViewer.Input(it.id)
+        )
     }
 
     private val onCreateOrEdit = ICreateOrEdit<ImageEntity> { kClass, parentId, item ->

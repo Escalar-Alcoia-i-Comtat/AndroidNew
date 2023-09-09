@@ -36,12 +36,13 @@ import kotlin.reflect.KClass
 
 class MainViewModel(
     application: Application,
-    private val navController: NavHostController,
     private val onSectorView: (Sector) -> Unit
 ) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
     private val dataDao = database.dataDao()
     private val userDao = database.userDao()
+
+    var navController: NavHostController? = null
 
     private val syncWorkers = SyncWorker.getLive(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
@@ -105,30 +106,30 @@ class MainViewModel(
                 _currentDestination.postValue(destination)
             }
 
-            navController.addOnDestinationChangedListener(listener)
+            navController?.addOnDestinationChangedListener(listener)
 
             onDispose {
-                navController.removeOnDestinationChangedListener(listener)
+                navController?.removeOnDestinationChangedListener(listener)
             }
         }
     }
 
     fun navigate(target: DataEntity?) {
-        val currentEntry = navController.currentBackStackEntry
+        val currentEntry = navController?.currentBackStackEntry
         val currentEntryArgs = currentEntry?.arguments
 
         when (target) {
-            is Area -> navController.navigate(
+            is Area -> navController?.navigate(
                 Routes.NavigationHome.createRoute(areaId = target.id)
             )
-            is Zone -> navController.navigate(
+            is Zone -> navController?.navigate(
                 Routes.NavigationHome.createRoute(
                     areaId = currentEntryArgs?.getString(AreaId)?.toLongOrNull(),
                     zoneId = target.id
                 )
             )
             is Sector -> onSectorView(target)
-            else -> navController.navigate(
+            else -> navController?.navigate(
                 Routes.NavigationHome.createRoute()
             )
         }
@@ -211,12 +212,11 @@ class MainViewModel(
 
     companion object {
         fun Factory(
-            navController: NavHostController,
             onSectorView: (Sector) -> Unit
         ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                MainViewModel(application, navController, onSectorView)
+                MainViewModel(application, onSectorView)
             }
         }
     }
