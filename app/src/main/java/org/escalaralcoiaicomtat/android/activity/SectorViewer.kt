@@ -1038,7 +1038,10 @@ class SectorViewer : AppCompatActivity() {
                     // Update successful
                     Timber.d("Created block successfully.")
 
-                    val element = bodyAsJson().getJSONObject("element").let(Blocking::fromJson)
+                    val element = bodyAsJson()
+                        .getJSONObject("data")
+                        .getJSONObject("element")
+                        .let(Blocking::fromJson)
                     dataDao.insert(element)
                 } else {
                     Timber.e("Could not create block in server.")
