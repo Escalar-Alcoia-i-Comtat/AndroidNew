@@ -49,6 +49,7 @@ jobs:
         with:
           commit_message: Increased Version Code
           file_pattern: 'version.properties'
+          branch: master
 
       - name: Build APK
         id: build_apk
