@@ -54,9 +54,9 @@ class MainViewModel(
     val creationOptionsList = MutableLiveData<List<DataEntity>?>()
     val pendingCreateOperation = MutableLiveData<((DataEntity) -> Unit)?>()
 
-    val favoriteAreas = userDao.getAllAreasLive()
-    val favoriteZones = userDao.getAllZonesLive()
-    val favoriteSectors = userDao.getAllSectorsLive()
+    private val favoriteAreas = userDao.getAllAreasLive()
+    private val favoriteZones = userDao.getAllZonesLive()
+    private val favoriteSectors = userDao.getAllSectorsLive()
 
     private val _favorites = MutableLiveData<List<ImageEntity>>()
     val favorites: LiveData<List<ImageEntity>> get() = _favorites
