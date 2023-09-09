@@ -1,4 +1,4 @@
-name: Publish Internal Release
+name: Publish Public Release
 
 on:
   push:
