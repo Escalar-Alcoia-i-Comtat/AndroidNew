@@ -72,6 +72,10 @@
     <string name="settings_security_lock_api_key_wrong">Wrong API key</string>
     <string name="settings_info_version">Application Version</string>
     <string name="settings_info_build">Application Build Number</string>
+    <string name="settings_info_source_code_title">Source Code</string>
+    <string name="settings_info_source_code_message">The source code for the app is available in GitHub. Tap to view.</string>
+    <string name="settings_info_translations_title">Translations</string>
+    <string name="settings_info_translations_message">Translations for the app are available at Crowdin, for whoever that wants to contribute to their own language. Tap to view.</string>
     <string name="new_area_title">Create New Area</string>
     <string name="new_zone_title">Create New Zone</string>
     <string name="new_sector_title">Create New Sector</string>
