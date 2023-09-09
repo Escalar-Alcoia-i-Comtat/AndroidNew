@@ -199,7 +199,7 @@ fun <T: ImageEntity> DataCard(
                         ?.invokeOnCompletion { isTogglingFavorite = false }
                         ?: run { isTogglingFavorite = false }
                 },
-                enabled = !isTogglingFavorite
+                enabled = !isTogglingFavorite && isFavorite != null
             ) {
                 AnimatedContent(
                     targetState = isFavorite,
