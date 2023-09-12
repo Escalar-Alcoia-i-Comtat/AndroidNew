@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -27,6 +28,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
+import org.escalaralcoiaicomtat.android.storage.relations.AreaWithZones
 import org.escalaralcoiaicomtat.android.ui.screen.Routes
 import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
@@ -54,6 +56,27 @@ class MainViewModel(
 
     val creationOptionsList = MutableLiveData<List<DataEntity>?>()
     val pendingCreateOperation = MutableLiveData<((DataEntity) -> Unit)?>()
+
+    val areas = dataDao.getAllAreasLive()
+    val zones = dataDao.getAllZonesLive()
+    val sectors = dataDao.getAllSectorsLive()
+    val paths = dataDao.getAllPathsLive()
+
+    val areaWithZones = _selection.switchMap {
+        if (it is Area) {
+            dataDao.getZonesFromAreaLive(it.id)
+        } else {
+            MutableLiveData()
+        }
+    }
+
+    val sectorsFromZone = _selection.switchMap {
+        if (it is Zone) {
+            dataDao.getSectorsFromZoneLive(it.id)
+        } else {
+            MutableLiveData()
+        }
+    }
 
     private val favoriteAreas = userDao.getAllAreasLive()
     private val favoriteZones = userDao.getAllZonesLive()

@@ -57,12 +57,10 @@ fun NavigationScreen(
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
     val hasEverSynchronized by Preferences.hasEverSynchronized(context).collectAsState(initial = false)
 
-    val database = AppDatabase.getInstance(context.applicationContext)
-    val dao = database.dataDao()
-    val areas by dao.getAllAreasLive().observeAsState()
-    val zones by dao.getAllZonesLive().observeAsState(initial = emptyList())
-    val sectors by dao.getAllSectorsLive().observeAsState(initial = emptyList())
-    val paths by dao.getAllPathsLive().observeAsState(initial = emptyList())
+    val areas by viewModel.areas.observeAsState(initial = emptyList())
+    val zones by viewModel.zones.observeAsState(initial = emptyList())
+    val sectors by viewModel.sectors.observeAsState(initial = emptyList())
+    val paths by viewModel.paths.observeAsState(initial = emptyList())
 
     val selection by viewModel.selection.observeAsState()
 
@@ -106,7 +104,7 @@ fun NavigationScreen(
                     icon = { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.action_back)) }
                 )
 
-                areas?.sorted()?.forEach { area ->
+                areas.sorted().forEach { area ->
                     SideNavigationItem(
                         label = area.displayName,
                         depth = 0,
@@ -180,7 +178,7 @@ fun NavigationScreen(
             }
             // Zones List
             data is Area -> {
-                val areaWithZones by dao.getZonesFromAreaLive(data.id).observeAsState()
+                val areaWithZones by viewModel.areaWithZones.observeAsState()
 
                 DataList(
                     kClass = Zone::class,
@@ -202,7 +200,7 @@ fun NavigationScreen(
             }
             // Sectors List
             data is Zone -> {
-                val sectorsFromZone by dao.getSectorsFromZoneLive(data.id).observeAsState()
+                val sectorsFromZone by viewModel.sectorsFromZone.observeAsState()
 
                 DataList(
                     kClass = Sector::class,
