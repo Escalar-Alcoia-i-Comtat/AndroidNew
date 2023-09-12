@@ -66,7 +66,7 @@ class MainViewModel(
         if (it is Area) {
             dataDao.getZonesFromAreaLive(it.id)
         } else {
-            MutableLiveData()
+            null
         }
     }
 
@@ -74,7 +74,7 @@ class MainViewModel(
         if (it is Zone) {
             dataDao.getSectorsFromZoneLive(it.id)
         } else {
-            MutableLiveData()
+            null
         }
     }
 
