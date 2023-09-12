@@ -97,6 +97,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(
                         Intent(this@MainActivity, IntroActivity::class.java)
                     )
+                    finish()
                 }
             }
         }
