@@ -135,7 +135,7 @@ val workVersion by project.properties
 val ktorVersion by project.properties
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.8.0-alpha07")
+    implementation("androidx.activity:activity-ktx:1.8.0-beta01")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.10.1")
