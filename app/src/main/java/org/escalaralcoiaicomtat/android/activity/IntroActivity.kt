@@ -8,6 +8,7 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -101,20 +105,32 @@ class IntroActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentThemed {
+            val configuration = LocalConfiguration.current
+            val density = LocalDensity.current
+
             val scope = rememberCoroutineScope()
 
             val pagerState = rememberPagerState { pages.size }
             var currentPage by remember { mutableIntStateOf(0) }
+
+            var scrollProgress by remember { mutableFloatStateOf(0f) }
 
             LaunchedEffect(pagerState) {
                 snapshotFlow { pagerState.currentPage }
                     .collect { currentPage = it }
             }
 
+            val screenWidth = configuration.screenWidthDp.dp
+            val widthPx = with(density) { screenWidth.toPx() }
+
             PredictiveBackHandler { progress: Flow<BackEventCompat> ->
                 // code for gesture back started
                 try {
-                    progress.collect {}
+                    progress.collect {
+                        val diff = widthPx * (scrollProgress - it.progress)
+                        scrollProgress = it.progress
+                        pagerState.scrollBy(diff)
+                    }
                     // code for completion
                     if (currentPage == 0) {
                         setResult(Activity.RESULT_CANCELED)
@@ -126,6 +142,9 @@ class IntroActivity : AppCompatActivity() {
                     }
                 } catch (e: CancellationException) {
                     // code for cancellation
+                } finally {
+                    pagerState.scrollBy(-widthPx * scrollProgress)
+                    scrollProgress = 0f
                 }
             }
 
