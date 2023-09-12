@@ -1,6 +1,8 @@
 package org.escalaralcoiaicomtat.android.ui.screen
 
 import android.app.Activity
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -67,9 +69,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.MainActivity
@@ -80,7 +84,6 @@ import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
-import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
 import org.escalaralcoiaicomtat.android.ui.reusable.ActionsFloatingActionButton
 import org.escalaralcoiaicomtat.android.ui.reusable.FloatingActionButtonAction
@@ -177,12 +180,21 @@ fun MainScreen(
         }
     }
 
-    BackInvokeHandler(
-        onBackStarted = { backProgress = it.progress },
-        onBackProgressed = { backProgress = it.progress },
-        onBackCancelled = { backProgress = null },
-        onBack = ::onBack
-    )
+    PredictiveBackHandler { progress: Flow<BackEventCompat> ->
+        // code for gesture back started
+        backProgress = 0f
+        try {
+            progress.collect { backEvent ->
+                // code for progress
+                backProgress = backEvent.progress
+            }
+            // code for completion
+            onBack()
+        } catch (e: CancellationException) {
+            // code for cancellation
+            backProgress = null
+        }
+    }
 
     // Attach the nav controller
     viewModel.Navigation()

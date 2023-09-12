@@ -8,6 +8,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -68,8 +70,10 @@ import io.ktor.client.request.header
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -85,7 +89,6 @@ import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
-import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
 import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
@@ -241,7 +244,16 @@ abstract class EditorActivity<
         Timber.i("Launched ${this::class.simpleName} with extras: $extrasString")
 
         setContentThemed {
-            BackInvokeHandler(onBack = ::onBack)
+            PredictiveBackHandler { progress: Flow<BackEventCompat> ->
+                // code for gesture back started
+                try {
+                    progress.collect { }
+                    // code for completion
+                    onBack()
+                } catch (e: CancellationException) {
+                    // code for cancellation
+                }
+            }
 
             val isDeleting by model.isDeleting.observeAsState(false)
             var requestedDeletion by remember { mutableStateOf(false) }

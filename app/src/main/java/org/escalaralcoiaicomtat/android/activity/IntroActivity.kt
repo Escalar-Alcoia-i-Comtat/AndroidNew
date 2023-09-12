@@ -3,6 +3,8 @@ package org.escalaralcoiaicomtat.android.activity
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -33,13 +35,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.ui.intro.IntroPage
-import org.escalaralcoiaicomtat.android.ui.logic.BackInvokeHandler
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.launchUrl
 
@@ -108,14 +111,21 @@ class IntroActivity : AppCompatActivity() {
                     .collect { currentPage = it }
             }
 
-            BackInvokeHandler {
-                if (currentPage == 0) {
-                    setResult(Activity.RESULT_CANCELED)
-                    finish()
-                } else {
-                    scope.launch {
-                        pagerState.animateScrollToPage(currentPage - 1)
+            PredictiveBackHandler { progress: Flow<BackEventCompat> ->
+                // code for gesture back started
+                try {
+                    progress.collect {}
+                    // code for completion
+                    if (currentPage == 0) {
+                        setResult(Activity.RESULT_CANCELED)
+                        finish()
+                    } else {
+                        scope.launch {
+                            pagerState.animateScrollToPage(currentPage - 1)
+                        }
                     }
+                } catch (e: CancellationException) {
+                    // code for cancellation
                 }
             }
 
