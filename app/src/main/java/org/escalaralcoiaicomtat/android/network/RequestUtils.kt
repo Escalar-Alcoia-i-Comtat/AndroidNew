@@ -11,6 +11,8 @@ import org.escalaralcoiaicomtat.android.utils.json
 import org.json.JSONObject
 import timber.log.Timber
 import java.time.Instant
+import org.escalaralcoiaicomtat.android.exception.remote.ServerException
+import org.json.JSONException
 
 /**
  * Converts the body of the `HttpResponse` object into a `JSONObject`.
@@ -27,6 +29,7 @@ suspend fun HttpResponse.bodyAsJson(): JSONObject = bodyAsText().json
  * @param responseProcessor Can be used for fetching any data from the response.
  *
  * @throws RequestException If the server doesn't return a successful response.
+ * @throws IllegalStateException If the server didn't respond with JSON.
  */
 suspend inline fun get(
     endpoint: String,
@@ -41,7 +44,11 @@ suspend inline fun get(
     ).apply {
         if (status.value !in 200..299) {
             Timber.e("Server returned an error. Status: $status")
-            throw RequestException(status, bodyAsJson())
+            try {
+                throw RequestException(status, bodyAsJson())
+            } catch (e: JSONException) {
+                throw IllegalStateException("Server not available. Got a non-JSON response.")
+            }
         }
 
         val json = bodyAsJson()
