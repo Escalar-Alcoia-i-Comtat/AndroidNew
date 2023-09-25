@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         applicationId = "org.escalaralcoiaicomtat.android"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 34
         versionCode = code
         versionName = version
