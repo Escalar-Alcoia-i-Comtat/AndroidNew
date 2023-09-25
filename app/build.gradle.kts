@@ -50,9 +50,9 @@ android {
             val properties = Properties()
             project.rootProject.file("local.properties").inputStream().use(properties::load)
 
-            val signingKeystorePassword: String = properties.getProperty("signingKeystorePassword")
-            val signingKeyAlias: String = properties.getProperty("signingKeyAlias")
-            val signingKeyPassword: String = properties.getProperty("signingKeyPassword")
+            val signingKeystorePassword: String? = properties.getProperty("signingKeystorePassword")
+            val signingKeyAlias: String? = properties.getProperty("signingKeyAlias")
+            val signingKeyPassword: String? = properties.getProperty("signingKeyPassword")
 
             storeFile = File(project.rootDir, "keystore.jks")
             storePassword = signingKeystorePassword
@@ -133,6 +133,7 @@ task("increaseVersionCode") {
 val roomVersion by project.properties
 val workVersion by project.properties
 val ktorVersion by project.properties
+val acraVersion by project.properties
 
 dependencies {
     implementation("androidx.activity:activity-ktx:1.8.0-beta01")
