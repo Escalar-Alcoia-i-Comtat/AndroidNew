@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
@@ -18,8 +18,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EscalarAlcoiaIComtat"
-        tools:targetApi="31"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="UnusedAttribute"
+        tools:targetApi="31">
 
         <activity
             android:name=".activity.MainActivity"
@@ -35,8 +35,7 @@
             android:name=".activity.SectorViewer"
             android:parentActivityName=".activity.MainActivity" />
 
-        <activity
-            android:name=".activity.IntroActivity" />
+        <activity android:name=".activity.IntroActivity" />
 
         <activity
             android:name=".activity.creation.NewAreaActivity"
@@ -70,7 +69,9 @@
             <intent-filter>
                 <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
             </intent-filter>
-            <meta-data android:name="photopicker_activity:0:required" android:value="" />
+            <meta-data
+                android:name="photopicker_activity:0:required"
+                android:value="" />
         </service>
 
         <!-- Work Manager's Foreground Service Type -->
