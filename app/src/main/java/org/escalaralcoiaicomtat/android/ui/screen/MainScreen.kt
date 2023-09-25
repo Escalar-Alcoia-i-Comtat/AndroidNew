@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
@@ -484,6 +486,7 @@ fun MainScreen(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
                     .padding(horizontal = 8.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 SettingsPage(onApiKeySubmit)
             }
