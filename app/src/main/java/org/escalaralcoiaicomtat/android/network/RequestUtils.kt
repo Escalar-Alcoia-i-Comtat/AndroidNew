@@ -11,7 +11,6 @@ import org.escalaralcoiaicomtat.android.utils.json
 import org.json.JSONObject
 import timber.log.Timber
 import java.time.Instant
-import org.escalaralcoiaicomtat.android.exception.remote.ServerException
 import org.json.JSONException
 
 /**
