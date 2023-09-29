@@ -72,7 +72,7 @@ data class Path(
             json.getStringOrNull("grade")?.let(GradeValue::fromString),
             json.getEnumOrNull<Ending>("ending"),
 
-            json.getSerializableArrayOrNull<PitchInfo, PitchInfo.Companion>("pitches"),
+            json.getSerializableArrayOrNull<PitchInfo, PitchInfo.CREATOR>("pitches"),
 
             json.getLongOrNull("string_count"),
 

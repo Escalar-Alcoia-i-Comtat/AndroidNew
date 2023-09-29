@@ -1,5 +1,7 @@
 package org.escalaralcoiaicomtat.android.storage.type
 
+import android.os.Parcel
+import android.os.Parcelable
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.getUInt
@@ -16,8 +18,8 @@ data class PitchInfo(
     val ending: Ending?,
     val info: EndingInfo?,
     val inclination: EndingInclination?
-): JsonSerializable {
-    companion object: JsonSerializer<PitchInfo> {
+): JsonSerializable, Parcelable {
+    companion object CREATOR : Parcelable.Creator<PitchInfo>, JsonSerializer<PitchInfo> {
         override fun fromJson(json: JSONObject): PitchInfo = PitchInfo(
             json.getUInt("pitch"),
             json.getStringOrNull("grade")?.let { GradeValue.fromString(it) },
@@ -26,7 +28,20 @@ data class PitchInfo(
             json.getEnumOrNull<EndingInfo>("info"),
             json.getEnumOrNull<EndingInclination>("inclination")
         )
+
+        override fun createFromParcel(parcel: Parcel): PitchInfo = PitchInfo(parcel)
+
+        override fun newArray(size: Int): Array<PitchInfo?> = arrayOfNulls(size)
     }
+
+    constructor(parcel: Parcel) : this(
+        parcel.readLong().toUInt(),
+        parcel.readString()?.takeIf { it != "" }?.let(GradeValue::fromString),
+        parcel.readLong().takeIf { it >= 0 }?.toUInt(),
+        parcel.readString()?.takeIf { it != "" }?.let(Ending::valueOf),
+        parcel.readString()?.takeIf { it != "" }?.let(EndingInfo::valueOf),
+        parcel.readString()?.takeIf { it != "" }?.let(EndingInclination::valueOf)
+    )
 
     override fun toJson(): JSONObject = jsonOf(
         "pitch" to pitch,
@@ -36,4 +51,15 @@ data class PitchInfo(
         "info" to info,
         "inclination" to inclination
     )
+
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeLong(pitch.toLong())
+        dest.writeString(gradeValue?.name ?: "")
+        dest.writeLong(height?.toLong() ?: -1)
+        dest.writeString(ending?.name ?: "")
+        dest.writeString(info?.name ?: "")
+        dest.writeString(inclination?.name ?: "")
+    }
 }
