@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         applicationId = "org.escalaralcoiaicomtat.android"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 34
         versionCode = code
         versionName = version
@@ -50,9 +50,9 @@ android {
             val properties = Properties()
             project.rootProject.file("local.properties").inputStream().use(properties::load)
 
-            val signingKeystorePassword: String = properties.getProperty("signingKeystorePassword")
-            val signingKeyAlias: String = properties.getProperty("signingKeyAlias")
-            val signingKeyPassword: String = properties.getProperty("signingKeyPassword")
+            val signingKeystorePassword: String? = properties.getProperty("signingKeystorePassword")
+            val signingKeyAlias: String? = properties.getProperty("signingKeyAlias")
+            val signingKeyPassword: String? = properties.getProperty("signingKeyPassword")
 
             storeFile = File(project.rootDir, "keystore.jks")
             storePassword = signingKeystorePassword
@@ -133,9 +133,10 @@ task("increaseVersionCode") {
 val roomVersion by project.properties
 val workVersion by project.properties
 val ktorVersion by project.properties
+val acraVersion by project.properties
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.8.0-beta01")
+    implementation("androidx.activity:activity-ktx:1.8.0-rc01")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.12.0")
@@ -146,14 +147,14 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.1")
+    implementation("androidx.compose.material3:material3-window-size-class:1.1.2")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-text-google-fonts:1.5.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.navigation:navigation-compose:2.7.2")
+    implementation("androidx.navigation:navigation-compose:2.7.3")
 
     // Jetpack Compose - Reorderable lists
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")

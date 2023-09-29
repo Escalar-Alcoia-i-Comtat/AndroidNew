@@ -30,7 +30,11 @@ class NetworkObserver private constructor(context: Context) {
         }
     }
 
-    private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+    private val connectivityManager: ConnectivityManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        context.getSystemService(ConnectivityManager::class.java)
+    } else {
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
