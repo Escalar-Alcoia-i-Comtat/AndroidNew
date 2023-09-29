@@ -36,6 +36,11 @@ jobs:
           echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
 
+      - name: Prepare Amazon Security Profile
+        run: |
+          touch amazon_security_profile.json
+          echo '${{ secrets }}' > amazon_security_profile.json
+
       - name: Build
         id: build
         run: |
@@ -89,3 +94,8 @@ jobs:
           # mappingFile: ./base/build/outputs/mapping/release/mapping.txt
           whatsNewDirectory: ./changelog
           status: completed
+
+      - name: Upload to Amazon App Store
+        id: upload_amazon
+        run: bash ./gradlew :app:publishToAmazonAppStore
+        continue-on-error: true

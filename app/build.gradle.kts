@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("app.brant.amazonappstorepublisher")
 }
 
 android {
@@ -107,6 +108,13 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+amazon {
+    securityProfile = File(project.rootDir, "amazon_security_profile.json")
+    applicationId = "org.escalaralcoiaicomtat.android"
+    pathToApks = listOf(File(project.rootDir, "app/build/outputs/apk/release/app-release.apk"))
+    replaceEdit = true
 }
 
 task("increaseVersionCode") {
