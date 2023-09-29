@@ -92,8 +92,8 @@ data class Path(
             json.getBoolean("show_description"),
             json.getStringOrNull("description"),
 
-            json.getSerializableOrNull<Builder, Builder.Companion>("builder"),
-            json.getSerializableArrayOrNull<Builder, Builder.Companion>("re_builder"),
+            json.getSerializableOrNull<Builder, Builder.CREATOR>("builder"),
+            json.getSerializableArrayOrNull<Builder, Builder.CREATOR>("re_builder"),
 
             json.getLong("sector_id")
         )
