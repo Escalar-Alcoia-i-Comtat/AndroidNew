@@ -83,7 +83,9 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
                     Text(
                         text = stringResource(R.string.list_zone_information_title),
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .padding(horizontal = 8.dp)
                     )
                 }
                 if (zonePoint != null) {
@@ -146,7 +148,9 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
                     Text(
                         text = stringResource(parent.childrenTitleRes),
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+                        modifier = Modifier
+                            .padding(bottom = 4.dp, top = 8.dp)
+                            .padding(horizontal = 8.dp)
                     )
                 }
             }
