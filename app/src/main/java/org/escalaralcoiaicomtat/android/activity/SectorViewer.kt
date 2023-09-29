@@ -79,6 +79,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
@@ -746,12 +747,14 @@ class SectorViewer : AppCompatActivity() {
                     text = "${path.sketchId} - ",
                     modifier = Modifier
                         .padding(start = 8.dp),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = path.displayName,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 if (apiKey != null) {
                     IconButton(onClick = { showingCreateBlockDialog = true }) {
