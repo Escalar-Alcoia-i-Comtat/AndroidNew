@@ -8,10 +8,11 @@ import io.ktor.client.statement.bodyAsText
 import org.escalaralcoiaicomtat.android.exception.remote.RequestException
 import org.escalaralcoiaicomtat.android.utils.getJSONObjectOrNull
 import org.escalaralcoiaicomtat.android.utils.json
+import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
+import java.io.IOException
 import java.time.Instant
-import org.json.JSONException
 
 /**
  * Converts the body of the `HttpResponse` object into a `JSONObject`.
@@ -29,6 +30,7 @@ suspend fun HttpResponse.bodyAsJson(): JSONObject = bodyAsText().json
  *
  * @throws RequestException If the server doesn't return a successful response.
  * @throws IllegalStateException If the server didn't respond with JSON.
+ * @throws IOException If there's any network issue while running the request.
  */
 suspend inline fun get(
     endpoint: String,

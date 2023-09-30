@@ -55,6 +55,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
+import java.io.IOException
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -191,6 +192,10 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             Timber.e(e, "Got an invalid response from server.")
 
             Result.retry()
+        } catch (e: IOException) {
+            Timber.w(e, "Internet or server is not reachable. Sync failed.")
+
+            Result.failure()
         }
     }
 
