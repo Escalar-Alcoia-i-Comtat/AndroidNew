@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.exception.remote.RemoteFileNotFoundException
+import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
 import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
@@ -49,8 +50,15 @@ abstract class ImageEntity : DataEntity() {
             val imageFile = imageFile(context)
             imageFile.update(width, height, progress)
         } catch (_: RemoteFileNotFoundException) {
-            // Image has been removed from server, should fetch data again
-            SyncWorker.synchronize(context).await { it.state.isFinished }
+            // Image has been removed from server, should delete the items' data and sync again
+            Timber.w("Image for ${this::class.simpleName}#$id could not be found in server. Voiding data and syncing again.")
+
+            AppDatabase.getInstance(context)
+                .dataDao()
+                .deleteByImageUUID(image)
+
+            SyncWorker.synchronize(context, force = true)
+                .await { it.state.isFinished }
         } catch (e: IllegalStateException) {
             // Server is not available
             // TODO - show error

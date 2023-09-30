@@ -47,6 +47,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.propertiesWith
+import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.map
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.serialize
@@ -74,7 +75,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         private const val PROGRESS_PROGRESS = "progress"
         private const val PROGRESS_MAX = "max"
 
-        suspend fun synchronize(context: Context): LiveData<WorkInfo> {
+        private const val DATA_FORCE = "force"
+
+        suspend fun synchronize(context: Context, force: Boolean = false): LiveData<WorkInfo> {
+            // TODO - allow running sync just for specific parts, eg just for blocks
+
             val uuid = UUID.randomUUID()
             val request = OneTimeWorkRequestBuilder<SyncWorker>()
                 .setId(uuid)
@@ -84,6 +89,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
                         .build()
+                )
+                .setInputData(
+                    workDataOf(
+                        DATA_FORCE to force
+                    )
                 )
                 .build()
             val workManager = WorkManager.getInstance(context)
@@ -154,12 +164,27 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         // setForeground(createForegroundInfo())
 
         return try {
+            if (!shouldRunSynchronization()) {
+                return Result.success()
+            }
+
             getTree()
 
             // TODO - sync blocks
 
+            // Get last update from server
+            get(EndpointUtils.getUrl("last_update")) { data ->
+                if (data == null) {
+                    Timber.w("Last update from server didn't return any data.")
+                } else {
+                    val lastUpdate = data.getLongOrNull("last_update")?.let(Instant::ofEpochMilli)
+                    Preferences.setLastUpdate(applicationContext, lastUpdate)
+                }
+            }
+
             Preferences.markAsSynchronized(applicationContext)
             Preferences.setLastSync(applicationContext, Instant.now())
+            Preferences.setLastModification(applicationContext, null)
 
             Result.success()
         } catch (e: JSONException) {
@@ -318,7 +343,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun performDeletions(apiKey: String, type: String, serverCache: MutableList<Long>?) {
+    private suspend fun performDeletions(
+        apiKey: String,
+        type: String,
+        serverCache: MutableList<Long>?
+    ) {
         dao.pendingDeletions(type).forEach { deletion ->
             ktorHttpClient.delete(EndpointUtils.getUrl(deletion.endpoint)) {
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
@@ -329,11 +358,13 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                         Timber.d("Deleted data from server successfully: ${deletion.type}:${deletion.deleteId}")
                         serverCache?.remove(deletion.deleteId)
                     }
+
                     HttpStatusCode.Gone -> {
                         // Deletion successful
                         Timber.d("Data from server was already deleted: ${deletion.type}:${deletion.deleteId}")
                         serverCache?.remove(deletion.deleteId)
                     }
+
                     else -> {
                         Timber.e("Could not delete data from server: ${deletion.type}:${deletion.deleteId}")
                         throw RequestException(status, bodyAsJson())
@@ -374,7 +405,13 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                             DataTypeInfo.SectorInfo,
                             Step.SYNC_SECTORS
                         ) { pJson ->
-                            synchronize(pJson, Path, serverPaths, DataTypeInfo.PathInfo, Step.SYNC_PATHS) {}
+                            synchronize(
+                                pJson,
+                                Path,
+                                serverPaths,
+                                DataTypeInfo.PathInfo,
+                                Step.SYNC_PATHS
+                            ) {}
                         }
                     }
                 }
@@ -498,6 +535,46 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
                 PROGRESS_MAX to max
             )
         )
+    }
+
+    /**
+     * Checks all the update times to consider running synchronization or not.
+     */
+    private suspend fun shouldRunSynchronization(): Boolean {
+        if (inputData.getBoolean(DATA_FORCE, false)) {
+            return true
+        }
+
+        get(EndpointUtils.getUrl("last_update")) { data ->
+            if (data == null) {
+                Timber.w("Last update from server didn't return any data. Running sync...")
+                return true
+            }
+            val lastUpdate = data.getLongOrNull("last_update")?.let(Instant::ofEpochMilli)
+            if (lastUpdate == null) {
+                Timber.w("Last update from server is null. Running sync...")
+                return true
+            }
+            val localLastUpdate = Preferences.getLastUpdate(applicationContext)
+                .firstOrNull()
+            val localLastModification = Preferences.getLastModification(applicationContext)
+                .firstOrNull()
+
+            if (localLastUpdate == null) {
+                Timber.i("No last update stored locally, running sync...")
+            } else if (localLastUpdate < lastUpdate) {
+                Timber.i("Server has been updated, running sync...")
+            } else if (localLastModification != null && localLastModification > localLastUpdate) {
+                Timber.i("Local data has been modified after local, running sync...")
+            } else if (localLastModification != null && localLastModification > lastUpdate) {
+                Timber.i("Local data has been modified after server, running sync...")
+            } else {
+                Timber.i("Local data up to date with server. Won't run sync.")
+                return false
+            }
+            return true
+        }
+        return true
     }
 
     enum class Step {

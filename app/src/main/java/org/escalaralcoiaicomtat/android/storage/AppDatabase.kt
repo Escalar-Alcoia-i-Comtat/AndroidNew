@@ -10,6 +10,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import kotlinx.coroutines.runBlocking
 import org.escalaralcoiaicomtat.android.storage.converters.AndroidConverters
 import org.escalaralcoiaicomtat.android.storage.converters.Converters
 import org.escalaralcoiaicomtat.android.storage.converters.JavaConverters
@@ -25,9 +26,13 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
+import timber.log.Timber
+import java.time.Instant
+import java.util.concurrent.Executors
 
 @Database(
     entities = [
+        // Keep in sync with getInstance
         Area::class, Zone::class, Sector::class, Path::class, Blocking::class, LocalDeletion::class,
         FavoriteArea::class, FavoriteZone::class, FavoriteSector::class
     ],
@@ -55,6 +60,30 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "database"
                 )
+                .setQueryCallback(object : QueryCallback {
+                    override fun onQuery(sqlQuery: String, bindArgs: List<Any?>) {
+                        // Must be on one of the data tables
+                        if (listOf(
+                                "areas",
+                                "zones",
+                                "sectors",
+                                "local_deletions",
+                                "blocking"
+                            ).none { sqlQuery.contains(it, true) }
+                        ) return
+
+                        // Must be a modification query
+                        if (!sqlQuery.startsWith("INSERT", true) ||
+                            !sqlQuery.startsWith("UPDATE", true) ||
+                            !sqlQuery.startsWith("DELETE", true)
+                        ) return
+
+                        Timber.d("Database has been updated ($sqlQuery). Updating last modification...")
+                        runBlocking {
+                            Preferences.setLastModification(applicationContext, Instant.now())
+                        }
+                    }
+                }, Executors.newSingleThreadExecutor())
                 .build()
                 .also { instance = it }
         }

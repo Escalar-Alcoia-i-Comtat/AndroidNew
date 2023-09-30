@@ -25,6 +25,11 @@ val lastSync = longPreferencesKey("last_sync")
  */
 val lastUpdate = longPreferencesKey("last_update")
 
+/**
+ * The last local modification date.
+ */
+val lastModification = longPreferencesKey("last_modification")
+
 val shownIntro = booleanPreferencesKey("shown_intro")
 
 object Preferences {
@@ -44,6 +49,10 @@ object Preferences {
         .data
         .map { it[lastSync]?.let(Instant::ofEpochMilli) }
 
+    fun getLastModification(context: Context): Flow<Instant?> = context.dataStore
+        .data
+        .map { it[lastModification]?.let(Instant::ofEpochMilli) }
+
     fun hasShownIntro(context: Context) = context.dataStore
         .data
         .map { it[shownIntro] ?: false }
@@ -58,8 +67,21 @@ object Preferences {
     suspend fun setLastSync(context: Context, value: Instant) =
         context.dataStore.edit { it[lastSync] = value.toEpochMilli() }
 
-    suspend fun setLastUpdate(context: Context, value: Instant) =
-        context.dataStore.edit { it[lastUpdate] = value.toEpochMilli() }
+    suspend fun setLastUpdate(context: Context, value: Instant?) =
+        context.dataStore.edit {
+            if (value != null)
+                it[lastUpdate] = value.toEpochMilli()
+            else
+                it.remove(lastUpdate)
+        }
+
+    suspend fun setLastModification(context: Context, value: Instant?) =
+        context.dataStore.edit {
+            if (value != null)
+                it[lastModification] = value.toEpochMilli()
+            else
+                it.remove(lastModification)
+        }
 
     suspend fun markIntroShown(context: Context) = context.dataStore
         .edit { it[shownIntro] = true }

@@ -100,7 +100,6 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -1031,8 +1030,6 @@ class SectorViewer : AppCompatActivity() {
         }
 
         fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
-            val apiKey = Preferences.getApiKey(getApplication()).first()
-
             ktorHttpClient.post(EndpointUtils.getUrl("block/${blocking.parentId}")) {
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
                 setBody(blocking.toJson().toString())
