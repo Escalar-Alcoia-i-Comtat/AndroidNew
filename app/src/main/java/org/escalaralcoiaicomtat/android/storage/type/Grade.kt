@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.storage.type
 
+import androidx.core.text.isDigitsOnly
 import org.escalaralcoiaicomtat.android.ui.theme.ColorGrade1
 import org.escalaralcoiaicomtat.android.ui.theme.ColorGrade2
 import org.escalaralcoiaicomtat.android.ui.theme.ColorGrade3
@@ -43,9 +44,9 @@ val GradeValue?.color: ColorGroup
 enum class SportsGrade : GradeValue {
     G1,
     G2, G2_PLUS,
-    G3A, G3B, G3C,
-    G4A, G4B, G4C,
-    G5A, G5B, G5C,
+    G3A, G3B, G3C, G3,
+    G4A, G4B, G4C, G4,
+    G5A, G5B, G5C, G5_PLUS, G5,
     G6A, G6A_PLUS, G6B, G6B_PLUS, G6C, G6C_PLUS,
     G7A, G7A_PLUS, G7B, G7B_PLUS, G7C, G7C_PLUS,
     G8A, G8A_PLUS, G8B, G8B_PLUS, G8C, G8C_PLUS,
@@ -55,6 +56,13 @@ enum class SportsGrade : GradeValue {
         .substring(1)
         .replace("_PLUS", "+")
         .lowercase()
+        .let {
+            if (it.isDigitsOnly()) {
+                "${it}º"
+            } else {
+                it
+            }
+        }
 }
 
 enum class ArtificialGrade : GradeValue {
