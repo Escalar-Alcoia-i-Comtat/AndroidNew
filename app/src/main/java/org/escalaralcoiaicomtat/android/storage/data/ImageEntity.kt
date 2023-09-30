@@ -7,11 +7,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.exception.remote.RemoteFileNotFoundException
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
 import org.escalaralcoiaicomtat.android.utils.await
+import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
 import java.util.UUID
@@ -52,6 +56,10 @@ abstract class ImageEntity : DataEntity() {
         } catch (_: RemoteFileNotFoundException) {
             // Image has been removed from server, should delete the items' data and sync again
             Timber.w("Image for ${this::class.simpleName}#$id could not be found in server. Voiding data and syncing again.")
+
+            withContext(Dispatchers.Main) {
+                context.toast(R.string.toast_data_corrupt)
+            }
 
             AppDatabase.getInstance(context)
                 .dataDao()
