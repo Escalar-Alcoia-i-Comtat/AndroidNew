@@ -313,3 +313,10 @@ inline fun <T, reified S : JsonSerializer<T>> JSONObject.getSerializableArrayOrN
 } catch (_: JSONException) {
     null
 }
+
+fun JSONObject.getJSONArrayOrNull(key: String): JSONArray? =
+    try {
+        if (has(key)) getJSONArray(key) else null
+    } catch (_: JSONException) {
+        null
+    }

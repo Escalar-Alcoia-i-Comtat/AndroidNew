@@ -8,14 +8,23 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
 
 val apiKeyPreference = stringPreferencesKey("api_key")
+
 val everSynchronized = booleanPreferencesKey("every_sync")
+
 val lastSync = longPreferencesKey("last_sync")
+
+/**
+ * The server's last update time of the last fetch.
+ */
+val lastUpdate = longPreferencesKey("last_update")
+
 val shownIntro = booleanPreferencesKey("shown_intro")
 
 object Preferences {
@@ -28,6 +37,10 @@ object Preferences {
         .map { it[everSynchronized] ?: false }
 
     fun getLastSync(context: Context) = context.dataStore
+        .data
+        .map { it[lastSync]?.let(Instant::ofEpochMilli) }
+
+    fun getLastUpdate(context: Context): Flow<Instant?> = context.dataStore
         .data
         .map { it[lastSync]?.let(Instant::ofEpochMilli) }
 
@@ -44,6 +57,9 @@ object Preferences {
 
     suspend fun setLastSync(context: Context, value: Instant) =
         context.dataStore.edit { it[lastSync] = value.toEpochMilli() }
+
+    suspend fun setLastUpdate(context: Context, value: Instant) =
+        context.dataStore.edit { it[lastUpdate] = value.toEpochMilli() }
 
     suspend fun markIntroShown(context: Context) = context.dataStore
         .edit { it[shownIntro] = true }

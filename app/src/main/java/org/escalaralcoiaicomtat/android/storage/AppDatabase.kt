@@ -5,6 +5,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -30,9 +31,17 @@ import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
         Area::class, Zone::class, Sector::class, Path::class, Blocking::class, LocalDeletion::class,
         FavoriteArea::class, FavoriteZone::class, FavoriteSector::class
     ],
-    version = 1
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2)
+    ],
+    version = 2
 )
-@TypeConverters(ListConverters::class, Converters::class, JavaConverters::class, AndroidConverters::class)
+@TypeConverters(
+    ListConverters::class,
+    Converters::class,
+    JavaConverters::class,
+    AndroidConverters::class
+)
 abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
