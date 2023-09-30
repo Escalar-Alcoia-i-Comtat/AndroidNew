@@ -41,6 +41,7 @@ val GradeValue?.color: ColorGroup
             ColorGradeP
         }
 
+@Suppress("unused")
 enum class SportsGrade : GradeValue {
     G1,
     G2, G2_PLUS,
@@ -65,6 +66,7 @@ enum class SportsGrade : GradeValue {
         }
 }
 
+@Suppress("unused")
 enum class ArtificialGrade : GradeValue {
     A1, A2, A3;
 
