@@ -11,7 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,8 +24,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.Preferences
+import org.escalaralcoiaicomtat.android.ui.modifier.autofill
 
 @Composable
+@OptIn(ExperimentalComposeUiApi::class)
 fun ApiKeyDialog(
     onApiSubmit: (String) -> Job,
     onDismissRequest: () -> Unit
@@ -48,7 +52,12 @@ fun ApiKeyDialog(
                         Text(stringResource(R.string.settings_security_lock_api_key_wrong))
                     }
                 },
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+                    .autofill(
+                        autofillTypes = listOf(AutofillType.Password),
+                        onFill = { apiKey = it }
+                    )
             )
         },
         confirmButton = {

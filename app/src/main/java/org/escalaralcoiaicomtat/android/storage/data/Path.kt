@@ -12,11 +12,13 @@ import org.escalaralcoiaicomtat.android.storage.type.RequiredMaterial
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
+import org.escalaralcoiaicomtat.android.utils.getJSONArrayOrNull
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.getSerializableArrayOrNull
 import org.escalaralcoiaicomtat.android.utils.getSerializableOrNull
 import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
+import org.escalaralcoiaicomtat.android.utils.map
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.json.JSONObject
@@ -58,6 +60,8 @@ data class Path(
     val builder: Builder?,
     val reBuilder: List<Builder>?,
 
+    val images: List<String>? = null,
+
     override val parentId: Long
 ) : DataEntity(), JsonSerializable {
     companion object : JsonSerializer<Path> {
@@ -72,7 +76,7 @@ data class Path(
             json.getStringOrNull("grade")?.let(GradeValue::fromString),
             json.getEnumOrNull<Ending>("ending"),
 
-            json.getSerializableArrayOrNull<PitchInfo, PitchInfo.Companion>("pitches"),
+            json.getSerializableArrayOrNull<PitchInfo, PitchInfo.CREATOR>("pitches"),
 
             json.getLongOrNull("string_count"),
 
@@ -92,8 +96,10 @@ data class Path(
             json.getBoolean("show_description"),
             json.getStringOrNull("description"),
 
-            json.getSerializableOrNull<Builder, Builder.Companion>("builder"),
-            json.getSerializableArrayOrNull<Builder, Builder.Companion>("re_builder"),
+            json.getSerializableOrNull<Builder, Builder.CREATOR>("builder"),
+            json.getSerializableArrayOrNull<Builder, Builder.CREATOR>("re_builder"),
+
+            json.getJSONArrayOrNull("images")?.map { getString(it) },
 
             json.getLong("sector_id")
         )
@@ -209,6 +215,8 @@ data class Path(
 
         "builder" to builder,
         "re_builder" to reBuilder,
+
+        "images" to images,
 
         "sector_id" to parentId
     )

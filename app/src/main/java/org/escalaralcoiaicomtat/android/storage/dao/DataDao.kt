@@ -21,186 +21,206 @@ import org.escalaralcoiaicomtat.android.storage.relations.ZoneWithSectors
 
 @Dao
 @Suppress("TooManyFunctions")
-interface DataDao {
+abstract class DataDao {
     @WorkerThread
     @Insert
-    suspend fun insert(items: Area): Long
+    abstract suspend fun insert(items: Area): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(items: Area)
+    abstract suspend fun delete(items: Area)
 
     @WorkerThread
     @Update
-    suspend fun update(items: Area)
+    abstract suspend fun update(items: Area)
 
     @WorkerThread
     @Query("SELECT * FROM areas WHERE id=:id")
-    suspend fun getArea(id: Long): Area?
+    abstract suspend fun getArea(id: Long): Area?
+
+    @WorkerThread
+    @Query("SELECT * FROM areas WHERE image=:uuid")
+    abstract suspend fun getAreaByImage(uuid: String): Area?
 
     @WorkerThread
     @Query("SELECT * FROM areas")
-    suspend fun getAllAreas(): List<Area>
+    abstract suspend fun getAllAreas(): List<Area>
 
     @WorkerThread
     @Query("SELECT * FROM areas")
-    fun getAllAreasLive(): LiveData<List<Area>>
+    abstract fun getAllAreasLive(): LiveData<List<Area>>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM areas WHERE id=:areaId")
-    fun getZonesFromAreaLive(areaId: Long): LiveData<AreaWithZones>
+    abstract fun getZonesFromAreaLive(areaId: Long): LiveData<AreaWithZones>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM areas WHERE id=:areaId")
-    suspend fun getZonesFromArea(areaId: Long): AreaWithZones?
+    abstract suspend fun getZonesFromArea(areaId: Long): AreaWithZones?
 
 
     @WorkerThread
     @Insert
-    suspend fun insert(items: Zone): Long
+    abstract suspend fun insert(items: Zone): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(items: Zone)
+    abstract suspend fun delete(items: Zone)
 
     @WorkerThread
     @Update
-    suspend fun update(items: Zone)
+    abstract suspend fun update(items: Zone)
 
     @WorkerThread
     @Query("SELECT * FROM zones WHERE id=:id")
-    suspend fun getZone(id: Long): Zone?
+    abstract suspend fun getZone(id: Long): Zone?
+
+    @WorkerThread
+    @Query("SELECT * FROM zones WHERE image=:uuid")
+    abstract suspend fun getZoneByImage(uuid: String): Zone?
 
     @WorkerThread
     @Query("SELECT * FROM zones")
-    suspend fun getAllZones(): List<Zone>
+    abstract suspend fun getAllZones(): List<Zone>
 
     @WorkerThread
     @Query("SELECT * FROM zones")
-    fun getAllZonesLive(): LiveData<List<Zone>>
+    abstract fun getAllZonesLive(): LiveData<List<Zone>>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM zones WHERE id=:zoneId")
-    fun getSectorsFromZoneLive(zoneId: Long): LiveData<ZoneWithSectors>
+    abstract fun getSectorsFromZoneLive(zoneId: Long): LiveData<ZoneWithSectors>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM zones WHERE id=:zoneId")
-    suspend fun getSectorsFromZone(zoneId: Long): ZoneWithSectors?
+    abstract suspend fun getSectorsFromZone(zoneId: Long): ZoneWithSectors?
 
 
     @WorkerThread
     @Insert
-    suspend fun insert(items: Sector): Long
+    abstract suspend fun insert(items: Sector): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(items: Sector)
+    abstract suspend fun delete(items: Sector)
 
     @WorkerThread
     @Update
-    suspend fun update(items: Sector)
+    abstract suspend fun update(items: Sector)
 
     @WorkerThread
     @Query("SELECT * FROM sectors WHERE id=:id")
-    suspend fun getSector(id: Long): Sector?
+    abstract suspend fun getSector(id: Long): Sector?
+
+    @WorkerThread
+    @Query("SELECT * FROM sectors WHERE image=:uuid")
+    abstract suspend fun getSectorByImage(uuid: String): Sector?
 
     @WorkerThread
     @Query("SELECT * FROM sectors")
-    suspend fun getAllSectors(): List<Sector>
+    abstract suspend fun getAllSectors(): List<Sector>
 
     @WorkerThread
     @Query("SELECT * FROM sectors")
-    fun getAllSectorsLive(): LiveData<List<Sector>>
+    abstract fun getAllSectorsLive(): LiveData<List<Sector>>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM sectors WHERE id=:sectorId")
-    fun getPathsFromSectorLive(sectorId: Long): LiveData<SectorWithPaths?>
+    abstract fun getPathsFromSectorLive(sectorId: Long): LiveData<SectorWithPaths?>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM sectors WHERE id=:sectorId")
-    suspend fun getPathsFromSector(sectorId: Long): SectorWithPaths?
+    abstract suspend fun getPathsFromSector(sectorId: Long): SectorWithPaths?
 
 
     @WorkerThread
     @Insert
-    suspend fun insert(items: Path): Long
+    abstract suspend fun insert(items: Path): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(items: Path)
+    abstract suspend fun delete(items: Path)
 
     @WorkerThread
     @Update
-    suspend fun update(items: Path)
+    abstract suspend fun update(items: Path)
 
     @WorkerThread
     @Query("SELECT * FROM paths WHERE id=:id")
-    suspend fun getPath(id: Long): Path?
+    abstract suspend fun getPath(id: Long): Path?
 
     @WorkerThread
     @Query("SELECT * FROM paths")
-    suspend fun getAllPaths(): List<Path>
+    abstract suspend fun getAllPaths(): List<Path>
 
     @WorkerThread
     @Query("SELECT * FROM paths")
-    fun getAllPathsLive(): LiveData<List<Path>>
+    abstract fun getAllPathsLive(): LiveData<List<Path>>
 
     @WorkerThread
     @Transaction
     @Query("SELECT * FROM paths WHERE parentId=:sectorId")
-    suspend fun getPathWithBlocks(sectorId: Long): List<PathWithBlocks>
+    abstract suspend fun getPathWithBlocks(sectorId: Long): List<PathWithBlocks>
 
     @Transaction
     @Query("SELECT * FROM paths WHERE parentId=:sectorId")
-    fun getPathWithBlocksLive(sectorId: Long): LiveData<List<PathWithBlocks>>
+    abstract fun getPathWithBlocksLive(sectorId: Long): LiveData<List<PathWithBlocks>>
 
     @Query("SELECT builder FROM paths")
-    suspend fun getAllBuilders(): List<String>
+    abstract suspend fun getAllBuilders(): List<String>
 
     @Query("SELECT reBuilder FROM paths")
-    suspend fun getAllReBuilders(): List<String>
+    abstract suspend fun getAllReBuilders(): List<String>
 
 
     @WorkerThread
     @Insert
-    suspend fun insert(items: Blocking): Long
+    abstract suspend fun insert(items: Blocking): Long
 
     @WorkerThread
     @Delete
-    suspend fun delete(items: Blocking)
+    abstract suspend fun delete(items: Blocking)
 
     @WorkerThread
     @Update
-    suspend fun update(items: Blocking)
+    abstract suspend fun update(items: Blocking)
 
     @WorkerThread
     @Query("SELECT * FROM blocking WHERE id=:id")
-    suspend fun getBlocking(id: Long): Blocking?
+    abstract suspend fun getBlocking(id: Long): Blocking?
 
     @WorkerThread
     @Query("SELECT * FROM blocking")
-    suspend fun getAllBlocks(): List<Blocking>
+    abstract suspend fun getAllBlocks(): List<Blocking>
 
     @WorkerThread
     @Query("SELECT * FROM blocking WHERE parentId=:path")
-    suspend fun getAllBlocks(path: Long): List<Blocking>
+    abstract suspend fun getAllBlocks(path: Long): List<Blocking>
 
 
     @WorkerThread
     @Query("SELECT * FROM local_deletions WHERE type=:type")
-    suspend fun pendingDeletions(type: String): List<LocalDeletion>
+    abstract suspend fun pendingDeletions(type: String): List<LocalDeletion>
 
     @Insert
     @WorkerThread
-    suspend fun notifyDeletion(delete: LocalDeletion): Long
+    abstract suspend fun notifyDeletion(delete: LocalDeletion): Long
 
     @Delete
     @WorkerThread
-    suspend fun clearDeletion(delete: LocalDeletion)
+    abstract suspend fun clearDeletion(delete: LocalDeletion)
+
+    @WorkerThread
+    @Transaction
+    open suspend fun deleteByImageUUID(uuid: String) {
+        getAreaByImage(uuid)?.let { delete(it) }
+        getZoneByImage(uuid)?.let { delete(it) }
+        getSectorByImage(uuid)?.let { delete(it) }
+    }
 }

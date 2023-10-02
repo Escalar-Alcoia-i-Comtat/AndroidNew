@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("app.brant.amazonappstorepublisher")
 }
 
 android {
@@ -109,6 +110,13 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+amazon {
+    securityProfile = File(project.rootDir, "amazon_security_profile.json")
+    applicationId = "org.escalaralcoiaicomtat.android"
+    pathToApks = listOf(File(project.rootDir, "app/build/outputs/apk/release/app-release.apk"))
+    replaceEdit = true
+}
+
 task("increaseVersionCode") {
     doFirst {
         val versionPropsFile = project.rootProject.file("version.properties")
@@ -152,7 +160,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.1")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.navigation:navigation-compose:2.7.3")
 

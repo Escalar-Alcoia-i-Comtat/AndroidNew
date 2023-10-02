@@ -79,6 +79,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
@@ -99,7 +100,6 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.engawapg.lib.zoomable.rememberZoomState
@@ -746,12 +746,14 @@ class SectorViewer : AppCompatActivity() {
                     text = "${path.sketchId} - ",
                     modifier = Modifier
                         .padding(start = 8.dp),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = path.displayName,
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 if (apiKey != null) {
                     IconButton(onClick = { showingCreateBlockDialog = true }) {
@@ -1028,8 +1030,6 @@ class SectorViewer : AppCompatActivity() {
         }
 
         fun createBlock(blocking: Blocking) = viewModelScope.launch(Dispatchers.IO) {
-            val apiKey = Preferences.getApiKey(getApplication()).first()
-
             ktorHttpClient.post(EndpointUtils.getUrl("block/${blocking.parentId}")) {
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
                 setBody(blocking.toJson().toString())

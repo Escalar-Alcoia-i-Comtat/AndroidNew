@@ -141,7 +141,7 @@ fun SettingsPage(
             )
         },
         modifier = Modifier.clickable(enabled = sync == null) {
-            CoroutineScope(Dispatchers.IO).launch { SyncWorker.synchronize(context) }
+            CoroutineScope(Dispatchers.IO).launch { SyncWorker.synchronize(context, true) }
         }
     )
 

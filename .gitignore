@@ -13,3 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
+amazon_security_profile.json

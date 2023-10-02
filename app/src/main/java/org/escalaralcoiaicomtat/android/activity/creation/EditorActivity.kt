@@ -44,6 +44,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -103,7 +106,7 @@ import java.util.UUID
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
 abstract class EditorActivity<
     ParentType : BaseEntity?,
     ElementType : BaseEntity,
@@ -244,6 +247,8 @@ abstract class EditorActivity<
         Timber.i("Launched ${this::class.simpleName} with extras: $extrasString")
 
         setContentThemed {
+            val windowSizeClass = calculateWindowSizeClass(this)
+
             PredictiveBackHandler { progress: Flow<BackEventCompat> ->
                 // code for gesture back started
                 try {
@@ -347,6 +352,19 @@ abstract class EditorActivity<
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
+                    val parent by model.parent.observeAsState()
+
+                    // Show side panel on top in mobile
+                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact && (!model.hasParent || parent != null)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(.3f)
+                        ) {
+                            SidePanel(parent)
+                        }
+                    }
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -360,10 +378,11 @@ abstract class EditorActivity<
                                 .widthIn(max = maxWidth.dp)
                                 .fillMaxSize()
                         ) {
-                            val parent by model.parent.observeAsState()
-
                             if (!model.hasParent || parent != null) {
-                                SidePanel(parent)
+                                // Hide side panel on mobile
+                                if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact) {
+                                    SidePanel(parent)
+                                }
 
                                 Column(
                                     modifier = Modifier

@@ -100,6 +100,7 @@ data class SynchronizedFile(
      * @throws RequestException If there's any other error on the request.
      * @throws JSONException If there's any error of format in the response.
      * @throws AssertionError If the response doesn't have any data.
+     * @throws IllegalStateException If the server didn't respond with JSON
      */
     suspend fun remoteMeta(): RemoteFileInfo {
         try {
@@ -245,6 +246,12 @@ data class SynchronizedFile(
 
     /**
      * Downloads the metadata from the server, and if it has been updated, download the new file.
+     *
+     * @throws RemoteFileNotFoundException If there isn't any file with [uuid] on the server.
+     * @throws RequestException If there's any other error on the request.
+     * @throws JSONException If there's any error of format in the response.
+     * @throws AssertionError If the response doesn't have any data.
+     * @throws IllegalStateException If the server didn't respond with JSON
      */
     @WorkerThread
     suspend fun update(
