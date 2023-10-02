@@ -85,6 +85,7 @@
     <string name="edit_sector_title">Modificar Sector</string>
     <string name="edit_path_title">Modificar Via</string>
     <string name="new_element_choose_title">Tria un element pare</string>
+    <string name="toast_data_corrupt">Local data corrupted, reloading from server…</string>
     <string name="creation_step_compressing">Comprimint imatge…</string>
     <string name="creation_step_uploading">Pujant… %.2f %%</string>
     <string name="creation_step_finishing">Acabant…</string>
