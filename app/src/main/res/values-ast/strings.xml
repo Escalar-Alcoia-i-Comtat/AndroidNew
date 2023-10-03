@@ -8,7 +8,6 @@
     <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
-    <string name="action_filter">Filter</string>
     <string name="action_previous">Previous</string>
     <string name="action_next">Next</string>
     <string name="action_update">Update</string>
@@ -47,7 +46,10 @@
     <string name="sector_kids_apt_title">Kids Apt</string>
     <string name="sector_kids_apt_message">This sector has safe places where children can stay without being hurt.</string>
     <string name="sector_walking_time_title">Walking Time</string>
-    <string name="sector_walking_time_message">It takes approximately %d minutes walking from the parking site to the sector.</string>
+    <plurals name="sector_walking_time_message">
+        <item quantity="one">It takes approximately %d minute walking from the parking site to the sector.</item>
+        <item quantity="other">It takes approximately %d minutes walking from the parking site to the sector.</item>
+    </plurals>
     <string name="list_item_favorite">Favorite</string>
     <string name="list_item_download">Download</string>
     <string name="list_item_create">Create New</string>
@@ -85,6 +87,7 @@
     <string name="edit_sector_title">Modify Sector</string>
     <string name="edit_path_title">Modify Route</string>
     <string name="new_element_choose_title">Choose a parent</string>
+    <string name="toast_data_corrupt">Local data corrupted, reloading from server…</string>
     <string name="creation_step_compressing">Compressing image…</string>
     <string name="creation_step_uploading">Uploading… %.2f %%</string>
     <string name="creation_step_finishing">Finishing…</string>
@@ -124,7 +127,6 @@
     <string name="form_builder_date">Building Date</string>
     <string name="form_re_buildings">Re-Buildings</string>
     <string name="form_description">Description</string>
-    <string name="form_description_show">Show Description</string>
     <string name="form_day">Day</string>
     <string name="form_month">Month</string>
     <string name="sun_time_none">None</string>
@@ -175,7 +177,10 @@
     <string name="notification_sync_title">Running Synchronization…</string>
     <string name="notification_sync_message">Synchronizing device\'s data with server\'s.</string>
     <string name="path_view_quickdraw_count_title">Quickdraw Count</string>
-    <string name="path_view_quickdraw_count_message">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</string>
+    <plurals name="path_view_quickdraw_count_message">
+        <item quantity="one">This route has %d anchor installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+    </plurals>
     <string name="path_view_height_title">Height</string>
     <string name="path_view_height_message">This route is %d meters high. It\'t recommended to bring a %d meters rope.</string>
     <string name="path_view_count_title">Installed safes</string>
