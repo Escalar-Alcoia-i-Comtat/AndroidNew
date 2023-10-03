@@ -39,7 +39,7 @@ jobs:
       - name: Prepare Amazon Security Profile
         run: |
           touch amazon_security_profile.json
-          echo '${{ secrets }}' > amazon_security_profile.json
+          echo '${{ secrets.AMAZON_SECURITY_PROFILE }}' > amazon_security_profile.json
 
       - name: Build
         id: build
