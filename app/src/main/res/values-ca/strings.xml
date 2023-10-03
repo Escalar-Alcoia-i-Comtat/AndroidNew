@@ -47,8 +47,8 @@
     <string name="sector_kids_apt_message">Aquest sector té zones segures per a que els xiquets puguen estar sense perill.</string>
     <string name="sector_walking_time_title">Temps a Peu</string>
     <plurals name="sector_walking_time_message">
-        <item quantity="one">It takes approximately %d minute walking from the parking site to the sector.</item>
-        <item quantity="other">It takes approximately %d minutes walking from the parking site to the sector.</item>
+        <item quantity="one">Es tarda aproximadament %d minut a peu des del lloc d\'aparcament fins al sector.</item>
+        <item quantity="other">Es tarda aproximadament %d minuts a peu des del lloc d\'aparcament fins al sector.</item>
     </plurals>
     <string name="list_item_favorite">Preferit</string>
     <string name="list_item_download">Descarregar</string>
@@ -178,8 +178,8 @@
     <string name="notification_sync_message">Sincronitzant les dades del dispositiu amb les del servidor.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintes</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">This route has %d anchor installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
-        <item quantity="other">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="one">Aquesta via té %d segur instal·lats. Assegura\'t de dur suficients cintes express. Sempre és recomanable dur més de les necessàries.</item>
+        <item quantity="other">Aquesta via té %d segurs instal·lats. Assegura\'t de dur suficients cintes express. Sempre és recomanable dur més de les necessàries.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
     <string name="path_view_height_message">Aquesta via té uns %d metres d\'alçada. Recomanem una corda de %d metres.</string>
