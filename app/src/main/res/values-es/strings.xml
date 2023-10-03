@@ -8,7 +8,6 @@
     <string name="action_delete">Eliminar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_close">Cerrar</string>
-    <string name="action_filter">Filtrar</string>
     <string name="action_previous">Anterior</string>
     <string name="action_next">Siguiente</string>
     <string name="action_update">Actualizar</string>
@@ -47,7 +46,10 @@
     <string name="sector_kids_apt_title">Apto para niños</string>
     <string name="sector_kids_apt_message">Este sector cuenta con lugares seguros en los que los niños pueden quedarse sin sufrir daños.</string>
     <string name="sector_walking_time_title">Tiempo de caminata</string>
-    <string name="sector_walking_time_message">Se tarda aproximadamente %d minutos a pie desde la zona de aparcamiento hasta el sector.</string>
+    <plurals name="sector_walking_time_message">
+        <item quantity="one">It takes approximately %d minute walking from the parking site to the sector.</item>
+        <item quantity="other">It takes approximately %d minutes walking from the parking site to the sector.</item>
+    </plurals>
     <string name="list_item_favorite">Favorito</string>
     <string name="list_item_download">Descargar</string>
     <string name="list_item_create">Crear nuevo</string>
@@ -125,7 +127,6 @@
     <string name="form_builder_date">Fecha de equipación</string>
     <string name="form_re_buildings">Reequipaciones</string>
     <string name="form_description">Descripción</string>
-    <string name="form_description_show">Mostrar descripción</string>
     <string name="form_day">Día</string>
     <string name="form_month">Mes</string>
     <string name="sun_time_none">Ninguna</string>
@@ -176,7 +177,10 @@
     <string name="notification_sync_title">Ejecutando sincronización…</string>
     <string name="notification_sync_message">Sincronización de datos del dispositivo con los servidores.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintas</string>
-    <string name="path_view_quickdraw_count_message">Esta ruta tiene %d anclajes instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</string>
+    <plurals name="path_view_quickdraw_count_message">
+        <item quantity="one">This route has %d anchor installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+    </plurals>
     <string name="path_view_height_title">Altura</string>
     <string name="path_view_height_message">Esta ruta tiene una altura de %d metros. Se recomienda llevar una cuerda de %d metros.</string>
     <string name="path_view_count_title">Seguros instalados</string>
