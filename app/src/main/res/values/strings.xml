@@ -145,6 +145,7 @@
     <string name="form_description_show">Show Description</string>
     <string name="form_day">Day</string>
     <string name="form_month">Month</string>
+    <string name="form_images">Images</string>
 
     <string name="sun_time_none">None</string>
     <string name="sun_time_none_title">No sun</string>

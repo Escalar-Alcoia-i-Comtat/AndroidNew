@@ -3,10 +3,14 @@ package org.escalaralcoiaicomtat.android.activity.creation
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -17,14 +21,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FormatBold
 import androidx.compose.material.icons.rounded.FormatItalic
 import androidx.compose.material.icons.rounded.FormatUnderlined
+import androidx.compose.material.icons.rounded.ImageSearch
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -72,6 +84,9 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import io.ktor.client.request.forms.FormBuilder
+import java.util.UUID
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
 import net.engawapg.lib.zoomable.rememberZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.burnoutcrew.reorderable.ItemPosition
@@ -80,6 +95,7 @@ import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
+import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
 import org.escalaralcoiaicomtat.android.storage.type.ArtificialGrade
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
@@ -407,6 +423,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
             RichTextEditor(state = richEditorState, modifier = Modifier.fillMaxWidth())
         }
+
+        ImagesEditor()
     }
 
     @Composable
@@ -859,6 +877,101 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         }
     }
 
+    @Composable
+    fun ImagesEditor() {
+        Text(
+            text = stringResource(R.string.form_images),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        val images by model.images.observeAsState(initial = emptyList())
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            itemsIndexed(images ?: emptyList()) { index, data ->
+                Box(
+                    modifier = Modifier
+                        .size(200.dp, 150.dp)
+                        .padding(horizontal = 4.dp)
+                        .animateItemPlacement()
+                ) {
+                    AsyncImage(
+                        model = data,
+                        contentDescription = "",
+                        contentScale = ContentScale.Inside,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = stringResource(R.string.action_remove),
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .background(MaterialTheme.colorScheme.background)
+                            .clip(CircleShape)
+                            .clickable {
+                                model.images.postValue(
+                                    (images ?: emptyList()).toMutableList().apply { removeAt(index) }
+                                )
+                            }
+                    )
+                }
+            }
+            // Image picker
+            item {
+                val image by model.image.observeAsState()
+
+                LaunchedEffect(image) {
+                    snapshotFlow { image }
+                        .collect { data ->
+                            if (data != null) {
+                                model.images.postValue(
+                                    (model.images.value ?: emptyList())
+                                        .toMutableList()
+                                        .apply {
+                                            add(data)
+                                        }
+                                )
+                                Timber.i("Loaded new image")
+
+                                model.image.postValue(null)
+                            }
+                        }
+                }
+
+                OutlinedCard(
+                    onClick = {
+                        imagePicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(150.dp)
+                        .padding(vertical = 8.dp)
+                ) {
+                    val isLoadingImage by model.isLoadingImage.observeAsState(initial = false)
+
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isLoadingImage) {
+                            CircularProgressIndicator()
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.ImageSearch,
+                                contentDescription = stringResource(R.string.form_image_pick)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     class PathModel(
         application: Application,
         sectorId: Long,
@@ -912,6 +1025,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
         val builder = MutableLiveData<Builder?>()
         val reBuilders = MutableLiveData<List<Builder>?>()
+
+        val images = MutableLiveData<List<Bitmap>?>()
 
         /**
          * Used for displaying the current sector's image in the side of the screen.
@@ -974,6 +1089,16 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
             builder.postValue(child.builder)
             reBuilders.postValue(child.reBuilder)
+
+            val loadedImages = child.images?.let { images ->
+                images.mapNotNull {
+                    val data = SynchronizedFile.create(getApplication(), UUID.fromString(it))
+                        .read(lifecycle)
+                        .firstOrNull() ?: return@mapNotNull null
+                    BitmapFactory.decodeByteArray(data, 0, data.size)
+                }
+            }
+            images.postValue(loadedImages)
         }
 
         private fun checkRequirements(): Boolean {

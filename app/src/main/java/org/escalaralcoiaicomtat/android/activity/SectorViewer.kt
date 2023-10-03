@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
@@ -145,6 +146,9 @@ import timber.log.Timber
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.UUID
+import org.escalaralcoiaicomtat.android.storage.files.SynchronizedFile
+import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconTitleImages
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -940,6 +944,15 @@ class SectorViewer : AppCompatActivity() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                path.images?.takeIf { it.isNotEmpty() }?.let { images ->
+                    CardWithIconTitleImages(
+                        icon = Icons.Outlined.Image,
+                        title = "Path Images",
+                        images = images.map {
+                            SynchronizedFile.create(this@SectorViewer, UUID.fromString(it))
+                        }
                     )
                 }
             }
