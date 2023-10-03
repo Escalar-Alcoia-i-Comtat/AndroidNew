@@ -85,6 +85,7 @@
     <string name="edit_sector_title">Modificar sector</string>
     <string name="edit_path_title">Modificar vía</string>
     <string name="new_element_choose_title">Elige un elemento padre</string>
+    <string name="toast_data_corrupt">Datos locales dañados, recargando desde el servidor…</string>
     <string name="creation_step_compressing">Comprimiendo imagen…</string>
     <string name="creation_step_uploading">Subiendo… %.2f %%</string>
     <string name="creation_step_finishing">Finalizando…</string>
@@ -257,7 +258,7 @@
         <item quantity="other">%d áreas</item>
     </plurals>
     <plurals name="zone_count">
-        <item quantity="one">%d zone</item>
+        <item quantity="one">%d zona</item>
         <item quantity="other">%d zonas</item>
     </plurals>
     <plurals name="sector_count">
