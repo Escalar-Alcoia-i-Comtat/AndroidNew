@@ -20,7 +20,6 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.work.await
 import androidx.work.workDataOf
 import io.ktor.client.request.delete
 import io.ktor.client.request.forms.formData
@@ -59,6 +58,7 @@ import java.io.IOException
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import org.escalaralcoiaicomtat.android.utils.await
 
 class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {

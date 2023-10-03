@@ -3,6 +3,7 @@ package org.escalaralcoiaicomtat.android.activity
 import android.app.Application
 import android.app.assist.AssistContent
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.viewModels
@@ -125,10 +126,12 @@ class MainActivity : AppCompatActivity() {
     override fun onProvideAssistContent(outContent: AssistContent?) {
         super.onProvideAssistContent(outContent)
 
-        mainViewModel.selection.observe(this) { entity ->
-            val uri = (entity as? Area)?.webUrl ?: (entity as? Zone)?.webUrl
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mainViewModel.selection.observe(this) { entity ->
+                val uri = (entity as? Area)?.webUrl ?: (entity as? Zone)?.webUrl
 
-            outContent?.webUri = uri
+                outContent?.webUri = uri
+            }
         }
     }
 
