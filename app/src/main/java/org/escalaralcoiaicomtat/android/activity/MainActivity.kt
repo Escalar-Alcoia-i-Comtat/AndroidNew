@@ -13,13 +13,14 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSuperclassOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -46,8 +47,6 @@ import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 import org.escalaralcoiaicomtat.android.utils.toast
-import kotlin.reflect.KClass
-import kotlin.reflect.full.isSuperclassOf
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : AppCompatActivity() {
@@ -183,18 +182,22 @@ class MainActivity : AppCompatActivity() {
         private val database = AppDatabase.getInstance(application)
         private val userDao = database.userDao()
 
+        private val apiKeyRegex = Regex("[0-9a-zA-Z]+")
+
         fun trySubmittingApiKey(apiKey: String): Job = viewModelScope.launch {
-            ktorHttpClient.submitFormWithBinaryData(
-                url = EndpointUtils.getUrl("area"),
-                formData = formData()
-            ) {
-                header(HttpHeaders.Authorization, "Bearer $apiKey")
-            }.apply {
-                if (status == HttpStatusCode.BadRequest) {
-                    // Request was "successful"
-                    Preferences.setApiKey(getApplication(), apiKey)
-                } else {
-                    // Request failed
+            if (apiKeyRegex.matches(apiKey)) {
+                ktorHttpClient.submitFormWithBinaryData(
+                    url = EndpointUtils.getUrl("area"),
+                    formData = formData()
+                ) {
+                    header(HttpHeaders.Authorization, "Bearer $apiKey")
+                }.apply {
+                    if (status == HttpStatusCode.BadRequest) {
+                        // Request was "successful"
+                        Preferences.setApiKey(getApplication(), apiKey)
+                    } else {
+                        // Request failed
+                    }
                 }
             }
         }
