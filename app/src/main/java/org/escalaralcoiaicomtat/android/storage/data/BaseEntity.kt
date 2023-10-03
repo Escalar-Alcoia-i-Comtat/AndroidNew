@@ -1,6 +1,8 @@
 package org.escalaralcoiaicomtat.android.storage.data
 
+import java.lang.reflect.InvocationTargetException
 import java.time.Instant
+import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.full.memberProperties
 
 abstract class BaseEntity {
@@ -40,18 +42,34 @@ data class EntityProperty(
  *
  * All fields named `*Id` will have `Id` removed.
  */
-inline fun <reified E : BaseEntity> E.properties() =
-    E::class.memberProperties.map { prop ->
-        EntityProperty(
-            prop.name.let {
-                if (it.endsWith("Id"))
-                    it.substringBeforeLast("Id")
-                else
-                    it
-            },
-            prop.returnType.toString().substringAfterLast('.'),
-            prop.get(this)
-        )
+inline fun <reified E : BaseEntity> E.properties(): List<EntityProperty> =
+    E::class.memberProperties.mapNotNull { prop ->
+        try {
+            EntityProperty(
+                prop.name.let {
+                    if (it.endsWith("Id"))
+                        it.substringBeforeLast("Id")
+                    else
+                        it
+                },
+                prop.returnType.toString().substringAfterLast('.'),
+                prop.get(this)
+            )
+        } catch (e: IllegalCallableAccessException) {
+            // ignore protected methods
+            if (e.cause is IllegalAccessException) {
+                null
+            } else {
+                throw e
+            }
+        } catch (e: InvocationTargetException) {
+            // ignore unsupported operations
+            if (e.cause is UnsupportedOperationException) {
+                null
+            } else {
+                throw e
+            }
+        }
     }
 
 data class EntityPropertyPair(

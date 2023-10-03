@@ -24,6 +24,8 @@ class DataEntityPropertiesTest {
     fun test_gettingPropertiesOfZone() {
         val properties = SampleZone.properties()
 
+        println("Properties of zone: ${properties.joinToString { "${it.name}::${it.type}" }}")
+
         assertNotNull(
             properties.find { it.name == "displayName" }
         )
@@ -34,7 +36,7 @@ class DataEntityPropertiesTest {
             properties.find { it.name == "points" }
         )
         assertNotNull(
-            properties.find { it.name == "area" }
+            properties.find { it.name == "parent" }
         )
         assertNotNull(
             properties.find { it.name == "point" }
@@ -58,7 +60,7 @@ class DataEntityPropertiesTest {
             properties.find { it.name == "weight" }
         )
         assertNotNull(
-            properties.find { it.name == "zone" }
+            properties.find { it.name == "parent" }
         )
         assertNotNull(
             properties.find { it.name == "point" }

@@ -10,15 +10,14 @@ import java.time.Instant
 import java.util.UUID
 
 object SampleDataProvider {
-    val SampleArea = Area(
+    val SampleArea: Area = Area(
         0L,
         Instant.ofEpochMilli(123),
         "Testing Area",
         Uri.EMPTY,
-        UUID.randomUUID().toString(),
-        false
+        UUID.randomUUID().toString()
     )
-    val SampleZone = Zone(
+    val SampleZone: Zone = Zone(
         0L,
         Instant.ofEpochMilli(123),
         "Testing Zone",
@@ -27,10 +26,9 @@ object SampleDataProvider {
         "",
         null,
         emptyList(),
-        0L,
-        false
+        0L
     )
-    val SampleSector = Sector(
+    val SampleSector: Sector = Sector(
         0L,
         Instant.ofEpochMilli(123),
         "Testing Zone",
@@ -40,10 +38,9 @@ object SampleDataProvider {
         UUID.randomUUID().toString(),
         null,
         "aaa",
-        0,
-        false
+        0
     )
-    val SamplePath = Path(
+    val SamplePath: Path = Path(
         id = 0L,
         timestamp = Instant.ofEpochMilli(123),
         displayName = "Testing Path",
@@ -68,7 +65,6 @@ object SampleDataProvider {
         description = null,
         builder = null,
         reBuilder = null,
-        parentId = 0L,
-        isFavorite = false
+        parentId = 0L
     )
 }
