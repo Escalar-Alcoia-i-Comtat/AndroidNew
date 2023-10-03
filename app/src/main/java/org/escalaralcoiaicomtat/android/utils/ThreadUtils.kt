@@ -7,6 +7,8 @@ import androidx.work.DirectExecutor
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,7 +66,7 @@ suspend inline fun <R> ListenableFuture<R>.await(): R {
                     }
                 }
             },
-            DirectExecutor.INSTANCE
+            Executors.newSingleThreadExecutor()
         )
 
         cancellableContinuation.invokeOnCancellation {

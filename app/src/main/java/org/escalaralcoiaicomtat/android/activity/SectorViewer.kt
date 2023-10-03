@@ -77,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -648,7 +649,7 @@ class SectorViewer : AppCompatActivity() {
                 InfoRow(
                     icon = Icons.Rounded.Place,
                     iconContentDescription = stringResource(R.string.info_point_description),
-                    title = stringResource(R.string.info_zone_location),
+                    title = stringResource(R.string.info_sector_location),
                     subtitle = "${point.latitude}, ${point.longitude}",
                     actions = listOfNotNull(
                         point
@@ -678,7 +679,11 @@ class SectorViewer : AppCompatActivity() {
                     icon = Icons.Rounded.DirectionsWalk,
                     iconContentDescription = stringResource(R.string.sector_walking_time_title),
                     title = stringResource(R.string.sector_walking_time_title),
-                    subtitle = stringResource(R.string.sector_walking_time_message, walkingTime)
+                    subtitle = pluralStringResource(
+                        R.plurals.sector_walking_time_message,
+                        walkingTime.toInt(),
+                        walkingTime
+                    )
                 )
             }
         }
@@ -882,8 +887,9 @@ class SectorViewer : AppCompatActivity() {
                     CardWithIconAndTitle(
                         icon = Icons.Filled.Quickdraw,
                         title = stringResource(R.string.path_view_quickdraw_count_title),
-                        message = stringResource(
-                            R.string.path_view_quickdraw_count_message,
+                        message = pluralStringResource(
+                            R.plurals.path_view_quickdraw_count_message,
+                            stringCount.toInt(),
                             stringCount
                         ),
                         modifier = Modifier
