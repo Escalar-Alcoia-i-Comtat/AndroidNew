@@ -47,8 +47,8 @@
     <string name="sector_kids_apt_message">Este sector cuenta con lugares seguros en los que los niños pueden quedarse sin sufrir daños.</string>
     <string name="sector_walking_time_title">Tiempo de caminata</string>
     <plurals name="sector_walking_time_message">
-        <item quantity="one">It takes approximately %d minute walking from the parking site to the sector.</item>
-        <item quantity="other">It takes approximately %d minutes walking from the parking site to the sector.</item>
+        <item quantity="one">Se tarda aproximadamente %d minuto a pie desde la zona de aparcamiento hasta el sector.</item>
+        <item quantity="other">Se tarda aproximadamente %d minutos a pie desde la zona de aparcamiento hasta el sector.</item>
     </plurals>
     <string name="list_item_favorite">Favorito</string>
     <string name="list_item_download">Descargar</string>
@@ -178,8 +178,8 @@
     <string name="notification_sync_message">Sincronización de datos del dispositivo con los servidores.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintas</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">This route has %d anchor installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
-        <item quantity="other">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="one">Esta ruta tiene %d anclaje instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
+        <item quantity="other">Esta ruta tiene %d anclajes instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
     <string name="path_view_height_message">Esta ruta tiene una altura de %d metros. Se recomienda llevar una cuerda de %d metros.</string>
