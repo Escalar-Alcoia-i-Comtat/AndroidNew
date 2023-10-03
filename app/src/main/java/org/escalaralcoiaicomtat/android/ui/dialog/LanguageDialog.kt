@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.capitalize
 import androidx.core.os.LocaleListCompat
 import org.escalaralcoiaicomtat.android.R
 import java.util.Locale
@@ -30,10 +31,17 @@ fun LanguageDialog(
         text = {
             LazyColumn {
                 items(
-                    listOf(null, Locale.ENGLISH, Locale.forLanguageTag("ca"))
+                    listOf(
+                        null,
+                        Locale.ENGLISH,
+                        Locale.forLanguageTag("ca"),
+                        Locale.forLanguageTag("es")
+                    )
                 ) { locale ->
-                    val localeDisplayName = locale?.let { locale.getDisplayName(locale) }
-                        ?: stringResource(R.string.settings_language_default)
+                    val localeDisplayName = locale?.let {
+                        locale.getDisplayName(locale)
+                            .capitalize(androidx.compose.ui.text.intl.Locale.current)
+                    } ?: stringResource(R.string.settings_language_default)
 
                     ListItem(
                         leadingContent = {
