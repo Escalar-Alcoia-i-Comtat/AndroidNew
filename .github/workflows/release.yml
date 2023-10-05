@@ -66,6 +66,13 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
 
+      - name: AAB Artifact
+        id: aab_artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: AAB Artifact
+          path: ./app/build/outputs/bundle/release/app-release.aab
+
       - name: Create release notes
         id: release_notes
         run: |
