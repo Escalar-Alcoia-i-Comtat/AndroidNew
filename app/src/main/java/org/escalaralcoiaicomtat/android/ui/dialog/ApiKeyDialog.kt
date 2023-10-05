@@ -39,7 +39,7 @@ fun ApiKeyDialog(
     var isError by remember { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = onDismissRequest.takeIf { isChecking } ?: {},
+        onDismissRequest = onDismissRequest.takeIf { !isChecking } ?: {},
         title = { Text(stringResource(R.string.settings_security_lock)) },
         text = {
             OutlinedTextField(
