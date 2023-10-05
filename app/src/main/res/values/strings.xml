@@ -24,7 +24,14 @@
 
     <string name="search">Search…</string>
     <string name="none">None</string>
+    <string name="choose">Choose</string>
 
+    <string name="gender_masculine">Masculine</string>
+    <string name="gender_feminine">Feminine</string>
+    <string name="gender_neuter">Neuter</string>
+
+    <string name="intro_0_title">Hello!</string>
+    <string name="intro_0_message">How do you prefer that we refer to you?</string>
     <string name="intro_1_title">Welcome to Escalar Alcoià i Comtat</string>
     <string name="intro_1_message">There\'s some important information you need to know before using the app. Slide to the right or press the bottom right button to continue.</string>
     <string name="intro_2_title">Attention!</string>

@@ -38,7 +38,9 @@
             android:name=".activity.SectorViewer"
             android:parentActivityName=".activity.MainActivity" />
 
-        <activity android:name=".activity.IntroActivity" />
+        <activity
+            android:name=".activity.IntroActivity"
+            android:configChanges="grammaticalGender" />
 
         <activity
             android:name=".activity.creation.NewAreaActivity"
