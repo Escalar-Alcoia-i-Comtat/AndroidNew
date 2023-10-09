@@ -50,7 +50,7 @@ jobs:
 
       - name: Commit version.properties
         id: commit_version
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Increased Version Code
           file_pattern: 'version.properties'
