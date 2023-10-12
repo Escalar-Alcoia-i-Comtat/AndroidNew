@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
@@ -14,6 +15,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.NoDragCancelledAnimation
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
@@ -61,10 +65,17 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
     if (list == null) {
         Box(modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     } else {
+        val scope = rememberCoroutineScope()
+        val gridState = rememberLazyGridState()
         val state = rememberReorderableLazyGridState(
             dragCancelledAnimation = NoDragCancelledAnimation(),
+            gridState = gridState,
             onMove = { from, to -> onMove?.invoke(from.index, to.index) }
         )
+
+        LaunchedEffect(list) {
+            scope.launch { gridState.scrollToItem(0) }
+        }
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(
