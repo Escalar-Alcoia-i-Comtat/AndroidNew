@@ -2,6 +2,8 @@ package org.escalaralcoiaicomtat.android.activity.creation
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -18,6 +20,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -57,6 +60,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
@@ -195,7 +202,7 @@ abstract class EditorActivity<
                         intent?.getSerializableExtra(RESULT_EXCEPTION, Throwable::class.java)
                     } else {
                         @Suppress("DEPRECATION")
-                        intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable
+                        intent?.getSerializableExtra(RESULT_EXCEPTION) as Throwable?
                     }
                     Result.Failure(throwable)
                 }
@@ -304,6 +311,62 @@ abstract class EditorActivity<
                             enabled = !isDeleting
                         ) {
                             Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                )
+            }
+
+            val serverError by model.serverError.observeAsState()
+            serverError?.let { error ->
+                AlertDialog(
+                    onDismissRequest = { model.serverError.postValue(null) },
+                    title = { Text(stringResource(R.string.server_error_dialog_title)) },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .horizontalScroll(rememberScrollState())
+                        ) {
+                            Text(stringResource(R.string.server_error_dialog_headline, error.code))
+                            error.message?.let {
+                                Text(stringResource(R.string.server_error_dialog_message, it))
+                            }
+                            Text(stringResource(R.string.server_error_dialog_stacktrace))
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(
+                                        SpanStyle(
+                                            fontFamily = FontFamily.Monospace,
+                                            background = MaterialTheme.colorScheme.surfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    ) {
+                                        for (line in error.stackTrace) {
+                                            appendLine(line.toString())
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { model.serverError.postValue(null) }) {
+                            Text(stringResource(android.R.string.ok))
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val clipboardManager =
+                                    getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val data = ClipData.newPlainText(
+                                    "Stacktrace",
+                                    error.stackTraceToString()
+                                )
+                                clipboardManager.setPrimaryClip(data)
+                            }
+                        ) {
+                            Text(stringResource(android.R.string.copy))
                         }
                     }
                 )
@@ -494,22 +557,24 @@ abstract class EditorActivity<
             TextButton(
                 onClick = {
                     model.create().invokeOnCompletion { throwable ->
-                        if (throwable == null) {
+                        val hasServerError = model.serverError.value != null
+                        if (throwable == null && !hasServerError) {
                             Timber.i("Creation successful")
 
                             if (model.element.value == null)
                                 setResult(RESULT_CREATE_OK)
                             else
                                 setResult(RESULT_EDIT_OK)
-                        } else {
+                            finish()
+                        } else if (!hasServerError) {
                             Timber.e(throwable, "Creation failed.")
 
                             setResult(
                                 RESULT_FAILED,
                                 Intent().apply { putExtra(RESULT_EXCEPTION, throwable) }
                             )
+                            finish()
                         }
-                        finish()
                     }
                 },
                 enabled = isFilled && isCreating == null
@@ -638,6 +703,12 @@ abstract class EditorActivity<
         val parent = MutableLiveData<ParentType>()
 
         val element = MutableLiveData<ElementType?>()
+
+        /**
+         * If the server returns an error while performing an operation, it should be passed here,
+         * and the UI will be updated.
+         */
+        val serverError = MutableLiveData<RequestException?>()
 
         /**
          * For appending all the data required for creating the object in the server. Will be sent
@@ -816,6 +887,8 @@ abstract class EditorActivity<
                     }
 
                     operation(element)
+                } catch (e: RequestException) {
+                    withContext(Dispatchers.Main) { serverError.value = e }
                 } catch (e: Exception) {
                     Timber.e(e, "Could not create or update.")
                     throw e

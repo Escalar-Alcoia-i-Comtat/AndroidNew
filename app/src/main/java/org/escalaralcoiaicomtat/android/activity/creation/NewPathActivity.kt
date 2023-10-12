@@ -925,18 +925,6 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         }
 
         override suspend fun init(parent: Sector) {
-            // initialize sketchId as the last one of the sector's paths
-            val paths = dao.getPathsFromSector(parent.id)
-            if (paths != null) {
-                this@PathModel.sketchId.postValue(
-                    try {
-                        (paths.paths.maxOf { it.sketchId } + 1).toString()
-                    } catch (_: NoSuchElementException) {
-                        "1"
-                    }
-                )
-            }
-
             // Load sector image
             parent.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }

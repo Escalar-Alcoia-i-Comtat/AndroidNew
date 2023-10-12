@@ -121,6 +121,11 @@
     <string name="creation_success_edit">Updated successfully</string>
     <string name="creation_deleted">Deleted!</string>
 
+    <string name="server_error_dialog_title">Server Error</string>
+    <string name="server_error_dialog_headline">The server has returned an error. Status code: %d</string>
+    <string name="server_error_dialog_message">Message: %s</string>
+    <string name="server_error_dialog_stacktrace">Stacktrace:</string>
+
     <string name="assert_number_fail">Please, introduce a valid number.</string>
 
     <string name="form_id">Element ID</string>
