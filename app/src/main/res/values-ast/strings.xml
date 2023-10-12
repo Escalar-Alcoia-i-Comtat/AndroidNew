@@ -22,6 +22,12 @@
     <string name="state_calculating">Calculating…</string>
     <string name="search">Search…</string>
     <string name="none">None</string>
+    <string name="choose">Choose</string>
+    <string name="gender_masculine">Masculine</string>
+    <string name="gender_feminine">Feminine</string>
+    <string name="gender_neuter">Neuter</string>
+    <string name="intro_0_title">Hello!</string>
+    <string name="intro_0_message">How do you prefer that we refer to you?</string>
     <string name="intro_1_title">Welcome to Escalar Alcoià i Comtat</string>
     <string name="intro_1_message">There\'s some important information you need to know before using the app. Slide to the right or press the bottom right button to continue.</string>
     <string name="intro_2_title">Attention!</string>
@@ -97,6 +103,10 @@
     <string name="creation_success">Created successfully</string>
     <string name="creation_success_edit">Updated successfully</string>
     <string name="creation_deleted">Deleted!</string>
+    <string name="server_error_dialog_title">Server Error</string>
+    <string name="server_error_dialog_headline">The server has returned an error. Status code: %d</string>
+    <string name="server_error_dialog_message">Message: %s</string>
+    <string name="server_error_dialog_stacktrace">Stacktrace:</string>
     <string name="assert_number_fail">Please, introduce a valid number.</string>
     <string name="form_id">Element ID</string>
     <string name="form_parent">Parent</string>
