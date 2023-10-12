@@ -103,6 +103,10 @@
     <string name="creation_success">Creado con éxito</string>
     <string name="creation_success_edit">Actualización correcta</string>
     <string name="creation_deleted">Eliminado!</string>
+    <string name="server_error_dialog_title">Server Error</string>
+    <string name="server_error_dialog_headline">The server has returned an error. Status code: %d</string>
+    <string name="server_error_dialog_message">Message: %s</string>
+    <string name="server_error_dialog_stacktrace">Stacktrace:</string>
     <string name="assert_number_fail">Por favor, introduzca un número válido.</string>
     <string name="form_id">ID del elemento</string>
     <string name="form_parent">Padre</string>
