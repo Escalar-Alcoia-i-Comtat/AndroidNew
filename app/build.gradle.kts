@@ -172,7 +172,7 @@ dependencies {
 
     // Coil Image loading
     // implementation("io.coil-kt:coil:2.4.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
     // Jetpack Compose - Rich Editor
     implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-beta03")
