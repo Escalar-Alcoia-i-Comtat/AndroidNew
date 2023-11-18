@@ -494,7 +494,7 @@ class SectorViewer : AppCompatActivity() {
                     blocks = blocks[path] ?: emptyList(),
                     apiKey = apiKey,
                     modifier = Modifier.fillMaxHeight(.5f),
-                    onNextRequested = if (selectedIndex >= paths.size)
+                    onNextRequested = if (selectedIndex + 1 >= paths.size)
                         null
                     else {
                         { viewModel.selection.postValue(Model.Selection.Index(selectedIndex + 1)) }
