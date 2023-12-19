@@ -46,7 +46,7 @@ jobs:
           bash ./gradlew :app:increaseVersionCode :app:bundleRelease --stacktrace
       - name: AAB Artifact
         id: aab_artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: AAB Artifact
           path: ./app/build/outputs/bundle/release/app-release.aab
