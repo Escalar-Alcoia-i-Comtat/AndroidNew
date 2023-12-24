@@ -152,16 +152,16 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata)
 
     // Jetpack Compose
-    implementation(libs.compose.material.iconsExtended)
-    implementation(libs.compose.material.material3.base)
-    implementation(libs.compose.material.material3.windowSizeClass)
-    implementation(libs.compose.runtime.livedata)
+    implementation(libs.androidx.lifecycle.compose)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.compose.ui.base)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.toolingPreview)
     implementation(libs.compose.ui.googleFonts)
-    implementation(libs.androidx.lifecycle.compose)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.compose.material.iconsExtended)
+    implementation(libs.compose.material3.base)
+    implementation(libs.compose.material3.windowSizeClass)
+    implementation(libs.compose.runtime.livedata)
 
     // Jetpack Compose - Reorderable lists
     implementation(libs.compose.reorderable)
@@ -190,8 +190,8 @@ dependencies {
     // Ktor Client
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.contentNegotiation)
-    implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.serialization.kotlinx.json)
 
     // KotlinX JSON serialization

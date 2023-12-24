@@ -15,7 +15,7 @@ androidx-work = "2.9.0"
 compose-coil = "2.5.0"
 compose-compiler = "1.5.7"
 compose-material = "1.5.4"
-compose-material3 = "1.5.2"
+compose-material3 = "1.1.2"
 compose-reorderable = "0.9.6"
 compose-richEditor = "1.0.0-beta05"
 compose-runtime = "1.5.4"
@@ -48,8 +48,8 @@ androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref
 androidx-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "androidx-work" }
 compose-coil = { module = "io.coil-kt:coil-compose", version.ref = "compose-coil" }
 compose-material-iconsExtended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose-material" }
-compose-material-material3-base = { module = "androidx.compose.material:material3", version.ref = "compose-material3" }
-compose-material-material3-windowSizeClass = { module = "androidx.compose.material:material3-window-size-class", version.ref = "compose-material3" }
+compose-material3-base = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
+compose-material3-windowSizeClass = { module = "androidx.compose.material3:material3-window-size-class", version.ref = "compose-material3" }
 compose-reorderable = { module = "org.burnoutcrew.composereorderable:reorderable", version.ref = "compose-reorderable" }
 compose-richEditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "compose-richEditor" }
 compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose-runtime" }
