@@ -41,6 +41,10 @@ jobs:
           touch amazon_security_profile.json
           echo '${{ secrets.AMAZON_SECURITY_PROFILE }}' > amazon_security_profile.json
 
+      - name: Update Version Name
+        id: set_version_name
+        run: bash ./gradlew app:updateVersionName -Pversion="${{ github.ref_name }}"
+
       - name: Build
         id: build
         run: |

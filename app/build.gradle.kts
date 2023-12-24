@@ -124,9 +124,7 @@ task("increaseVersionCode") {
             throw GradleException("Cannot read version.properties")
         }
         val versionProps = Properties().apply {
-            versionPropsFile.inputStream().use {
-                load(versionPropsFile.inputStream())
-            }
+            versionPropsFile.inputStream().use { load(it) }
         }
         val code = versionProps.getProperty("VERSION_CODE").toInt() + 1
         versionProps["VERSION_CODE"] = code.toString()
@@ -138,10 +136,28 @@ task("increaseVersionCode") {
     }
 }
 
-val roomVersion by project.properties
-val workVersion by project.properties
-val ktorVersion by project.properties
-val acraVersion by project.properties
+task("updateVersionName") {
+    doFirst {
+        val newVersionName = project.property("version") as String?
+        if (newVersionName == null || newVersionName == "unspecified") {
+            error("Please, specify a version with -Pversion=<version>")
+        }
+
+        val versionPropsFile = project.rootProject.file("version.properties")
+        if (!versionPropsFile.canRead()) {
+            throw GradleException("Cannot read version.properties")
+        }
+        val versionProps = Properties().apply {
+            versionPropsFile.inputStream().use { load(it) }
+        }
+        versionProps["VERSION_NAME"] = newVersionName
+        versionPropsFile.outputStream().use {
+            val date = LocalDateTime.now()
+            versionProps.store(it, "Updated at $date")
+        }
+        println("Updated version name to $newVersionName")
+    }
+}
 
 dependencies {
     implementation(libs.androidx.activity.base)
