@@ -2,11 +2,11 @@ import java.time.LocalDateTime
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id("app.brant.amazonappstorepublisher")
+    alias(libs.plugins.amazonappstorepublisher)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -91,7 +91,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.7"
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 
     packaging {
@@ -144,77 +144,74 @@ val ktorVersion by project.properties
 val acraVersion by project.properties
 
 dependencies {
-    implementation("androidx.activity:activity-ktx:1.8.2")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation(libs.androidx.activity.base)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core)
+    implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.livedata)
 
     // Jetpack Compose
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material3:material3-window-size-class:1.1.2")
-    implementation("androidx.compose.runtime:runtime-livedata")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation(libs.androidx.lifecycle.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.compose.ui.base)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.toolingPreview)
+    implementation(libs.compose.ui.googleFonts)
+    implementation(libs.compose.material.iconsExtended)
+    implementation(libs.compose.material3.base)
+    implementation(libs.compose.material3.windowSizeClass)
+    implementation(libs.compose.runtime.livedata)
 
     // Jetpack Compose - Reorderable lists
-    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+    implementation(libs.compose.reorderable)
 
     // Jetpack Compose - Zoomable Image
-    implementation("net.engawapg.lib:zoomable:1.5.2")
+    implementation(libs.compose.zoomable)
 
     // Coil Image loading
-    // implementation("io.coil-kt:coil:2.4.0")
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.compose.coil)
 
     // Jetpack Compose - Rich Editor
-    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-beta05")
+    implementation(libs.compose.richEditor)
 
     // Room Database
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.androidx.room.base)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 
     // DataStore preferences
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.datastore)
 
     // WorkManager
-    implementation("androidx.work:work-runtime-ktx:$workVersion")
-    implementation("androidx.work:work-multiprocess:$workVersion")
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.work.multiprocess)
 
     // Ktor Client
-    implementation("io.ktor:ktor-client-android:$ktorVersion")
-    implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.contentNegotiation)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.serialization)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     // KotlinX JSON serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation(libs.kotlinx.serialization.json)
 
     // Allow using Java 8 features
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring(libs.android.desugar)
 
     // Logging library
-    implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation(libs.timber)
 
     // Kotlin Reflection
     implementation(kotlin("reflect"))
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.compose.ui.test.junit4)
 
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation(libs.compose.ui.tooling)
+    androidTestImplementation(libs.compose.ui.test.manifest)
 }
