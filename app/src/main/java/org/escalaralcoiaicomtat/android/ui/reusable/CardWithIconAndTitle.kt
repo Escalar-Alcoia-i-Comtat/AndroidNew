@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,8 @@ fun CardWithIconAndTitle(
     colors: CardColors = CardDefaults.outlinedCardColors(),
     border: BorderStroke = CardDefaults.outlinedCardBorder(),
     onClick: (() -> Unit)? = null,
+    verticalAlignment: Alignment.Vertical = Alignment.Top,
+    trailingContent: (@Composable RowScope.() -> Unit)? = null,
     extra: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     @Composable
@@ -36,7 +40,8 @@ fun CardWithIconAndTitle(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(8.dp),
+            verticalAlignment = verticalAlignment
         ) {
             Icon(
                 imageVector = icon,
@@ -59,6 +64,7 @@ fun CardWithIconAndTitle(
                 )
                 extra?.invoke(this)
             }
+            trailingContent?.invoke(this)
         }
     }
 

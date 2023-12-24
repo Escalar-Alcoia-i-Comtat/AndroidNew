@@ -81,7 +81,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -858,16 +857,17 @@ class SectorViewer : AppCompatActivity() {
                         message = stringResource(R.string.path_view_grade_message),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = grade.displayName,
-                            color = grade.color.current,
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        trailingContent = {
+                            Text(
+                                text = grade.displayName,
+                                color = grade.color.current,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.padding(end = 4.dp)
+                            )
+                        }
+                    )
                 }
                 path.ropeLength?.let { ropeLength ->
                     CardWithIconAndTitle(
