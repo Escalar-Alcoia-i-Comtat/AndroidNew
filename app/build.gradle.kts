@@ -201,7 +201,7 @@ dependencies {
     coreLibraryDesugaring(libs.android.desugar)
 
     // Logging library
-    coreLibraryDesugaring(libs.timber)
+    implementation(libs.timber)
 
     // Kotlin Reflection
     implementation(kotlin("reflect"))
