@@ -45,8 +45,8 @@ val GradeValue?.color: ColorGroup
 enum class SportsGrade : GradeValue {
     G1,
     G2, G2_PLUS,
-    G3A, G3B, G3C, G3,
-    G4A, G4B, G4C, G4,
+    G3A, G3B, G3C, G3_PLUS, G3,
+    G4A, G4B, G4C, G4_PLUS, G4,
     G5A, G5B, G5C, G5_PLUS, G5,
     G6A, G6A_PLUS, G6B, G6B_PLUS, G6C, G6C_PLUS,
     G7A, G7A_PLUS, G7B, G7B_PLUS, G7C, G7C_PLUS,
