@@ -987,7 +987,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             appendDifference("grade", grade.value, element.value?.grade)
             appendDifference("ending", ending.value, element.value?.ending)
 
-            appendDifference("pitches", pitches, element.value?.pitches)
+            appendDifference("pitches", pitches.value, element.value?.pitches)
 
             appendDifference("stringCount", stringCount.value, element.value?.stringCount)
 
