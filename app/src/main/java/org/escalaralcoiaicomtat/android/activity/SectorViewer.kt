@@ -19,6 +19,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -540,7 +541,9 @@ class SectorViewer : AppCompatActivity() {
                     Text(
                         text = stringResource(sector.childrenTitleRes),
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.background)
+                            .padding(bottom = 4.dp)
                     )
                 }
                 itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
@@ -609,7 +612,9 @@ class SectorViewer : AppCompatActivity() {
             Text(
                 text = stringResource(R.string.list_sector_information_title),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(bottom = 4.dp)
             )
         }
         if (sector.kidsApt) {
