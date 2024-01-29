@@ -34,7 +34,7 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4
       - name: Run tests
-        uses: gradle/gradle-build-action@ef76a971e2fa3f867b617efd72f2fbd72cf6f8bc
+        uses: gradle/gradle-build-action@a8f75513eafdebd8141bd1cd4e30fcd194af8dfa
         with:
           arguments: app:lintDebug app:testDebugUnitTest
 
