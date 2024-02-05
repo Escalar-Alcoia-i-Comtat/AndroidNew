@@ -32,6 +32,9 @@ jobs:
           java-package: jdk
           cache: 'gradle'
 
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v2.0.0
+
       - name: Prepare Gradle secure file
         run: |
           echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
@@ -40,10 +43,10 @@ jobs:
 
       - name: Build AAB
         id: build_aab
-        run: |
-          echo "Building ${{ steps.create_release.outputs.tag_name }}..."
-          yes | $ANDROID_HOME/tools/bin/sdkmanager "build-tools;34.0.0"
-          bash ./gradlew :app:increaseVersionCode :app:bundleRelease --stacktrace
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          arguments: :app:increaseVersionCode :app:bundleRelease
+
       - name: AAB Artifact
         id: aab_artifact
         uses: actions/upload-artifact@v4
