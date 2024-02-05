@@ -16,6 +16,9 @@ jobs:
   test:
     name: Tests without emulator
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
