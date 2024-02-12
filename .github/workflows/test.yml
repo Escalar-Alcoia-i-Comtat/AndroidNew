@@ -35,7 +35,7 @@ jobs:
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2.0.0
+        uses: gradle/wrapper-validation-action@v2.1.1
       - name: Run tests
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -65,7 +65,7 @@ jobs:
           distribution: 'temurin'
           java-version: 17
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2.0.0
+        uses: gradle/wrapper-validation-action@v2.1.1
 
       - name: Prepare Gradle secure file
         run: |
