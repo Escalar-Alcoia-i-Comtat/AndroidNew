@@ -33,9 +33,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.PlainTooltipBox
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -705,7 +708,15 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             keyboardType = KeyboardType.Number,
             valueAssertion = ValueAssertion.NUMBER,
             trailingContent = {
-                PlainTooltipBox(tooltip = { Text(stringResource(R.string.form_count_unknown)) }) {
+                TooltipBox(
+                    state = rememberTooltipState(),
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = {
+                        PlainTooltip {
+                            Text(stringResource(R.string.form_count_unknown))
+                        }
+                    }
+                ) {
                     Checkbox(
                         checked = !isKnown,
                         onCheckedChange = { checked ->
@@ -714,8 +725,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                             } else {
                                 onValueChange(null)
                             }
-                        },
-                        modifier = Modifier.tooltipAnchor()
+                        }
                     )
                 }
             },
@@ -837,14 +847,21 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         check: (SpanStyle) -> Boolean,
         span: (Boolean) -> SpanStyle
     ) {
-        PlainTooltipBox(tooltip = { Text(stringResource(tooltip)) }) {
+        TooltipBox(
+            state = rememberTooltipState(),
+            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            tooltip = {
+                PlainTooltip {
+                    Text(stringResource(tooltip))
+                }
+            }
+        ) {
             IconButton(
                 onClick = {
                     richTextState.toggleSpanStyle(
                         span(check(currentSpanStyle))
                     )
                 },
-                modifier = Modifier.tooltipAnchor(),
                 enabled = richTextState.selection.length > 0
             ) {
                 Icon(
