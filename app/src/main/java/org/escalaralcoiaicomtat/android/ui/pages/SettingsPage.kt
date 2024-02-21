@@ -3,17 +3,25 @@ package org.escalaralcoiaicomtat.android.ui.pages
 import android.text.format.Formatter
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,7 +35,9 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.work.WorkInfo
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +65,52 @@ fun SettingsPage(
     val clipboardManager = LocalClipboardManager.current
 
     val crate = FilesCrate.rememberInstance()
+
+    if (!BuildConfig.PRODUCTION) {
+        OutlinedCard(
+            colors = CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceBright,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Feedback,
+                    contentDescription = stringResource(R.string.settings_warning_debug_title),
+                    modifier = Modifier.padding(8.dp).size(32.dp)
+                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_warning_debug_title),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_warning_debug_message_1),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.settings_warning_debug_message_2,
+                            BuildConfig.HOSTNAME
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
 
     Text(
         text = stringResource(R.string.settings_category_ui),
