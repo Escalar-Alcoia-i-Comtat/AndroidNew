@@ -65,6 +65,7 @@ android {
     buildTypes {
         debug {
             buildConfigField("Boolean", "PRODUCTION", "false")
+            buildConfigField("String", "HOSTNAME", "\"beta-backend.escalaralcoiaicomtat.org\"")
         }
         release {
             isMinifyEnabled = false
