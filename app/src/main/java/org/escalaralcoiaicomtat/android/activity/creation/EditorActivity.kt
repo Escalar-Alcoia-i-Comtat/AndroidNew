@@ -490,7 +490,7 @@ abstract class EditorActivity<
                                 is EditorModel.ProgressStep ->
                                     LinearProgressIndicator(
                                         modifier = Modifier.fillMaxWidth(),
-                                        progress = step.progress
+                                        progress = { step.progress }
                                     )
 
                                 else ->
