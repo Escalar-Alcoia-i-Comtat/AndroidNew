@@ -8,12 +8,14 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -211,34 +213,15 @@ abstract class EditorActivity<
 
     protected abstract val model: Model
 
-    protected val imagePicker =
-        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri == null) return@registerForActivityResult
-            CoroutineScope(Dispatchers.IO).launch {
-                model.isLoadingImage.postValue(true)
-                contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
-                    val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
-                    model.image.postValue(bitmap)
-                    model.imageUUID.postValue(null)
-                }
-                model.isLoadingImage.postValue(false)
-            }
-        }
+    protected val imagePicker = registerForActivityResult(PickVisualMedia()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        model.loadImage(uri)
+    }
 
-    protected val kmzPicker =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri == null) return@registerForActivityResult
-            CoroutineScope(Dispatchers.IO).launch {
-                model.kmzName.postValue(getFileName(uri))
-
-                contentResolver.openFileDescriptor(uri, "r")?.use { pdf ->
-                    FileInputStream(pdf.fileDescriptor).use { stream ->
-                        val bytes = stream.readBytes()
-                        model.kmzData = bytes
-                    }
-                }
-            }
-        }
+    protected val kmzPicker = registerForActivityResult(OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        model.loadKmz(uri)
+    }
 
     protected open val maxWidth: Int = 1000
 
@@ -916,6 +899,28 @@ abstract class EditorActivity<
                     }
                 } finally {
                     isDeleting.postValue(false)
+                }
+            }
+        }
+
+        fun loadImage(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
+            isLoadingImage.postValue(true)
+            getApplication<Application>().contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
+                image.postValue(bitmap)
+                imageUUID.postValue(null)
+            }
+            isLoadingImage.postValue(false)
+        }
+
+        fun loadKmz(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
+            val fileName = getApplication<Application>().getFileName(uri)
+            kmzName.postValue(fileName)
+
+            getApplication<Application>().contentResolver.openFileDescriptor(uri, "r")?.use { pdf ->
+                FileInputStream(pdf.fileDescriptor).use { stream ->
+                    val bytes = stream.readBytes()
+                    kmzData = bytes
                 }
             }
         }
