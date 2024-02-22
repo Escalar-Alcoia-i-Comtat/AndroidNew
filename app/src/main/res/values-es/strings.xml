@@ -64,6 +64,9 @@
     <string name="settings_category_storage">Almacenaje</string>
     <string name="settings_category_security">Seguridad</string>
     <string name="settings_category_advanced">Avanzado</string>
+    <string name="settings_warning_debug_title">Debug Instance</string>
+    <string name="settings_warning_debug_message_1">You are running the debug instance of Escalar Alcoià i Comtat, data doesn\'t match with the public one, this version is only intended for testing.</string>
+    <string name="settings_warning_debug_message_2">Target: %s</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_default">Por defecto del Sistema</string>
     <string name="settings_storage_cache_title">Archivos en caché</string>
