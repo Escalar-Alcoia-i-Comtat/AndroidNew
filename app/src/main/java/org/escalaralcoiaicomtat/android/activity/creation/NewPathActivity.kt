@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -62,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MediatorLiveData
@@ -93,6 +95,7 @@ import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.ui.form.FormDropdown
+import org.escalaralcoiaicomtat.android.ui.form.FormDropdownField
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
@@ -419,6 +422,35 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         var addButtonWidth by remember { mutableStateOf(0.dp) }
         var deleteButtonWidth by remember { mutableStateOf(0.dp) }
 
+        @Composable
+        fun <Type: Any> RowScope.Dropdown(
+            value: Type?,
+            onValueChange: (Type) -> Unit,
+            options: List<Type>,
+            toString: @Composable (Type?) -> String = { it.toString() }
+        ) {
+            FormDropdownField(
+                selection = value,
+                onSelectionChanged = onValueChange,
+                options = options,
+                toString = toString,
+                modifier = Modifier.weight(1f)
+            ) { v, expand ->
+                Text(
+                    text = toString(v),
+                    modifier = Modifier
+                        .menuAnchor()
+                        .clickable(onClick = expand)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontStyle = if (value == null) FontStyle.Italic else FontStyle.Normal,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
         FormListCreator(
             list = pitches,
             reorderableState = { state ->
@@ -466,18 +498,17 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 var pitchEndingInfo by remember { mutableStateOf<EndingInfo?>(null) }
                 var pitchEndingInclination by remember { mutableStateOf<EndingInclination?>(null) }
 
-                FormDropdown(
-                    selection = pitchGrade,
-                    onSelectionChanged = { value ->
+                Dropdown(
+                    value = pitchGrade,
+                    onValueChange = { value ->
                         pitchGrade = value.takeUnless { pitchGrade == it }
                     },
                     options = listOf(
                         *SportsGrade.entries.toTypedArray(),
                         *ArtificialGrade.entries.toTypedArray()
                     ),
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { it.displayName }
+                    toString = { it?.displayName ?: stringResource(R.string.form_grade) }
+                )
 
                 FormField(
                     value = pitchHeight,
@@ -488,35 +519,29 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                     valueAssertion = ValueAssertion.NUMBER
                 )
 
-                FormDropdown(
-                    selection = pitchEnding,
-                    onSelectionChanged = { value ->
+                Dropdown(
+                    value = pitchEnding,
+                    onValueChange = { value ->
                         pitchEnding = value.takeUnless { pitchEnding == it }
                     },
-                    options = Ending.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                    options = Ending.entries
+                ) { stringResource(it?.displayName ?: R.string.form_ending) }
 
-                FormDropdown(
-                    selection = pitchEndingInfo,
-                    onSelectionChanged = { value ->
+                Dropdown(
+                    value = pitchEndingInfo,
+                    onValueChange = { value ->
                         pitchEndingInfo = value.takeUnless { pitchEndingInfo == it }
                     },
-                    options = EndingInfo.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                    options = EndingInfo.entries
+                ) { stringResource(it?.displayName ?: R.string.form_ending_info) }
 
-                FormDropdown(
-                    selection = pitchEndingInclination,
-                    onSelectionChanged = { value ->
+                Dropdown(
+                    value = pitchEndingInclination,
+                    onValueChange = { value ->
                         pitchEndingInclination = value.takeUnless { pitchEndingInclination == it }
                     },
-                    options = EndingInclination.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                    options = EndingInclination.entries
+                ) { stringResource(it?.displayName ?: R.string.form_ending_inclination) }
 
                 IconButton(
                     onClick = {
