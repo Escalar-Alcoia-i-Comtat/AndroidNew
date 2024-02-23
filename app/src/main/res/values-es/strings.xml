@@ -195,7 +195,8 @@
         <item quantity="other">Esta ruta tiene %d anclajes instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message">Esta ruta tiene una altura de %d metros. Se recomienda llevar una cuerda de %d metros.</string>
+    <string name="path_view_height_message_no_rope">The height of this route is:</string>
+    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
     <string name="path_view_count_title">Seguros instalados</string>
     <string name="path_view_count_message">Aquí hay más información sobre los seguros instalados en la vía\n%s</string>
     <string name="path_view_required_title">Material necesario</string>
@@ -286,4 +287,10 @@
         <item quantity="one">%d vía</item>
         <item quantity="other">%d vías</item>
     </plurals>
+    <string name="distance_unit_meters_decimal">%d m</string>
+    <string name="distance_unit_meters_float">%f m</string>
+    <string name="distance_unit_meters_tag">Meters</string>
+    <string name="distance_unit_feet_decimal">%d ft</string>
+    <string name="distance_unit_feet_float">%f ft</string>
+    <string name="distance_unit_feet_tag">Feet</string>
 </resources>
