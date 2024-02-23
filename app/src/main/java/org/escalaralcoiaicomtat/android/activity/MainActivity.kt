@@ -13,6 +13,7 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
@@ -44,6 +45,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.ui.screen.MainScreen
+import org.escalaralcoiaicomtat.android.ui.screen.Routes
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 import org.escalaralcoiaicomtat.android.utils.toast
@@ -52,9 +54,7 @@ import org.escalaralcoiaicomtat.android.utils.toast
 class MainActivity : AppCompatActivity() {
     private val model by viewModels<Model>()
 
-    private val mainViewModel: MainViewModel by viewModels {
-        MainViewModel.Factory(onSectorView)
-    }
+    private val mainViewModel: MainViewModel by viewModels()
 
     private val resultCallback = ActivityResultCallback<EditorActivity.Result> { result ->
         when (result) {
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                 onApiKeySubmit = model::trySubmittingApiKey,
                 onFavoriteToggle = model::toggleFavorite,
                 onCreateOrEdit = onCreateOrEdit,
-                onSectorView = onSectorView
+                navigate = { navigate(navController, it) }
             )
         }
     }
@@ -174,6 +174,27 @@ class MainActivity : AppCompatActivity() {
             }
 
             else -> throw IllegalArgumentException("Tried to create or edit unsupported type: ${kClass.simpleName}")
+        }
+    }
+
+    private fun navigate(navController: NavController?, target: DataEntity?) {
+        val currentEntry = navController?.currentBackStackEntry
+        val currentEntryArgs = currentEntry?.arguments
+
+        when (target) {
+            is Area -> navController?.navigate(
+                Routes.NavigationHome.createRoute(areaId = target.id)
+            )
+            is Zone -> navController?.navigate(
+                Routes.NavigationHome.createRoute(
+                    areaId = currentEntryArgs?.getString(Routes.Arguments.AreaId)?.toLongOrNull(),
+                    zoneId = target.id
+                )
+            )
+            is Sector -> onSectorView(target)
+            else -> navController?.navigate(
+                Routes.NavigationHome.createRoute()
+            )
         }
     }
 

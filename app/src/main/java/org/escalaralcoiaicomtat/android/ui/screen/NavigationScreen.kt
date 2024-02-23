@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
@@ -50,6 +51,7 @@ fun NavigationScreen(
     backProgress: Float?,
     onFavoriteToggle: (DataEntity) -> Job,
     onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>,
+    navigate: (target: DataEntity?) -> Unit,
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
@@ -110,7 +112,7 @@ fun NavigationScreen(
                         depth = 0,
                         selected = area == selection,
                         isEditable = apiKey != null,
-                        onClick = { viewModel.navigate(area) },
+                        onClick = { navigate(area) },
                         onCreate = { onCreateOrEdit(Zone::class, area.id, null) },
                         onEdit = { onCreateOrEdit(Area::class, null, area) }
                     )
@@ -123,7 +125,7 @@ fun NavigationScreen(
                                 depth = 1,
                                 selected = zone == selection,
                                 isEditable = apiKey != null,
-                                onClick = { viewModel.navigate(zone) },
+                                onClick = { navigate(zone) },
                                 onCreate = { onCreateOrEdit(Sector::class, zone.id, null) },
                                 onEdit = { onCreateOrEdit(Zone::class, area.id, zone) }
                             )
@@ -136,7 +138,7 @@ fun NavigationScreen(
                                         depth = 2,
                                         selected = sector == selection,
                                         isEditable = apiKey != null,
-                                        onClick = { viewModel.navigate(sector) },
+                                        onClick = { navigate(sector) },
                                         onCreate = { onCreateOrEdit(Path::class, sector.id, null) },
                                         onEdit = { onCreateOrEdit(Sector::class, zone.id, sector) }
                                     )
@@ -169,7 +171,7 @@ fun NavigationScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 12.dp),
-                    onClick = { viewModel.navigate(it) },
+                    onClick = navigate,
                     onFavoriteToggle = onFavoriteToggle,
                     onCreate = apiKey?.let { { onCreateOrEdit(Area::class, null, null) } },
                     onEdit = apiKey?.let { { onCreateOrEdit(Area::class, null, it) } },
@@ -191,7 +193,7 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp)
                         .backAnimation(backProgress),
-                    onClick = { viewModel.navigate(it) },
+                    onClick = navigate,
                     onFavoriteToggle = onFavoriteToggle,
                     onCreate = apiKey?.let { { onCreateOrEdit(Zone::class, data.id, null) } },
                     onEdit = apiKey?.let { { onCreateOrEdit(Zone::class, data.id, it) } },
@@ -213,7 +215,7 @@ fun NavigationScreen(
                         .fillMaxSize()
                         .padding(top = 12.dp)
                         .backAnimation(backProgress),
-                    onClick = { viewModel.navigate(it) },
+                    onClick = navigate,
                     onFavoriteToggle = onFavoriteToggle,
                     onCreate = apiKey?.let { { onCreateOrEdit(Sector::class, data.id, null) } },
                     onEdit = apiKey?.let { { onCreateOrEdit(Sector::class, data.id, it) } },

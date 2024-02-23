@@ -68,6 +68,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
@@ -153,10 +154,8 @@ fun MainScreen(
     onApiKeySubmit: (key: String) -> Job,
     onFavoriteToggle: (DataEntity) -> Job,
     onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>,
-    onSectorView: (Sector) -> Unit,
-    viewModel: MainViewModel = viewModel(
-        factory = MainViewModel.Factory(onSectorView)
-    )
+    navigate: (target: DataEntity?) -> Unit,
+    viewModel: MainViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
@@ -399,19 +398,37 @@ fun MainScreen(
                             icon = Icons.Outlined.Map,
                             text = stringResource(R.string.new_zone_title)
                         ) {
-                            viewModel.createChooser(Area::class) { onCreateOrEdit(Zone::class, it.id, null) }
+                            viewModel.createChooser(Area::class) {
+                                onCreateOrEdit(
+                                    Zone::class,
+                                    it.id,
+                                    null
+                                )
+                            }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.PinDrop,
                             text = stringResource(R.string.new_sector_title)
                         ) {
-                            viewModel.createChooser(Zone::class) { onCreateOrEdit(Sector::class, it.id, null) }
+                            viewModel.createChooser(Zone::class) {
+                                onCreateOrEdit(
+                                    Sector::class,
+                                    it.id,
+                                    null
+                                )
+                            }
                         },
                         FloatingActionButtonAction(
                             icon = Icons.Outlined.Route,
                             text = stringResource(R.string.new_path_title)
                         ) {
-                            viewModel.createChooser(Sector::class) { onCreateOrEdit(Path::class, it.id, null) }
+                            viewModel.createChooser(Sector::class) {
+                                onCreateOrEdit(
+                                    Path::class,
+                                    it.id,
+                                    null
+                                )
+                            }
                         }
                     ),
                     toggled = toggled,
@@ -477,6 +494,7 @@ fun MainScreen(
                     backProgress,
                     onFavoriteToggle,
                     onCreateOrEdit,
+                    navigate,
                     viewModel
                 )
             }
@@ -502,7 +520,7 @@ fun MainScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 12.dp),
-                    onClick = { viewModel.navigate(it) },
+                    onClick = navigate,
                     onFavoriteToggle = onFavoriteToggle,
                     onMove = null // Favorites cannot be reordered
                 )
@@ -522,7 +540,7 @@ fun MainScreen_Preview() {
             onApiKeySubmit = { CoroutineScope(Dispatchers.IO).launch { } },
             onFavoriteToggle = { CoroutineScope(Dispatchers.IO).launch { } },
             onCreateOrEdit = { _, _, _ -> },
-            onSectorView = {}
+            navigate = { }
         )
     }
 }

@@ -36,10 +36,7 @@ import timber.log.Timber
 import java.time.Instant
 import kotlin.reflect.KClass
 
-class MainViewModel(
-    application: Application,
-    private val onSectorView: (Sector) -> Unit
-) : AndroidViewModel(application) {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
     private val dataDao = database.dataDao()
     private val userDao = database.userDao()
@@ -137,27 +134,6 @@ class MainViewModel(
         }
     }
 
-    fun navigate(target: DataEntity?) {
-        val currentEntry = navController?.currentBackStackEntry
-        val currentEntryArgs = currentEntry?.arguments
-
-        when (target) {
-            is Area -> navController?.navigate(
-                Routes.NavigationHome.createRoute(areaId = target.id)
-            )
-            is Zone -> navController?.navigate(
-                Routes.NavigationHome.createRoute(
-                    areaId = currentEntryArgs?.getString(AreaId)?.toLongOrNull(),
-                    zoneId = target.id
-                )
-            )
-            is Sector -> onSectorView(target)
-            else -> navController?.navigate(
-                Routes.NavigationHome.createRoute()
-            )
-        }
-    }
-
     /**
      * Moves the sector at index [from] to index [to].
      */
@@ -231,16 +207,5 @@ class MainViewModel(
         }
 
         _favorites.postValue(favorites)
-    }
-
-    companion object {
-        fun Factory(
-            onSectorView: (Sector) -> Unit
-        ): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
-                MainViewModel(application, onSectorView)
-            }
-        }
     }
 }
