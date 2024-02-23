@@ -113,14 +113,12 @@ data class Path(
 
     @Ignore
     val ropeLength: Long? = height?.let {
-        val minLength = it * 2
         val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)
-        for (length in standardLengths) {
-            if (minLength < length) {
-                return@let length
-            }
+        return@let if (height in standardLengths) {
+            height
+        } else {
+            null
         }
-        minLength
     }
 
     @Ignore

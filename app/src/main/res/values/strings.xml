@@ -230,7 +230,8 @@
         <item quantity="many">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
     </plurals>
     <string name="path_view_height_title">Height</string>
-    <string name="path_view_height_message">This route is %d meters high. It\'t recommended to bring a %d meters rope.</string>
+    <string name="path_view_height_message_no_rope">The height of this route is:</string>
+    <string name="path_view_height_message_rope">We recommend that you bring a rope of %d m.</string>
     <string name="path_view_count_title">Installed safes</string>
     <string name="path_view_count_message">Here\'s more information about the safes installed in the route:\n%s</string>
     <string name="path_view_required_title">Required Material</string>

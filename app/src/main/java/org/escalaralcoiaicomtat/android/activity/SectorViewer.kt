@@ -37,6 +37,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.Bookmark
@@ -47,7 +48,6 @@ import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ChildFriendly
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
@@ -82,6 +82,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -680,7 +681,7 @@ class SectorViewer : AppCompatActivity() {
                 val walkingTime = sector.walkingTime
 
                 InfoRow(
-                    icon = Icons.Rounded.DirectionsWalk,
+                    icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
                     iconContentDescription = stringResource(R.string.sector_walking_time_title),
                     title = stringResource(R.string.sector_walking_time_title),
                     subtitle = pluralStringResource(
@@ -874,15 +875,28 @@ class SectorViewer : AppCompatActivity() {
                         }
                     )
                 }
-                path.ropeLength?.let { ropeLength ->
+                path.height?.let { height ->
                     CardWithIconAndTitle(
                         icon = Icons.Filled.Rope,
                         title = stringResource(R.string.path_view_height_title),
-                        message = stringResource(
-                            R.string.path_view_height_message,
-                            path.height!!,
-                            ropeLength
-                        ),
+                        message = stringResource(R.string.path_view_height_message_no_rope),
+                        extra = {
+                            Text(
+                                text = "$height m",
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                            path.ropeLength?.let { ropeLength ->
+                                Text(
+                                    text = stringResource(
+                                        R.string.path_view_height_message_rope,
+                                        ropeLength
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
