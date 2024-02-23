@@ -875,14 +875,14 @@ class SectorViewer : AppCompatActivity() {
                         }
                     )
                 }
-                path.height?.let { height ->
+                path.heightUnits?.let { height ->
                     CardWithIconAndTitle(
                         icon = Icons.Filled.Rope,
                         title = stringResource(R.string.path_view_height_title),
                         message = stringResource(R.string.path_view_height_message_no_rope),
                         extra = {
                             Text(
-                                text = "$height m",
+                                text = height.decimalLabel(),
                                 style = MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
@@ -891,7 +891,7 @@ class SectorViewer : AppCompatActivity() {
                                 Text(
                                     text = stringResource(
                                         R.string.path_view_height_message_rope,
-                                        ropeLength
+                                        ropeLength.decimalLabel()
                                     ),
                                     style = MaterialTheme.typography.bodySmall
                                 )

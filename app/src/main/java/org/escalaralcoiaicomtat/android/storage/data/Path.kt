@@ -10,6 +10,7 @@ import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.RequiredMaterial
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
+import org.escalaralcoiaicomtat.android.unit.DistanceUnit
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getJSONArrayOrNull
@@ -112,10 +113,13 @@ data class Path(
     override val childrenTitleRes: Int = -1
 
     @Ignore
-    val ropeLength: Long? = height?.let {
+    val heightUnits: DistanceUnit? = height?.let { DistanceUnit(it.toDouble()) }
+
+    @Ignore
+    val ropeLength: DistanceUnit? = heightUnits?.let {
         val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)
-        return@let if (height in standardLengths) {
-            height
+        return@let if (it.meters.toLong() in standardLengths) {
+            heightUnits * 2
         } else {
             null
         }
