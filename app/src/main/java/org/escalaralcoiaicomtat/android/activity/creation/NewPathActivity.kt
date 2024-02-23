@@ -7,7 +7,6 @@ import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -64,7 +63,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MediatorLiveData
@@ -96,7 +94,6 @@ import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.ui.form.FormDropdown
-import org.escalaralcoiaicomtat.android.ui.form.FormDropdownField
 import org.escalaralcoiaicomtat.android.ui.form.FormField
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.ValueAssertion
@@ -422,35 +419,6 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
         var addButtonWidth by remember { mutableStateOf(0.dp) }
         var deleteButtonWidth by remember { mutableStateOf(0.dp) }
-
-        @Composable
-        fun <Type : Any> RowScope.Dropdown(
-            value: Type?,
-            onValueChange: (Type) -> Unit,
-            options: List<Type>,
-            toString: @Composable (Type?) -> String = { it.toString() }
-        ) {
-            FormDropdownField(
-                selection = value,
-                onSelectionChanged = onValueChange,
-                options = options,
-                toString = toString,
-                modifier = Modifier.weight(1f)
-            ) { v, expand ->
-                Text(
-                    text = toString(v),
-                    modifier = Modifier
-                        .menuAnchor()
-                        .clickable(onClick = expand)
-                        .fillMaxWidth(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontStyle = if (value == null) FontStyle.Italic else FontStyle.Normal,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
 
         FormListCreator(
             list = pitches,
