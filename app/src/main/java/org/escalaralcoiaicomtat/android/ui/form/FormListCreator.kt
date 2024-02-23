@@ -3,6 +3,7 @@ package org.escalaralcoiaicomtat.android.ui.form
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,72 +13,94 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.reorderable
+import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.ui.dialog.DialogScope
 import org.escalaralcoiaicomtat.android.utils.letIfNotNull
 
 @ExperimentalFoundationApi
 @Composable
-fun <T: Any> FormListCreator(
+fun <T : Any> FormListCreator(
     list: List<T>,
-    inputContent: @Composable RowScope.() -> Unit,
+    dialog: @Composable DialogScope.() -> Unit,
     rowContent: @Composable RowScope.(index: Int, item: T) -> Unit,
     modifier: Modifier = Modifier,
     title: String? = null,
-    inputHeadline: (@Composable RowScope.() -> Unit)? = null,
     rowHeadline: (@Composable RowScope.() -> Unit)? = null,
     reorderableState: (@Composable (LazyListState) -> ReorderableLazyListState)? = null
 ) {
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = reorderableState?.invoke(lazyListState)
 
+    var showingDialog by remember { mutableStateOf(false) }
+    if (showingDialog) {
+        AlertDialog(
+            onDismissRequest = { showingDialog = false },
+            text = {
+                Column {
+                    dialog(
+                        DialogScope.create(
+                            onDismiss = { showingDialog = false }
+                        )
+                    )
+                }
+            },
+            confirmButton = { }
+        )
+    }
+
     OutlinedCard(modifier) {
-        if (title != null) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (inputHeadline != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+            if (title != null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+                IconButton(
+                    onClick = { showingDialog = true }
                 ) {
-                    inputHeadline()
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = stringResource(R.string.action_add)
+                    )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                inputContent()
-            }
         }
-        Divider()
+        HorizontalDivider()
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 200.dp)
-                .padding(bottom = 8.dp)
+                .padding(bottom = 8.dp, start = 4.dp)
                 .padding(horizontal = 4.dp)
                 .letIfNotNull(reorderableLazyListState) { reorderable(it) }
                 .letIfNotNull(reorderableLazyListState) { detectReorderAfterLongPress(it) },

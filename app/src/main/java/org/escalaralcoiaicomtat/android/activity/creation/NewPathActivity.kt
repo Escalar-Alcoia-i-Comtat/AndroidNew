@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Switch
@@ -423,7 +424,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         var deleteButtonWidth by remember { mutableStateOf(0.dp) }
 
         @Composable
-        fun <Type: Any> RowScope.Dropdown(
+        fun <Type : Any> RowScope.Dropdown(
             value: Type?,
             onValueChange: (Type) -> Unit,
             options: List<Type>,
@@ -460,90 +461,66 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 )
             },
             title = stringResource(R.string.form_pitches_title),
-            inputHeadline = {
-                Text(
-                    text = stringResource(R.string.form_grade),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_height),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_ending),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_ending_info),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_ending_inclination),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = "",
-                    modifier = Modifier.width(addButtonWidth)
-                )
-            },
-            inputContent = {
+            dialog = {
                 var pitchGrade by remember { mutableStateOf<GradeValue?>(null) }
                 var pitchHeight by remember { mutableStateOf<String?>(null) }
                 var pitchEnding by remember { mutableStateOf<Ending?>(null) }
                 var pitchEndingInfo by remember { mutableStateOf<EndingInfo?>(null) }
                 var pitchEndingInclination by remember { mutableStateOf<EndingInclination?>(null) }
 
-                Dropdown(
-                    value = pitchGrade,
-                    onValueChange = { value ->
+                FormDropdown(
+                    selection = pitchGrade,
+                    onSelectionChanged = { value ->
                         pitchGrade = value.takeUnless { pitchGrade == it }
                     },
                     options = listOf(
                         *SportsGrade.entries.toTypedArray(),
                         *ArtificialGrade.entries.toTypedArray()
                     ),
-                    toString = { it?.displayName ?: stringResource(R.string.form_grade) }
+                    label = stringResource(R.string.form_grade),
+                    toString = { it.displayName }
                 )
 
                 FormField(
                     value = pitchHeight,
                     onValueChange = { pitchHeight = it.takeIf { it.isNotBlank() } },
-                    label = null,
-                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.form_height),
+                    modifier = Modifier.fillMaxWidth(),
                     keyboardType = KeyboardType.Number,
                     valueAssertion = ValueAssertion.NUMBER
                 )
 
-                Dropdown(
-                    value = pitchEnding,
-                    onValueChange = { value ->
+                FormDropdown(
+                    selection = pitchEnding,
+                    onSelectionChanged = { value ->
                         pitchEnding = value.takeUnless { pitchEnding == it }
                     },
-                    options = Ending.entries
-                ) { stringResource(it?.displayName ?: R.string.form_ending) }
+                    options = Ending.entries,
+                    label = stringResource(R.string.form_ending),
+                    toString = { stringResource(it.displayName) }
+                )
 
-                Dropdown(
-                    value = pitchEndingInfo,
-                    onValueChange = { value ->
+                FormDropdown(
+                    selection = pitchEndingInfo,
+                    onSelectionChanged = { value ->
                         pitchEndingInfo = value.takeUnless { pitchEndingInfo == it }
                     },
-                    options = EndingInfo.entries
-                ) { stringResource(it?.displayName ?: R.string.form_ending_info) }
+                    options = EndingInfo.entries,
+                    label = stringResource(R.string.form_ending_info),
+                    toString = { stringResource(it.displayName) }
+                )
 
-                Dropdown(
-                    value = pitchEndingInclination,
-                    onValueChange = { value ->
+                FormDropdown(
+                    selection = pitchEndingInclination,
+                    onSelectionChanged = { value ->
                         pitchEndingInclination = value.takeUnless { pitchEndingInclination == it }
                     },
-                    options = EndingInclination.entries
-                ) { stringResource(it?.displayName ?: R.string.form_ending_inclination) }
+                    options = EndingInclination.entries,
+                    label = stringResource(R.string.form_ending_inclination),
+                    toString = { stringResource(it.displayName) }
+                )
 
-                IconButton(
+                OutlinedButton(
                     onClick = {
                         val pitchInfo = PitchInfo(
                             0U,
@@ -565,6 +542,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                         pitchEnding = null
                         pitchEndingInfo = null
                         pitchEndingInclination = null
+
+                        dismiss()
                     },
                     enabled = pitchGrade != null ||
                         (pitchHeight != null && pitchHeight?.toUIntOrNull() != null) ||
@@ -575,7 +554,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                         addButtonWidth = with(localDensity) { it.size.width.toDp() }
                     }
                 ) {
-                    Icon(Icons.Rounded.Add, stringResource(R.string.action_add))
+                    Text(stringResource(R.string.action_add))
                 }
             },
             rowHeadline = {
@@ -622,80 +601,40 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                     textAlign = TextAlign.Center
                 )
 
-                FormDropdown(
-                    selection = item.gradeValue,
-                    onSelectionChanged = { value ->
-                        model.modifyPitch(
-                            index,
-                            value,
-                            { it.gradeValue },
-                            { i, v -> i.copy(gradeValue = v) })
-                    },
-                    options = listOf(
-                        *SportsGrade.entries.toTypedArray(),
-                        *ArtificialGrade.entries.toTypedArray()
-                    ),
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { it.displayName }
-
-                FormField(
-                    value = item.height?.toString(),
-                    onValueChange = { value ->
-                        val newValue = value.toUIntOrNull() ?: return@FormField
-                        model.modifyPitch(
-                            index,
-                            newValue,
-                            { it.height },
-                            { i, v -> i.copy(height = v) })
-                    },
-                    label = null,
+                Text(
+                    text = item.gradeValue?.displayName ?: "",
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1f),
-                    keyboardType = KeyboardType.Number,
-                    valueAssertion = ValueAssertion.NUMBER
+                    textAlign = TextAlign.Center
                 )
 
-                FormDropdown(
-                    selection = item.ending,
-                    onSelectionChanged = { value ->
-                        model.modifyPitch(
-                            index,
-                            value,
-                            { it.ending },
-                            { i, v -> i.copy(ending = v) })
-                    },
-                    options = Ending.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                Text(
+                    text = item.height?.toString() ?: "",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
 
-                FormDropdown(
-                    selection = item.info,
-                    onSelectionChanged = { value ->
-                        model.modifyPitch(
-                            index,
-                            value,
-                            { it.info },
-                            { i, v -> i.copy(info = v) })
-                    },
-                    options = EndingInfo.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                Text(
+                    text = item.ending?.displayName?.let { stringResource(it) } ?: "",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
 
-                FormDropdown(
-                    selection = item.inclination,
-                    onSelectionChanged = { value ->
-                        model.modifyPitch(
-                            index,
-                            value,
-                            { it.inclination },
-                            { i, v -> i.copy(inclination = v) })
-                    },
-                    options = EndingInclination.entries,
-                    label = null,
-                    modifier = Modifier.weight(1f)
-                ) { stringResource(it.displayName) }
+                Text(
+                    text = item.info?.displayName?.let { stringResource(it) } ?: "",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = item.inclination?.displayName?.let { stringResource(it) } ?: "",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
 
                 IconButton(
                     onClick = {
@@ -821,12 +760,12 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            inputContent = {
+            dialog = {
                 val reBuilder = MutableLiveData<Builder?>()
 
-                BuilderField(liveData = reBuilder, modifier = Modifier.weight(1f))
+                BuilderField(liveData = reBuilder, modifier = Modifier.fillMaxWidth())
 
-                IconButton(
+                OutlinedButton(
                     onClick = {
                         model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
                             reBuilder.value
@@ -1039,15 +978,31 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             appendDifference("spitCount", spitCount.value, element.value?.spitCount)
             appendDifference("tensorCount", tensorCount.value, element.value?.tensorCount)
 
-            appendDifference("crackerRequired", crackerRequired.value, element.value?.crackerRequired)
+            appendDifference(
+                "crackerRequired",
+                crackerRequired.value,
+                element.value?.crackerRequired
+            )
             appendDifference("friendRequired", friendRequired.value, element.value?.friendRequired)
-            appendDifference("lanyardRequired", lanyardRequired.value, element.value?.lanyardRequired)
+            appendDifference(
+                "lanyardRequired",
+                lanyardRequired.value,
+                element.value?.lanyardRequired
+            )
             appendDifference("nailRequired", nailRequired.value, element.value?.nailRequired)
             appendDifference("pitonRequired", pitonRequired.value, element.value?.pitonRequired)
             appendDifference("stapesRequired", stapesRequired.value, element.value?.stapesRequired)
 
-            appendDifference("showDescription", showDescription.value, element.value?.showDescription)
-            appendDifference("description", description.value?.takeIf { it.isNotBlank() }, element.value?.description)
+            appendDifference(
+                "showDescription",
+                showDescription.value,
+                element.value?.showDescription
+            )
+            appendDifference(
+                "description",
+                description.value?.takeIf { it.isNotBlank() },
+                element.value?.description
+            )
 
             appendDifference("builder", builder.value, element.value?.builder)
             appendDifference("reBuilders", reBuilders.value, element.value?.reBuilder)
@@ -1089,7 +1044,9 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
             }
         }
 
-        override suspend fun insert(element: Path) { dao.insert(element) }
+        override suspend fun insert(element: Path) {
+            dao.insert(element)
+        }
 
         override suspend fun update(element: Path) = dao.update(element)
     }

@@ -146,7 +146,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp),
-            inputContent = {
+            dialog = {
                 var selection: PointOption by remember { mutableStateOf(PointOptions.Default) }
                 var label: String by remember { mutableStateOf("") }
                 var rowLatitude: String by remember { mutableStateOf("") }
