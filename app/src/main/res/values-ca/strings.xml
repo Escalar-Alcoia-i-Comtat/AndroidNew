@@ -195,7 +195,8 @@
         <item quantity="other">Aquesta via té %d segurs instal·lats. Assegura\'t de dur suficients cintes express. Sempre és recomanable dur més de les necessàries.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message">Aquesta via té uns %d metres d\'alçada. Recomanem una corda de %d metres.</string>
+    <string name="path_view_height_message_no_rope">The height of this route is:</string>
+    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
     <string name="path_view_count_title">Segurs instal·lats</string>
     <string name="path_view_count_message">Ací tens més informació sobre els segurs instal·lats a la via:\n%s</string>
     <string name="path_view_required_title">Material Necessari</string>
@@ -286,4 +287,10 @@
         <item quantity="one">%d via</item>
         <item quantity="other">%d vies</item>
     </plurals>
+    <string name="distance_unit_meters_decimal">%d m</string>
+    <string name="distance_unit_meters_float">%f m</string>
+    <string name="distance_unit_meters_tag">Meters</string>
+    <string name="distance_unit_feet_decimal">%d ft</string>
+    <string name="distance_unit_feet_float">%f ft</string>
+    <string name="distance_unit_feet_tag">Feet</string>
 </resources>
