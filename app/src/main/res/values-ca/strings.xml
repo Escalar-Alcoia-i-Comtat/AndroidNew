@@ -64,9 +64,9 @@
     <string name="settings_category_storage">Emmagatzemament</string>
     <string name="settings_category_security">Seguretat</string>
     <string name="settings_category_advanced">Avançat</string>
-    <string name="settings_warning_debug_title">Debug Instance</string>
-    <string name="settings_warning_debug_message_1">You are running the debug instance of Escalar Alcoià i Comtat, data doesn\'t match with the public one, this version is only intended for testing.</string>
-    <string name="settings_warning_debug_message_2">Target: %s</string>
+    <string name="settings_warning_debug_title">Instància de Proves</string>
+    <string name="settings_warning_debug_message_1">Estàs fent servir una instància de proves d\'Escalar Alcoià i Comtat, les dades no coincideixen amb les disponibles públicament, i només està pensada per a proves.</string>
+    <string name="settings_warning_debug_message_2">Objectiu: %s</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_default">Per defecte</string>
     <string name="settings_storage_cache_title">Fitxers en memòria cau</string>
@@ -192,10 +192,10 @@
     <string name="path_view_quickdraw_count_title">Número de Cintes</string>
     <plurals name="path_view_quickdraw_count_message">
         <item quantity="one">It\'s required that you bring at least %d quickdraw to climb this route. It\'s always recommended to bring more than necessary.</item>
-        <item quantity="other">It\'s required that you bring at least %d quickdraws to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">Cal que duguis almenys %d cintes express per a escalar aquesta via. Sempre és recomanable dur més de les necessàries.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message">The height of this route is:</string>
+    <string name="path_view_height_message">Aquesta via té una altura de:</string>
     <string name="path_view_count_title">Segurs instal·lats</string>
     <string name="path_view_count_message">Ací tens més informació sobre els segurs instal·lats a la via:\n%s</string>
     <string name="path_view_required_title">Material Necessari</string>
@@ -203,12 +203,12 @@
     <string name="path_view_description">Més Informació</string>
     <string name="path_view_grade_title">Grau</string>
     <string name="path_view_grade_message">El grau d\'aquesta via és:</string>
-    <string name="path_view_builder_title">Route Setter</string>
-    <string name="path_view_builder_message_full">This path was set by %s in %s.</string>
-    <string name="path_view_builder_message_no_year">This path was set by %s.</string>
-    <string name="path_view_builder_message_no_name">This path was set in %s.</string>
-    <string name="path_view_re_builder_message_year">It was restored by %s in %s.</string>
-    <string name="path_view_re_builder_message">It was restored by %.</string>
+    <string name="path_view_builder_title">Equipador</string>
+    <string name="path_view_builder_message_full">Aquesta via va ser equipada per %s en %s.</string>
+    <string name="path_view_builder_message_no_year">Aquesta via va ser equipada per %s.</string>
+    <string name="path_view_builder_message_no_name">Aquesta via va ser equipada en %s.</string>
+    <string name="path_view_re_builder_message_year">Va ser restaurada per %s en %s.</string>
+    <string name="path_view_re_builder_message">Va ser restaurada per %s.</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
@@ -294,8 +294,8 @@
     </plurals>
     <string name="distance_unit_meters_decimal">%d m</string>
     <string name="distance_unit_meters_float">%f m</string>
-    <string name="distance_unit_meters_tag">Meters</string>
+    <string name="distance_unit_meters_tag">Metres</string>
     <string name="distance_unit_feet_decimal">%d ft</string>
     <string name="distance_unit_feet_float">%f ft</string>
-    <string name="distance_unit_feet_tag">Feet</string>
+    <string name="distance_unit_feet_tag">Peus</string>
 </resources>
