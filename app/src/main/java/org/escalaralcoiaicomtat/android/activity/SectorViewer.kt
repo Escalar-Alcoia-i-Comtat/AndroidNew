@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
+import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.Bookmark
@@ -962,6 +963,62 @@ class SectorViewer : AppCompatActivity() {
                         icon = Icons.Filled.Description,
                         title = stringResource(R.string.path_view_description),
                         message = description,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                if (path.builder?.name != null || path.builder?.date != null || path.reBuilder?.isNotEmpty() == true) {
+                    val text = StringBuilder()
+
+                    val builder = path.builder
+                    if (builder?.name != null && builder.date != null) {
+                        text.appendLine(
+                            stringResource(
+                                R.string.path_view_builder_message_full,
+                                builder.name,
+                                builder.date
+                            )
+                        )
+                    } else if (builder?.name != null) {
+                        text.appendLine(
+                            stringResource(R.string.path_view_builder_message_no_year, builder.name)
+                        )
+                    } else if (builder?.date != null) {
+                        text.appendLine(
+                            stringResource(R.string.path_view_builder_message_no_name, builder.date)
+                        )
+                    }
+
+                    val reBuilderList = path.reBuilder?.takeIf { it.isNotEmpty() }
+                    reBuilderList?.forEach { reBuilder ->
+                        text.appendLine(
+                            if (reBuilder.name != null && reBuilder.date != null) {
+                                stringResource(
+                                    R.string.path_view_builder_message_full,
+                                    reBuilder.name,
+                                    reBuilder.date
+                                )
+                            } else if (reBuilder.name != null) {
+                                stringResource(
+                                    R.string.path_view_builder_message_no_year,
+                                    reBuilder.name
+                                )
+                            } else if (reBuilder.date != null) {
+                                stringResource(
+                                    R.string.path_view_builder_message_no_name,
+                                    reBuilder.date
+                                )
+                            } else {
+                                ""
+                            }
+                        )
+                    }
+
+                    CardWithIconAndTitle(
+                        icon = Icons.Filled.Construction,
+                        title = stringResource(R.string.path_view_builder_title),
+                        message = text.toString(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
