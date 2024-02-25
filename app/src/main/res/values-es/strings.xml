@@ -191,12 +191,11 @@
     <string name="notification_sync_message">Sincronización de datos del dispositivo con los servidores.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintas</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">Esta ruta tiene %d anclaje instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
-        <item quantity="other">Esta ruta tiene %d anclajes instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
+        <item quantity="one">It\'s required that you bring at least %d quickdraw to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">It\'s required that you bring at least %d quickdraws to climb this route. It\'s always recommended to bring more than necessary.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message_no_rope">The height of this route is:</string>
-    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
+    <string name="path_view_height_message">The height of this route is:</string>
     <string name="path_view_count_title">Seguros instalados</string>
     <string name="path_view_count_message">Aquí hay más información sobre los seguros instalados en la vía\n%s</string>
     <string name="path_view_required_title">Material necesario</string>
