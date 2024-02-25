@@ -204,6 +204,12 @@
     <string name="path_view_description">Más información</string>
     <string name="path_view_grade_title">Grado</string>
     <string name="path_view_grade_message">El grado de esta vía es:</string>
+    <string name="path_view_builder_title">Route Setter</string>
+    <string name="path_view_builder_message_full">This path was set by %s in %s.</string>
+    <string name="path_view_builder_message_no_year">This path was set by %s.</string>
+    <string name="path_view_builder_message_no_name">This path was set in %s.</string>
+    <string name="path_view_re_builder_message_year">It was restored by %s in %s.</string>
+    <string name="path_view_re_builder_message">It was restored by %.</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
