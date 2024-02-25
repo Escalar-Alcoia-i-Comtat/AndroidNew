@@ -225,13 +225,12 @@
 
     <string name="path_view_quickdraw_count_title">Quickdraw Count</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">This route has %d anchor installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
-        <item quantity="other">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
-        <item quantity="many">This route has %d anchors installed. Make sure to bring enough quickdraws. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="one">It\'s required that you bring at least %d quickdraw to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">It\'s required that you bring at least %d quickdraws to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="many">It\'s required that you bring at least %d quickdraws to climb this route. It\'s always recommended to bring more than necessary.</item>
     </plurals>
     <string name="path_view_height_title">Height</string>
-    <string name="path_view_height_message_no_rope">The height of this route is:</string>
-    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
+    <string name="path_view_height_message">The height of this route is:</string>
     <string name="path_view_count_title">Installed safes</string>
     <string name="path_view_count_message">Here\'s more information about the safes installed in the route:\n%s</string>
     <string name="path_view_required_title">Required Material</string>
