@@ -83,7 +83,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -871,7 +870,7 @@ class SectorViewer : AppCompatActivity() {
                                 text = grade.displayName,
                                 color = grade.color.current,
                                 style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.padding(end = 4.dp)
+                                modifier = Modifier.padding(end = 8.dp)
                             )
                         }
                     )
@@ -881,22 +880,12 @@ class SectorViewer : AppCompatActivity() {
                         icon = Icons.Filled.Rope,
                         title = stringResource(R.string.path_view_height_title),
                         message = stringResource(R.string.path_view_height_message_no_rope),
-                        extra = {
+                        trailingContent = {
                             Text(
                                 text = height.decimalLabel(),
                                 style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
+                                modifier = Modifier.padding(end = 8.dp)
                             )
-                            path.ropeLength?.let { ropeLength ->
-                                Text(
-                                    text = stringResource(
-                                        R.string.path_view_height_message_rope,
-                                        ropeLength.decimalLabel()
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()

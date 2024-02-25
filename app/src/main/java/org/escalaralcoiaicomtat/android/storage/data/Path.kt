@@ -116,16 +116,6 @@ data class Path(
     val heightUnits: DistanceUnit? = height?.let { DistanceUnit(it.toDouble()) }
 
     @Ignore
-    val ropeLength: DistanceUnit? = heightUnits?.let {
-        val standardLengths = setOf<Long>(30, 40, 50, 60, 70, 80)
-        return@let if (it.meters.toLong() in standardLengths) {
-            heightUnits * 2
-        } else {
-            null
-        }
-    }
-
-    @Ignore
     val parabolts: SafesCount? = paraboltCount
         ?.takeIf { it > 0 }
         ?.let { SafesCount(it, R.plurals.safe_type_parabolt, R.string.safe_type_parabolt) }
