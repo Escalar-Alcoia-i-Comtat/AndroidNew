@@ -191,12 +191,11 @@
     <string name="notification_sync_message">Sincronitzant les dades del dispositiu amb les del servidor.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintes</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">Aquesta via té %d segur instal·lats. Assegura\'t de dur suficients cintes express. Sempre és recomanable dur més de les necessàries.</item>
-        <item quantity="other">Aquesta via té %d segurs instal·lats. Assegura\'t de dur suficients cintes express. Sempre és recomanable dur més de les necessàries.</item>
+        <item quantity="one">It\'s required that you bring at least %d quickdraw to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="other">It\'s required that you bring at least %d quickdraws to climb this route. It\'s always recommended to bring more than necessary.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message_no_rope">The height of this route is:</string>
-    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
+    <string name="path_view_height_message">The height of this route is:</string>
     <string name="path_view_count_title">Segurs instal·lats</string>
     <string name="path_view_count_message">Ací tens més informació sobre els segurs instal·lats a la via:\n%s</string>
     <string name="path_view_required_title">Material Necessari</string>
