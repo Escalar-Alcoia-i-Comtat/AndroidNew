@@ -2,8 +2,8 @@ package org.escalaralcoiaicomtat.android.ui.form
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,11 +40,11 @@ import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.ui.dialog.DialogScope
 import org.escalaralcoiaicomtat.android.utils.letIfNotNull
 
-@ExperimentalFoundationApi
 @Composable
+@ExperimentalFoundationApi
 fun <T : Any> FormListCreator(
     list: List<T>,
-    dialog: @Composable DialogScope.() -> Unit,
+    dialog: @Composable DialogScope.(indexItem: Pair<Int, T>?) -> Unit,
     rowContent: @Composable RowScope.(index: Int, item: T) -> Unit,
     modifier: Modifier = Modifier,
     title: String? = null,
@@ -55,16 +54,24 @@ fun <T : Any> FormListCreator(
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = reorderableState?.invoke(lazyListState)
 
+    var editing by remember { mutableStateOf<Pair<Int, T>?>(null) }
     var showingDialog by remember { mutableStateOf(false) }
-    if (showingDialog) {
+    if (showingDialog || editing != null) {
         AlertDialog(
-            onDismissRequest = { showingDialog = false },
+            onDismissRequest = {
+                showingDialog = false
+                editing = null
+            },
             text = {
                 Column {
                     dialog(
                         DialogScope.create(
-                            onDismiss = { showingDialog = false }
-                        )
+                            onDismiss = {
+                                showingDialog = false
+                                editing = null
+                            }
+                        ),
+                        editing
                     )
                 }
             },
@@ -138,7 +145,8 @@ fun <T : Any> FormListCreator(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
                                 .animateItemPlacement()
-                                .shadow(elevation.value),
+                                .shadow(elevation.value)
+                                .clickable { editing = index to item },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             rowContent(this, index, item)
@@ -149,7 +157,8 @@ fun <T : Any> FormListCreator(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .animateItemPlacement(),
+                            .animateItemPlacement()
+                            .clickable { editing = index to item },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         rowContent(this, index, item)

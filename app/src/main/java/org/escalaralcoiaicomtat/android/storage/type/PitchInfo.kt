@@ -16,8 +16,8 @@ data class PitchInfo(
     val gradeValue: GradeValue?,
     val height: UInt?,
     val ending: Ending?,
-    val info: EndingInfo?,
-    val inclination: EndingInclination?
+    val info: EndingInfo? = null,
+    val inclination: EndingInclination? = null
 ): JsonSerializable, Parcelable {
     companion object CREATOR : Parcelable.Creator<PitchInfo>, JsonSerializer<PitchInfo> {
         override fun fromJson(json: JSONObject): PitchInfo = PitchInfo(

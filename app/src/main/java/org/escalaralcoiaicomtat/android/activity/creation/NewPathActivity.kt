@@ -87,8 +87,6 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.type.ArtificialGrade
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.Ending
-import org.escalaralcoiaicomtat.android.storage.type.EndingInclination
-import org.escalaralcoiaicomtat.android.storage.type.EndingInfo
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.storage.type.SafesCount
@@ -429,12 +427,12 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 )
             },
             title = stringResource(R.string.form_pitches_title),
-            dialog = {
-                var pitchGrade by remember { mutableStateOf<GradeValue?>(null) }
-                var pitchHeight by remember { mutableStateOf<String?>(null) }
-                var pitchEnding by remember { mutableStateOf<Ending?>(null) }
-                var pitchEndingInfo by remember { mutableStateOf<EndingInfo?>(null) }
-                var pitchEndingInclination by remember { mutableStateOf<EndingInclination?>(null) }
+            dialog = { indexInfo ->
+                val index = indexInfo?.first
+                val info = indexInfo?.second
+                var pitchGrade by remember { mutableStateOf(info?.gradeValue) }
+                var pitchHeight by remember { mutableStateOf(info?.height?.toString()) }
+                var pitchEnding by remember { mutableStateOf(info?.ending) }
 
                 FormDropdown(
                     selection = pitchGrade,
@@ -468,39 +466,21 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                     toString = { stringResource(it.displayName) }
                 )
 
-                FormDropdown(
-                    selection = pitchEndingInfo,
-                    onSelectionChanged = { value ->
-                        pitchEndingInfo = value.takeUnless { pitchEndingInfo == it }
-                    },
-                    options = EndingInfo.entries,
-                    label = stringResource(R.string.form_ending_info),
-                    toString = { stringResource(it.displayName) }
-                )
-
-                FormDropdown(
-                    selection = pitchEndingInclination,
-                    onSelectionChanged = { value ->
-                        pitchEndingInclination = value.takeUnless { pitchEndingInclination == it }
-                    },
-                    options = EndingInclination.entries,
-                    label = stringResource(R.string.form_ending_inclination),
-                    toString = { stringResource(it.displayName) }
-                )
-
                 OutlinedButton(
                     onClick = {
                         val pitchInfo = PitchInfo(
-                            0U,
+                            info?.pitch ?: 0U,
                             pitchGrade,
                             pitchHeight?.toUIntOrNull(),
-                            pitchEnding,
-                            pitchEndingInfo,
-                            pitchEndingInclination
+                            pitchEnding
                         )
                         synchronized(model.pitches) {
                             val list = (model.pitches.value ?: emptyList()).toMutableList()
-                            list.add(pitchInfo)
+                            if (index != null) {
+                                list[index] = pitchInfo
+                            } else {
+                                list.add(pitchInfo)
+                            }
                             model.pitches.postValue(list)
                         }
 
@@ -508,21 +488,21 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                         pitchGrade = null
                         pitchHeight = null
                         pitchEnding = null
-                        pitchEndingInfo = null
-                        pitchEndingInclination = null
 
                         dismiss()
                     },
                     enabled = pitchGrade != null ||
                         (pitchHeight != null && pitchHeight?.toUIntOrNull() != null) ||
-                        pitchEnding != null ||
-                        pitchEndingInfo != null ||
-                        pitchEndingInclination != null,
+                        pitchEnding != null,
                     modifier = Modifier.onGloballyPositioned {
                         addButtonWidth = with(localDensity) { it.size.width.toDp() }
                     }
                 ) {
-                    Text(stringResource(R.string.action_add))
+                    Text(
+                        text = stringResource(
+                            if (info != null) R.string.action_update else R.string.action_add
+                        )
+                    )
                 }
             },
             rowHeadline = {
@@ -543,16 +523,6 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 )
                 Text(
                     text = stringResource(R.string.form_ending),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_ending_info),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = stringResource(R.string.form_ending_inclination),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.labelMedium
                 )
@@ -585,20 +555,6 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
                 Text(
                     text = item.ending?.displayName?.let { stringResource(it) } ?: "",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = item.info?.displayName?.let { stringResource(it) } ?: "",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = item.inclination?.displayName?.let { stringResource(it) } ?: "",
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
