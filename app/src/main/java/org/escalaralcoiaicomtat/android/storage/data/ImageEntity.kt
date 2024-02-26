@@ -25,19 +25,30 @@ abstract class ImageEntity : DataEntity() {
 
     val imageUUID: UUID by lazy { UUID.fromString(image.substringBeforeLast('.')) }
 
-    private fun imageFile(context: Context) = SynchronizedFile.create(context, imageUUID)
+    private fun imageFile(
+        context: Context,
+        isScaled: Boolean = true
+    ) = SynchronizedFile.create(
+        context,
+        imageUUID,
+        isScaled
+    )
 
-    fun readImageFile(context: Context, lifecycle: Lifecycle): Flow<ByteArray?> {
-        val imageFile = imageFile(context)
+    fun readImageFile(
+        context: Context,
+        lifecycle: Lifecycle,
+        isScaled: Boolean = true
+    ): Flow<ByteArray?> {
+        val imageFile = imageFile(context, isScaled)
 
         return imageFile.read(lifecycle)
     }
 
     @Composable
-    fun rememberImageFile(): LiveData<ByteArray?> {
+    fun rememberImageFile(isScaled: Boolean = true): LiveData<ByteArray?> {
         val context = LocalContext.current
 
-        val imageFile = remember { SynchronizedFile.create(context, imageUUID) }
+        val imageFile = remember { SynchronizedFile.create(context, imageUUID, isScaled) }
 
         return imageFile.rememberImageData()
     }
@@ -51,7 +62,7 @@ abstract class ImageEntity : DataEntity() {
     ) {
         Timber.d("Checking if image file needs to be updated...")
         try {
-            val imageFile = imageFile(context)
+            val imageFile = imageFile(context, width != null || height != null)
             imageFile.update(width, height, progress)
         } catch (_: RemoteFileNotFoundException) {
             // Image has been removed from server, should delete the items' data and sync again

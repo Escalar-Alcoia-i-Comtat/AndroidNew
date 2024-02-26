@@ -394,7 +394,7 @@ class SectorViewer : AppCompatActivity() {
 
         val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
 
-        val imageFile by sector.rememberImageFile().observeAsState()
+        val imageFile by sector.rememberImageFile(false).observeAsState()
         var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
         val blocks by viewModel.blocks.observeAsState(initial = emptyMap())
@@ -403,7 +403,7 @@ class SectorViewer : AppCompatActivity() {
             withContext(Dispatchers.IO) {
                 if (imageFile != null) return@withContext
 
-                sector.updateImageIfNeeded(context, null) { current, max ->
+                sector.updateImageIfNeeded(context) { current, max ->
                     progress = current.toInt() to max.toInt()
                 }
             }

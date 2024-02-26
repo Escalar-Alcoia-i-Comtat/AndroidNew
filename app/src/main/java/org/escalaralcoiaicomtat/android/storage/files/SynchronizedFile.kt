@@ -44,13 +44,13 @@ data class SynchronizedFile(
         @Volatile
         private var fileUpdatedListeners: Map<String, List<(LocalFile) -> Unit>> = emptyMap()
 
-        fun create(context: Context, uuid: UUID): SynchronizedFile {
+        fun create(context: Context, uuid: UUID, isScaled: Boolean = true): SynchronizedFile {
             val crate = FilesCrate.getInstance(context)
 
             return SynchronizedFile(
                 uuid,
-                crate.cache(uuid),
-                crate.permanent(uuid)
+                crate.cache(uuid, if (isScaled) null else ".fullsize"),
+                crate.permanent(uuid, if (isScaled) null else ".fullsize")
             )
         }
     }

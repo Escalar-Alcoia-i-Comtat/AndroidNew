@@ -61,12 +61,12 @@ class FilesCrate private constructor(context: Context) {
     /**
      * Provides File access to a file with the given name in the cache.
      */
-    fun cache(uuid: UUID) = LocalFile(cachesDir, uuid)
+    fun cache(uuid: UUID, suffix: String? = null) = LocalFile(cachesDir, uuid, suffix ?: "")
 
     /**
      * Provides File access to a file with the given name in the permanent directory.
      */
-    fun permanent(uuid: UUID) = LocalFile(permanentDir, uuid)
+    fun permanent(uuid: UUID, suffix: String? = null) = LocalFile(permanentDir, uuid, suffix)
 
     fun insert(info: RemoteFileInfo) {
         val metadataFile = File(permanentDir, info.filename + ".meta")

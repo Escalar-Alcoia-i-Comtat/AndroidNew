@@ -50,11 +50,12 @@ constructor(private val file: File, private val meta: File) {
     /**
      * @param parent The parent directory where the data and meta files will be stored.
      * @param uuid The UUID of the file. This is usually the file's name.
+     * @param suffix An optional suffix to add to the file's name.
      */
     @Suppress("Deprecation")
-    constructor(parent: File, uuid: UUID) : this(
-        File(parent, "$uuid"),
-        File(parent, "$uuid.meta")
+    constructor(parent: File, uuid: UUID, suffix: String? = null) : this(
+        File(parent, "$uuid${suffix ?: ""}"),
+        File(parent, "$uuid${suffix ?: ""}.meta")
     )
 
     /**
