@@ -42,7 +42,7 @@ android {
         buildConfigField(
             "Boolean",
             "PRODUCTION",
-            (version.contains("dev") || version.contains("beta")).toString()
+            (!version.contains("dev") && !version.contains("beta")).toString()
         )
     }
 
