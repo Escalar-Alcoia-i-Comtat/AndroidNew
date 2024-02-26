@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.storage.type
 
 import android.os.Parcel
 import android.os.Parcelable
+import org.escalaralcoiaicomtat.android.unit.DistanceUnit
 import org.escalaralcoiaicomtat.android.utils.getEnumOrNull
 import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.getUInt
@@ -33,6 +34,8 @@ data class PitchInfo(
 
         override fun newArray(size: Int): Array<PitchInfo?> = arrayOfNulls(size)
     }
+
+    val heightUnits: DistanceUnit? = height?.let { DistanceUnit(it.toDouble()) }
 
     constructor(parcel: Parcel) : this(
         parcel.readLong().toUInt(),

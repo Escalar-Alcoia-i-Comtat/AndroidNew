@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 fun CardWithIconAndTitle(
     icon: ImageVector,
     title: String,
-    message: String,
+    message: String? = null,
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.outlinedCardColors(),
     border: BorderStroke = CardDefaults.outlinedCardBorder(),
@@ -56,10 +56,12 @@ fun CardWithIconAndTitle(
                     text = title,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                if (message != null) {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 extra?.invoke(this)
             }
             trailingContent?.invoke(this)

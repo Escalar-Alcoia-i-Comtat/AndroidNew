@@ -24,10 +24,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +42,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.material.icons.outlined.AddAlert
 import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
@@ -77,6 +80,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -894,6 +898,42 @@ class SectorViewer : AppCompatActivity() {
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
+                    )
+                }
+                path.pitches?.takeIf { it.isNotEmpty() }?.let { pitches ->
+                    CardWithIconAndTitle(
+                        icon = Icons.Filled.Landscape,
+                        title = stringResource(R.string.path_view_pitches_title),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        extra = {
+                            Spacer(Modifier.height(8.dp))
+                            for ((i, pitch) in pitches.withIndex()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "L$i",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = pitch.heightUnits?.decimalLabel() ?: "",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.weight(3f),
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Text(
+                                        text = pitch.gradeValue?.displayName ?: "",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.weight(3f),
+                                        color = pitch.gradeValue?.color?.current ?: Color.Black,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
                 path.stringCount?.takeIf { it > 0 }?.let { stringCount ->
