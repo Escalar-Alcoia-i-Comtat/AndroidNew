@@ -124,6 +124,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.storage.relations.PathWithBlocks
+import org.escalaralcoiaicomtat.android.storage.type.Ending
 import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.SportsGrade
 import org.escalaralcoiaicomtat.android.storage.type.color
@@ -133,6 +134,7 @@ import org.escalaralcoiaicomtat.android.ui.icons.ClimbingShoes
 import org.escalaralcoiaicomtat.android.ui.icons.EnergyAbsorber
 import org.escalaralcoiaicomtat.android.ui.icons.Quickdraw
 import org.escalaralcoiaicomtat.android.ui.icons.Rope
+import org.escalaralcoiaicomtat.android.ui.icons.SlingHere
 import org.escalaralcoiaicomtat.android.ui.list.PathItem
 import org.escalaralcoiaicomtat.android.ui.reusable.CardWithIconAndTitle
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
@@ -1009,6 +1011,29 @@ class SectorViewer : AppCompatActivity() {
                         icon = Icons.Filled.Construction,
                         title = stringResource(R.string.path_view_builder_title),
                         message = text.toString(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+                path.ending?.let { ending ->
+                    CardWithIconAndTitle(
+                        icon = Icons.Rounded.SlingHere,
+                        title = stringResource(R.string.path_view_ending_title),
+                        message = when (ending) {
+                            Ending.WALKING -> {
+                                stringResource(R.string.path_view_ending_walking)
+                            }
+                            Ending.RAPPEL -> {
+                                stringResource(R.string.path_view_ending_walking)
+                            }
+                            else -> {
+                                stringResource(
+                                    R.string.path_view_ending_message,
+                                    stringResource(ending.displayName)
+                                )
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
