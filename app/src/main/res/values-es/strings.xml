@@ -209,6 +209,11 @@
     <string name="path_view_builder_message_no_name">Esta vía fue equipada en %s.</string>
     <string name="path_view_re_builder_message_year">Fue reequipada por %s en %s.</string>
     <string name="path_view_re_builder_message">Fue reequipada por %s.</string>
+    <string name="path_view_ending_title">Reunión</string>
+    <string name="path_view_ending_walking">Cuando acabes de escalar, puedes bajar por un camino disponible al final de la vía.</string>
+    <string name="path_view_ending_rappel">Cuando acabes de escalar, puedes bajar rapelando.</string>
+    <string name="path_view_ending_message">Esta vía está equipada con una reunión del tipo:</string>
+    <string name="path_view_pitches_title">Información por Largos</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
