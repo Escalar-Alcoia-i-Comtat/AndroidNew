@@ -191,7 +191,7 @@
     <string name="notification_sync_message">Sincronitzant les dades del dispositiu amb les del servidor.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintes</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">It\'s required that you bring at least %d quickdraw to climb this route. It\'s always recommended to bring more than necessary.</item>
+        <item quantity="one">Cal que duguis almenys %d cinta express per a escalar aquesta via. Sempre és recomanable dur més de les necessàries.</item>
         <item quantity="other">Cal que duguis almenys %d cintes express per a escalar aquesta via. Sempre és recomanable dur més de les necessàries.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
