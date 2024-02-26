@@ -209,6 +209,11 @@
     <string name="path_view_builder_message_no_name">Esta vía fue equipada en %s.</string>
     <string name="path_view_re_builder_message_year">Fue reequipada por %s en %s.</string>
     <string name="path_view_re_builder_message">Fue reequipada por %s.</string>
+    <string name="path_view_ending_title">Path Ending</string>
+    <string name="path_view_ending_walking">Once you finish climbing, you can go down by walking a path available on the top of the path.</string>
+    <string name="path_view_ending_rappel">Once you finish climbing, you can go down by rappelling.</string>
+    <string name="path_view_ending_message">The path is equipped with an anchor of type:</string>
+    <string name="path_view_pitches_title">Information by Pitches</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
