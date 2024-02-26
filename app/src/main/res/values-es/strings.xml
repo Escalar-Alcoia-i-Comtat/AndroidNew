@@ -64,9 +64,9 @@
     <string name="settings_category_storage">Almacenaje</string>
     <string name="settings_category_security">Seguridad</string>
     <string name="settings_category_advanced">Avanzado</string>
-    <string name="settings_warning_debug_title">Debug Instance</string>
-    <string name="settings_warning_debug_message_1">You are running the debug instance of Escalar Alcoià i Comtat, data doesn\'t match with the public one, this version is only intended for testing.</string>
-    <string name="settings_warning_debug_message_2">Target: %s</string>
+    <string name="settings_warning_debug_title">Instancia de Pruebas</string>
+    <string name="settings_warning_debug_message_1">Estás usando una instancia de pruebas para Escalar Alcoià i Comtat, los datos no coinciden con los públicos. Esta versión solo está pensada para usarse como pruebas.</string>
+    <string name="settings_warning_debug_message_2">Objetivo: %s</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_default">Por defecto del Sistema</string>
     <string name="settings_storage_cache_title">Archivos en caché</string>
@@ -191,12 +191,11 @@
     <string name="notification_sync_message">Sincronización de datos del dispositivo con los servidores.</string>
     <string name="path_view_quickdraw_count_title">Número de Cintas</string>
     <plurals name="path_view_quickdraw_count_message">
-        <item quantity="one">Esta ruta tiene %d anclaje instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
-        <item quantity="other">Esta ruta tiene %d anclajes instalados. Asegúrese de traer suficientes cintas express. Siempre se recomienda traer más de las necesarias.</item>
+        <item quantity="one">Hace falta %d cinta exprés para escalar esta vía. Siempre es recomendable llevar más cintas de las necesarias.</item>
+        <item quantity="other">Hacen falta %d cintas exprés para escalar esta vía. Siempre es recomendable llevar más cintas de las necesarias.</item>
     </plurals>
     <string name="path_view_height_title">Altura</string>
-    <string name="path_view_height_message_no_rope">The height of this route is:</string>
-    <string name="path_view_height_message_rope">We recommend that you bring a rope of %s.</string>
+    <string name="path_view_height_message">La altura de esta vía es:</string>
     <string name="path_view_count_title">Seguros instalados</string>
     <string name="path_view_count_message">Aquí hay más información sobre los seguros instalados en la vía\n%s</string>
     <string name="path_view_required_title">Material necesario</string>
@@ -204,6 +203,12 @@
     <string name="path_view_description">Más información</string>
     <string name="path_view_grade_title">Grado</string>
     <string name="path_view_grade_message">El grado de esta vía es:</string>
+    <string name="path_view_builder_title">Equipador</string>
+    <string name="path_view_builder_message_full">Esta vía fue equipada por %s en %s.</string>
+    <string name="path_view_builder_message_no_year">Esta vía fue equipada por %s.</string>
+    <string name="path_view_builder_message_no_name">Esta vía fue equipada en %s.</string>
+    <string name="path_view_re_builder_message_year">Fue reequipada por %s en %s.</string>
+    <string name="path_view_re_builder_message">Fue reequipada por %s.</string>
     <string name="safe_type_parabolt">Parabolts</string>
     <plurals name="safe_type_parabolt">
         <item quantity="one">%d Parabolt</item>
@@ -289,8 +294,8 @@
     </plurals>
     <string name="distance_unit_meters_decimal">%d m</string>
     <string name="distance_unit_meters_float">%f m</string>
-    <string name="distance_unit_meters_tag">Meters</string>
+    <string name="distance_unit_meters_tag">Metros</string>
     <string name="distance_unit_feet_decimal">%d ft</string>
     <string name="distance_unit_feet_float">%f ft</string>
-    <string name="distance_unit_feet_tag">Feet</string>
+    <string name="distance_unit_feet_tag">Pies</string>
 </resources>
