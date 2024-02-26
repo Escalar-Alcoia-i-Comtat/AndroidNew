@@ -83,6 +83,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -1020,19 +1021,20 @@ class SectorViewer : AppCompatActivity() {
                     CardWithIconAndTitle(
                         icon = Icons.Rounded.SlingHere,
                         title = stringResource(R.string.path_view_ending_title),
-                        message = when (ending) {
-                            Ending.WALKING -> {
-                                stringResource(R.string.path_view_ending_walking)
+                        message = stringResource(
+                            when (ending) {
+                                Ending.WALKING -> R.string.path_view_ending_walking
+                                Ending.RAPPEL -> R.string.path_view_ending_walking
+                                else -> R.string.path_view_ending_message
                             }
-                            Ending.RAPPEL -> {
-                                stringResource(R.string.path_view_ending_walking)
-                            }
-                            else -> {
-                                stringResource(
-                                    R.string.path_view_ending_message,
-                                    stringResource(ending.displayName)
-                                )
-                            }
+                        ),
+                        extra = {
+                            Text(
+                                text = stringResource(ending.displayName),
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
