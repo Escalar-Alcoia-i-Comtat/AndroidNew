@@ -66,7 +66,7 @@ fun SettingsPage(
 
     val crate = FilesCrate.rememberInstance()
 
-    if (!BuildConfig.PRODUCTION) {
+    if (BuildConfig.DEBUG) {
         OutlinedCard(
             colors = CardDefaults.outlinedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceBright,
