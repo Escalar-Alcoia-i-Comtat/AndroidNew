@@ -879,7 +879,7 @@ class SectorViewer : AppCompatActivity() {
                     CardWithIconAndTitle(
                         icon = Icons.Filled.Rope,
                         title = stringResource(R.string.path_view_height_title),
-                        message = stringResource(R.string.path_view_height_message_no_rope),
+                        message = stringResource(R.string.path_view_height_message),
                         trailingContent = {
                             Text(
                                 text = height.decimalLabel(),
@@ -889,7 +889,8 @@ class SectorViewer : AppCompatActivity() {
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     )
                 }
                 path.stringCount?.takeIf { it > 0 }?.let { stringCount ->
