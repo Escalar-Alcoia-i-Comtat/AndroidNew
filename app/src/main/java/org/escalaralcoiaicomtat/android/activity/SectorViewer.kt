@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -84,10 +85,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
@@ -910,35 +913,69 @@ class SectorViewer : AppCompatActivity() {
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         extra = {
                             Spacer(Modifier.height(8.dp))
+
+                            val density = LocalDensity.current
+
+                            val labelTextStyle = MaterialTheme.typography.labelLarge
+                            val textMeasurer = rememberTextMeasurer()
+                            val gradesWidth = remember(pitches) {
+                                with(density) {
+                                    pitches.maxOf {
+                                        if (it.gradeValue == null) 0
+                                        else textMeasurer.measure(
+                                            it.gradeValue.displayName,
+                                            labelTextStyle
+                                        ).size.width
+                                    }.toDp()
+                                }
+                            }
+                            val heightWidth = remember(pitches) {
+                                with(density) {
+                                    pitches.maxOf {
+                                        if (it.height == null) 0
+                                        else textMeasurer.measure(
+                                            "${it.height}mm",
+                                            labelTextStyle
+                                        ).size.width
+                                    }.toDp()
+                                }
+                            }
+
                             for ((i, pitch) in pitches.withIndex()) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = "L${i + 1}",
-                                        style = MaterialTheme.typography.labelLarge
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.width(36.dp)
                                     )
 
                                     Text(
                                         text = pitch.gradeValue?.displayName ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(2f),
-                                        color = pitch.gradeValue?.color?.current ?: Color.Black
+                                        color = pitch.gradeValue?.color?.current ?: Color.Black,
+                                        modifier = Modifier.padding(start = 8.dp).width(gradesWidth)
                                     )
 
                                     Text(
                                         text = pitch.heightUnits?.decimalLabel() ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(2f),
-                                        textAlign = TextAlign.Center
+                                        modifier = Modifier.padding(start = 8.dp).width(heightWidth)
                                     )
 
                                     Text(
-                                        text = pitch.ending?.let { "R${i + 1} " + stringResource(it.displayName) }
-                                            ?: "",
+                                        text = pitch.ending?.let { "R${i + 1}" } ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(4f),
-                                        textAlign = TextAlign.Center
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                    Text(
+                                        text = pitch.ending?.let {
+                                            stringResource(it.displayName)
+                                        } ?: "",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.weight(1f).padding(start = 4.dp)
                                     )
                                 }
                                 if (pitches.last() != pitch) HorizontalDivider()
