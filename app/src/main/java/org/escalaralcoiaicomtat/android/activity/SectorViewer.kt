@@ -57,6 +57,7 @@ import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -914,24 +915,33 @@ class SectorViewer : AppCompatActivity() {
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "L$i",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(1f)
+                                        text = "L${i + 1}",
+                                        style = MaterialTheme.typography.labelLarge
                                     )
-                                    Text(
-                                        text = pitch.heightUnits?.decimalLabel() ?: "",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(3f),
-                                        textAlign = TextAlign.Center
-                                    )
+
                                     Text(
                                         text = pitch.gradeValue?.displayName ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.weight(3f),
-                                        color = pitch.gradeValue?.color?.current ?: Color.Black,
+                                        modifier = Modifier.weight(2f),
+                                        color = pitch.gradeValue?.color?.current ?: Color.Black
+                                    )
+
+                                    Text(
+                                        text = pitch.heightUnits?.decimalLabel() ?: "",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.weight(2f),
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    Text(
+                                        text = pitch.ending?.let { "R${i + 1} " + stringResource(it.displayName) }
+                                            ?: "",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier.weight(4f),
                                         textAlign = TextAlign.Center
                                     )
                                 }
+                                if (pitches.last() != pitch) HorizontalDivider()
                             }
                         }
                     )
