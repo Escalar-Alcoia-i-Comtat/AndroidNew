@@ -8,3 +8,6 @@
 /dataSources.local.xml
 
 deploymentTargetDropDown.xml
+
+# GitHub Copilot persisted chat sessions
+/copilot/chatSessions
