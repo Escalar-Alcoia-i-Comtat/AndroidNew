@@ -110,6 +110,9 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -155,9 +158,6 @@ import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
 import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
 import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import timber.log.Timber
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -918,6 +918,16 @@ class SectorViewer : AppCompatActivity() {
 
                             val labelTextStyle = MaterialTheme.typography.labelLarge
                             val textMeasurer = rememberTextMeasurer()
+                            val pitchWidth = remember(pitches) {
+                                with(density) {
+                                    pitches.indices.maxOf {
+                                        textMeasurer.measure(
+                                            "L$it",
+                                            labelTextStyle
+                                        ).size.width
+                                    }.toDp()
+                                }
+                            }
                             val gradesWidth = remember(pitches) {
                                 with(density) {
                                     pitches.maxOf {
@@ -949,14 +959,14 @@ class SectorViewer : AppCompatActivity() {
                                     Text(
                                         text = "L${i + 1}",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.width(36.dp)
+                                        modifier = Modifier.width(pitchWidth)
                                     )
 
                                     Text(
                                         text = pitch.gradeValue?.displayName ?: "",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = pitch.gradeValue?.color?.current ?: Color.Black,
-                                        modifier = Modifier.padding(start = 8.dp).width(gradesWidth)
+                                        modifier = Modifier.padding(start = 4.dp).width(gradesWidth)
                                     )
 
                                     Text(
@@ -968,13 +978,13 @@ class SectorViewer : AppCompatActivity() {
                                     Text(
                                         text = pitch.ending?.let { "R${i + 1}" } ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.padding(start = 8.dp)
+                                        modifier = Modifier.padding(start = 4.dp)
                                     )
                                     Text(
                                         text = pitch.ending?.let {
                                             stringResource(it.displayName)
                                         } ?: "",
-                                        style = MaterialTheme.typography.labelMedium,
+                                        style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.weight(1f).padding(start = 4.dp)
                                     )
                                 }
