@@ -75,5 +75,5 @@ enum class ArtificialGrade : GradeValue {
     A4, A4_PLUS,
     A5, A5_PLUS;
 
-    override val displayName: String = name
+    override val displayName: String = name.replace("_PLUS", "+")
 }
