@@ -319,7 +319,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
         PitchesEditor(pitches ?: emptyList())
 
         BuilderField(
-            liveData = model.builder,
+            builder = model.builder.value,
+            onValueChange = model.builder::setValue,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -644,19 +645,18 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
 
     @Composable
     fun BuilderField(
-        liveData: MutableLiveData<Builder?>,
+        builder: Builder?,
+        onValueChange: (Builder) -> Unit,
         modifier: Modifier = Modifier
     ) {
         Row(
             modifier = modifier
         ) {
-            val builder by liveData.observeAsState()
-
             FormField(
                 value = builder?.name,
                 onValueChange = { text ->
                     val value = text.takeIf { it.isNotBlank() }
-                    liveData.value = builder?.copy(name = value) ?: Builder(value)
+                    onValueChange(builder?.copy(name = value) ?: Builder(value))
                 },
                 label = stringResource(R.string.form_builder_name),
                 modifier = Modifier.weight(1f)
@@ -668,7 +668,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 value = builder?.date,
                 onValueChange = { text ->
                     val value = text.takeIf { it.isNotBlank() }
-                    liveData.value = builder?.copy(date = value) ?: Builder(null, value)
+                    onValueChange(builder?.copy(date = value) ?: Builder(null, value))
                 },
                 label = stringResource(R.string.form_builder_date),
                 modifier = Modifier.weight(1f)
@@ -685,17 +685,21 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             dialog = {
-                val reBuilder = MutableLiveData<Builder?>()
+                var reBuilder by remember { mutableStateOf<Builder?>(null) }
 
-                BuilderField(liveData = reBuilder, modifier = Modifier.fillMaxWidth())
+                BuilderField(
+                    builder = reBuilder,
+                    onValueChange = { reBuilder = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 OutlinedButton(
                     onClick = {
                         model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
-                            reBuilder.value
+                            add(reBuilder ?: return@OutlinedButton)
                         }
                     },
-                    enabled = reBuilder.value?.let { it.name != null || it.date != null } ?: false
+                    enabled = reBuilder?.let { it.name != null || it.date != null } ?: false
                 ) {
                     Icon(Icons.Rounded.Add, stringResource(R.string.action_add))
                 }
