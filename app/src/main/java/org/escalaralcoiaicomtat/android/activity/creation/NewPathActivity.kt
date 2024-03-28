@@ -224,7 +224,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                     model.grade.value = it
                 }
             },
-            options = SportsGrade.entries,
+            options = SportsGrade.entries + ArtificialGrade.entries,
             label = stringResource(R.string.form_grade),
             modifier = Modifier.fillMaxWidth()
         ) { it.displayName }
@@ -440,10 +440,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, NewPathActivity
                     onSelectionChanged = { value ->
                         pitchGrade = value.takeUnless { pitchGrade == it }
                     },
-                    options = listOf(
-                        *SportsGrade.entries.toTypedArray(),
-                        *ArtificialGrade.entries.toTypedArray()
-                    ),
+                    options = SportsGrade.entries + ArtificialGrade.entries,
                     label = stringResource(R.string.form_grade),
                     toString = { it.displayName }
                 )
