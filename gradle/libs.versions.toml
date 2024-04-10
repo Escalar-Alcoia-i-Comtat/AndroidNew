@@ -1,5 +1,5 @@
 [versions]
-agp = "8.3.0"
+agp = "8.3.2"
 amazonappstorepublisher = "0.1.0"
 android-desugar = "2.0.4"
 androidx-activity = "1.8.2"
@@ -14,18 +14,19 @@ androidx-test-ext-junit = "1.1.5"
 androidx-work = "2.9.0"
 compose-coil = "2.6.0"
 compose-compiler = "1.5.8"
-compose-material = "1.6.3"
+compose-material = "1.6.5"
 compose-material3 = "1.2.1"
 compose-reorderable = "0.9.6"
-compose-richEditor = "1.0.0-rc01"
-compose-runtime = "1.6.3"
-compose-ui = "1.6.3"
+compose-richEditor = "1.0.0-rc04"
+compose-runtime = "1.6.5"
+compose-ui = "1.6.5"
 compose-zoomable = "1.6.1"
 junit = "4.13.2"
 kotlin = "1.9.23"
 kotlinx-serialization-json = "1.6.3"
-ksp = "1.9.22-1.0.18"
-ktor = "2.3.9"
+ksp = "1.9.23-1.0.20"
+ktor = "2.3.10"
+sentry = "4.4.0"
 timber = "5.0.1"
 
 [libraries]
@@ -76,3 +77,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+sentry = { id = "io.sentry.android.gradle", version.ref = "sentry" }

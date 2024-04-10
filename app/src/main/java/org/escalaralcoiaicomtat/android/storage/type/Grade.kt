@@ -68,7 +68,12 @@ enum class SportsGrade : GradeValue {
 
 @Suppress("unused")
 enum class ArtificialGrade : GradeValue {
-    A1, A2, A3;
+    A0,
+    A1, A1_PLUS,
+    A2, A2_PLUS,
+    A3, A3_PLUS,
+    A4, A4_PLUS,
+    A5, A5_PLUS;
 
-    override val displayName: String = name
+    override val displayName: String = name.replace("_PLUS", "+")
 }

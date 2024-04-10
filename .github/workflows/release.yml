@@ -31,13 +31,14 @@ jobs:
           cache: 'gradle'
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2.1.1
+        uses: gradle/wrapper-validation-action@v2.1.2
 
       - name: Prepare Gradle secure file
         run: |
           echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
           echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
+          echo 'sentry_dsn=${{ secrets.SENTRY_DSN }}' >> local.properties
 
       - name: Prepare Amazon Security Profile
         run: |
@@ -65,7 +66,7 @@ jobs:
 
       - name: Create Github release
         id: release_github
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-dev') }}
           files: app/build/outputs/apk/release/app-release.apk

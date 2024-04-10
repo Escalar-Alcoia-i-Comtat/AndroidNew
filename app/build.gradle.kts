@@ -7,21 +7,24 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.sentry)
+}
+
+fun readPropertiesFile(filename: String): Properties {
+    val file = project.rootProject.file(filename)
+    if (!file.canRead()) throw GradleException("Cannot read $filename")
+    return Properties().apply {
+        file.inputStream().use {
+            load(file.inputStream())
+        }
+    }
 }
 
 android {
     namespace = "org.escalaralcoiaicomtat.android"
     compileSdk = 34
 
-    val versionPropsFile = project.rootProject.file("version.properties")
-    if (!versionPropsFile.canRead()) {
-        throw GradleException("Cannot read version.properties")
-    }
-    val versionProps = Properties().apply {
-        versionPropsFile.inputStream().use {
-            load(versionPropsFile.inputStream())
-        }
-    }
+    val versionProps = readPropertiesFile("version.properties")
     val code = versionProps.getProperty("VERSION_CODE").toInt()
     val version = versionProps.getProperty("VERSION_NAME")
 
@@ -48,8 +51,7 @@ android {
 
     signingConfigs {
         create("release") {
-            val properties = Properties()
-            project.rootProject.file("local.properties").inputStream().use(properties::load)
+            val properties = readPropertiesFile("local.properties")
 
             val signingKeystorePassword: String? = properties.getProperty("signingKeystorePassword")
             val signingKeyAlias: String? = properties.getProperty("signingKeyAlias")
@@ -63,6 +65,10 @@ android {
     }
 
     buildTypes {
+        configureEach {
+            val properties = readPropertiesFile("local.properties")
+            resValue("string", "sentry_dsn", properties.getProperty("sentry_dsn"))
+        }
         debug {
             buildConfigField("Boolean", "PRODUCTION", "false")
             buildConfigField("String", "HOSTNAME", "\"beta-backend.escalaralcoiaicomtat.org\"")
