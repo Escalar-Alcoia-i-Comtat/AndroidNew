@@ -84,6 +84,11 @@
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
+
+        <!-- Sentry DSN -->
+        <meta-data android:name="io.sentry.dsn" android:value="@string/sentry_dsn" />
+        <meta-data android:name="io.sentry.traces.user-interaction.enable" android:value="true" />
+        <meta-data android:name="io.sentry.breadcrumbs.user-interaction" android:value="true" />
     </application>
 
     <queries>

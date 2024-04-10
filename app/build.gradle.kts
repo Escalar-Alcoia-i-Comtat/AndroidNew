@@ -65,6 +65,10 @@ android {
     }
 
     buildTypes {
+        configureEach {
+            val properties = readPropertiesFile("local.properties")
+            resValue("string", "sentry_dsn", properties.getProperty("sentry_dsn"))
+        }
         debug {
             buildConfigField("Boolean", "PRODUCTION", "false")
             buildConfigField("String", "HOSTNAME", "\"beta-backend.escalaralcoiaicomtat.org\"")

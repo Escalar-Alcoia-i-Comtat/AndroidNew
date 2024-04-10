@@ -38,6 +38,7 @@ jobs:
           echo 'signingKeystorePassword=${{ secrets.SIGNING_KEYSTORE_PASSWORD }}' >> local.properties
           echo 'signingKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }}' >> local.properties
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
+          echo 'sentry_dsn=${{ secrets.SENTRY_DSN }}' >> local.properties
 
       - name: Prepare Amazon Security Profile
         run: |
