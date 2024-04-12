@@ -81,6 +81,8 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         private const val DATA_FORCE = "force"
 
+        const val RESULT_STOP_REASON = "stop_reason"
+
         suspend fun synchronize(context: Context, force: Boolean = false): LiveData<WorkInfo> {
             // TODO - allow running sync just for specific parts, eg just for blocks
 
@@ -172,7 +174,9 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         return try {
             if (!shouldRunSynchronization(transaction)) {
-                return Result.success()
+                return Result.success(
+                    workDataOf(RESULT_STOP_REASON to StopReason.ALREADY_UP_TO_DATE.name)
+                )
             }
 
             getTree()
@@ -195,7 +199,9 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
             transaction.status = SpanStatus.OK
 
-            Result.success()
+            Result.success(
+                workDataOf(RESULT_STOP_REASON to StopReason.SYNC_COMPLETED.name)
+            )
         } catch (e: JSONException) {
             Timber.e(e, "Got an invalid response from server.")
             transaction.throwable = e
@@ -207,13 +213,17 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             transaction.throwable = e
             transaction.status = SpanStatus.INTERNAL_ERROR
 
-            Result.failure()
+            Result.failure(
+                workDataOf(RESULT_STOP_REASON to StopReason.ERROR.name)
+            )
         } catch (e: Exception) {
             Timber.e(e, "An error occurred while synchronizing.")
             transaction.throwable = e
             transaction.status = SpanStatus.UNKNOWN_ERROR
 
-            Result.failure()
+            Result.failure(
+                workDataOf(RESULT_STOP_REASON to StopReason.ERROR.name)
+            )
         } finally {
             transaction.finish()
         }
@@ -621,5 +631,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         DELETE_SECTORS,
         DELETE_PATHS,
         DELETE_BLOCKING
+    }
+
+    enum class StopReason {
+        ALREADY_UP_TO_DATE,
+        SYNC_COMPLETED,
+        ERROR
     }
 }

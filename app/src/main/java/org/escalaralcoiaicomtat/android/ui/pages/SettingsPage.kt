@@ -2,7 +2,9 @@ package org.escalaralcoiaicomtat.android.ui.pages
 
 import android.text.format.Formatter
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -60,13 +63,16 @@ import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
 import org.escalaralcoiaicomtat.android.utils.launchUrl
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
+import timber.log.Timber
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsPage(
     onApiKeySubmit: (key: String) -> Job
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val crate = FilesCrate.rememberInstance()
 
@@ -182,6 +188,23 @@ fun SettingsPage(
     val sync = liveSync.find { it.state == WorkInfo.State.RUNNING }
     val lastSync by Preferences.getLastSync(context).collectAsState(initial = null)
 
+    fun scheduleSync(force: Boolean) {
+        CoroutineScope(Dispatchers.Main).launch {
+            SyncWorker.synchronize(context, force).observe(lifecycleOwner) { info ->
+                Timber.i("SyncWorker: %s", info.state.name)
+                if (info.state == WorkInfo.State.SUCCEEDED) {
+                    Timber.i("SyncWorker: %s", info.outputData.keyValueMap)
+                    info.outputData.getString(SyncWorker.RESULT_STOP_REASON)?.let {
+                        val stopReason = SyncWorker.StopReason.valueOf(it)
+                        if (stopReason == SyncWorker.StopReason.ALREADY_UP_TO_DATE) {
+                            context.toast(R.string.toast_up_to_date)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     ListItem(
         leadingContent = {
             Icon(Icons.Outlined.CloudSync, stringResource(R.string.settings_storage_sync_title))
@@ -202,9 +225,11 @@ fun SettingsPage(
                     )
             )
         },
-        modifier = Modifier.clickable(enabled = sync == null) {
-            CoroutineScope(Dispatchers.IO).launch { SyncWorker.synchronize(context, true) }
-        }
+        modifier = Modifier.combinedClickable(
+            enabled = sync == null,
+            onLongClick = { scheduleSync(true) },
+            onClick = { scheduleSync(false) }
+        )
     )
 
 
