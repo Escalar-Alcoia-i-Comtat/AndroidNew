@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.storage.dao
 
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
+import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
@@ -65,4 +66,16 @@ suspend fun <Type: BaseEntity> DataDao.deleteRecursively(element: Type) {
             delete(element)
         }
     }
+}
+
+/**
+ * Searches for [query] in the database and returns all the entities that contain it in their display name.
+ */
+suspend fun DataDao.search(query: String): List<DataEntity> {
+    val areas = getAllAreas().filter { it.displayName.contains(query, true) }
+    val zones = getAllZones().filter { it.displayName.contains(query, true) }
+    val sectors = getAllSectors().filter { it.displayName.contains(query, true) }
+    val paths = getAllPaths().filter { it.displayName.contains(query, true) }
+
+    return areas + zones + sectors + paths
 }

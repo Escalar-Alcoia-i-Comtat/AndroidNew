@@ -115,6 +115,11 @@
     <string name="edit_sector_title">Modify Sector</string>
     <string name="edit_path_title">Modify Route</string>
 
+    <string name="type_area">Area</string>
+    <string name="type_zone">Zone</string>
+    <string name="type_sector">Sector</string>
+    <string name="type_route">Route</string>
+
     <string name="new_element_choose_title">Choose a parent</string>
 
     <string name="toast_data_corrupt">Local data corrupted, reloading from server…</string>

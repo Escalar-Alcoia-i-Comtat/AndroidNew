@@ -8,18 +8,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import java.time.Instant
+import kotlin.reflect.KClass
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.dao.search
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
@@ -28,13 +29,8 @@ import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
-import org.escalaralcoiaicomtat.android.storage.relations.AreaWithZones
-import org.escalaralcoiaicomtat.android.ui.screen.Routes
-import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
-import java.time.Instant
-import kotlin.reflect.KClass
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
@@ -46,8 +42,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val syncWorkers = SyncWorker.getLive(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
 
-    private val _selection = MutableLiveData<DataEntity?>()
-    val selection: LiveData<DataEntity?> get() = _selection
+    private val _selection = MutableLiveData<ImageEntity?>()
+    val selection: LiveData<ImageEntity?> get() = _selection
 
     private val _currentDestination = MutableLiveData<NavDestination>()
 
@@ -100,6 +96,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             value = _selection.value to it
         }
     }
+
+    val searchQuery = MutableStateFlow("")
+    val isSearching = MutableStateFlow(false)
+    val loadingSearchResults = MutableStateFlow(false)
+
+    val searchResults = MutableStateFlow(emptyList<DataEntity>())
 
     init {
         favoriteAreas.observeForever(favoriteAreasObserver)
@@ -207,5 +209,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _favorites.postValue(favorites)
+    }
+
+    fun search(query: String) = viewModelScope.launch {
+        try {
+            loadingSearchResults.tryEmit(true)
+
+            Timber.d("Searching for $query")
+
+            val results = dataDao.search(query)
+
+            searchResults.tryEmit(
+                results.also { Timber.i("Got ${it.size} results.") }
+            )
+        } finally {
+            loadingSearchResults.tryEmit(false)
+        }
     }
 }
