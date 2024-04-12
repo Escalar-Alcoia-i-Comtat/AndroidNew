@@ -190,7 +190,8 @@ fun SettingsPage(
 
     fun scheduleSync(force: Boolean) {
         CoroutineScope(Dispatchers.Main).launch {
-            SyncWorker.synchronize(context, force).observe(lifecycleOwner) { info ->
+            SyncWorker.synchronize(context, force).observe(lifecycleOwner) { info: WorkInfo? ->
+                if (info == null) return@observe
                 Timber.i("SyncWorker: %s", info.state.name)
                 if (info.state == WorkInfo.State.SUCCEEDED) {
                     Timber.i("SyncWorker: %s", info.outputData.keyValueMap)
