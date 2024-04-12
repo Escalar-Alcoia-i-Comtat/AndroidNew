@@ -87,6 +87,10 @@
     <string name="settings_info_source_code_message">El codi font d\'aquesta aplicació està disponible a GitHub. Toca per a veure.</string>
     <string name="settings_info_translations_title">Traduccions</string>
     <string name="settings_info_translations_message">Les traduccions d\'aquesta app estan disponibles a Crowdin, per a qui vulgui traduir l\'aplicació al seu idioma. Toca per a veure.</string>
+    <string name="settings_info_error_collection_title">Col·lecció d\'errors</string>
+    <string name="settings_info_error_collection_message">Si està habilitat, sempre que l\'aplicació es tanqui sobtadament, s\'enviarà un informe d\'error anònim als desenvolupadors per solucionar el problema. Cal reiniciar l\'aplicació perquè els canvis s\'apliquin.</string>
+    <string name="settings_info_performance_metrics_title">Mètriques de rendiment</string>
+    <string name="settings_info_performance_metrics_message">Ajuda els desenvolladors a trobar problemes de rendiment i millorar l\'experiència global de l\'aplicació. Cal reiniciar l\'aplicació perquè els canvis s\'apliquin.</string>
     <string name="new_area_title">Crea una nova Àrea</string>
     <string name="new_zone_title">Crea una zova Zona</string>
     <string name="new_sector_title">Crea un nou Sector</string>
