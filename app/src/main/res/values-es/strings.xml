@@ -87,10 +87,10 @@
     <string name="settings_info_source_code_message">El código fuente de la aplicación está disponible en GitHub. Pulsa para ver.</string>
     <string name="settings_info_translations_title">Traducciones</string>
     <string name="settings_info_translations_message">Las traducciones para la aplicación están disponibles en Crowdin, para quien quiera contribuir a su propio idioma. Pulsa para ver.</string>
-    <string name="settings_info_error_collection_title">Error Collection</string>
-    <string name="settings_info_error_collection_message">If checked, whenever the app crashes an anonymous report will be sent to the developers to fix the issue. Requires to restart the app for changes to apply.</string>
-    <string name="settings_info_performance_metrics_title">Performance Metrics</string>
-    <string name="settings_info_performance_metrics_message">Helps the developers to find performance issues, and improve the overall experience in the app. Requires to restart the app for changes to apply.</string>
+    <string name="settings_info_error_collection_title">Colección de errores</string>
+    <string name="settings_info_error_collection_message">Si está marcado, cada vez que la aplicación se bloquee o se cierre inesperadamente, se enviará un informe de error anónimo a los desarrolladores para solucionar el problema. Requiere reiniciar la aplicación para que los cambios surtan efecto.</string>
+    <string name="settings_info_performance_metrics_title">Métricas de rendimiento</string>
+    <string name="settings_info_performance_metrics_message">Ayuda a los desarrolladores a encontrar problemas de rendimiento y mejorar la experiencia general en la aplicación. Requiere reiniciar la aplicación para que los cambios surtan efecto.</string>
     <string name="new_area_title">Crear nueva área</string>
     <string name="new_zone_title">Crear nueva zona</string>
     <string name="new_sector_title">Crear nuevo sector</string>
