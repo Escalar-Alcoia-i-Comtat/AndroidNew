@@ -16,9 +16,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,20 +40,25 @@ import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Badge
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -58,9 +66,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +80,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
@@ -286,62 +299,55 @@ fun MainScreen(
             // Do not show on tablets
             if (widthSizeClass == WindowWidthSizeClass.Expanded) return@NavigationScaffold
 
-            CenterAlignedTopAppBar(
-                title = {
+            val searchQuery by viewModel.searchQuery.collectAsState(initial = "")
+            val isSearching by viewModel.isSearching.collectAsState(initial = false)
+            val searchResults by viewModel.searchResults.collectAsState(initial = emptyList())
+
+            val searchBarFocusRequester = remember { FocusRequester() }
+
+            LaunchedEffect(isSearching) {
+                if (isSearching) searchBarFocusRequester.requestFocus()
+            }
+            LaunchedEffect(searchQuery) {
+                if (!isSearching && searchQuery.isNotEmpty()) viewModel.isSearching.tryEmit(true)
+            }
+
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = viewModel.searchQuery::tryEmit,
+                onSearch = { viewModel.search(searchQuery) },
+                active = isSearching,
+                onActiveChange = viewModel.isSearching::tryEmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(searchBarFocusRequester),
+                shape = RectangleShape,
+                colors = SearchBarDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    inputFieldColors = SearchBarDefaults.inputFieldColors(
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+                windowInsets = WindowInsets.systemBars,
+                placeholder = {
                     AnimatedContent(
-                        targetState = selectionWithCurrentDestination,
-                        label = "animate-title-change",
+                        targetState = isSearching,
+                        label = "animate searching label",
                         transitionSpec = {
-                            val initialData = initialState.first
-                            val targetData = targetState.first
-
-                            val initialDestination = initialState.second
-                            val targetDestination = targetState.second
-
-                            if (Routes.NavigationSettings.equals(initialDestination)) {
-                                // Going to Home
-                                slideInHorizontally { -it } + fadeIn() togetherWith
-                                    slideOutHorizontally { it } + fadeOut()
-                            } else if (
-                                Routes.NavigationHome.equals(initialDestination) &&
-                                !Routes.NavigationHome.equals(targetDestination)
-                            ) {
-                                // Going from Home
-                                slideInHorizontally { it } + fadeIn() togetherWith
-                                    slideOutHorizontally { -it } + fadeOut()
-                            } else if (
-                            // Going back from area
-                                (targetData == null && initialData is Area) ||
-                                // Going back from zone to area
-                                (targetData is Area && initialData is Zone) ||
-                                // Going back from sector to zone
-                                (targetData is Zone && initialData is Sector)
-                            ) {
-                                slideInVertically { it } + fadeIn() togetherWith
-                                    slideOutVertically { -it } + fadeOut()
-                            } else {
-                                // Going forward
-                                slideInVertically { -it } + fadeIn() togetherWith
-                                    slideOutVertically { it } + fadeOut()
-                            }.using(
-                                // Disable clipping since the faded slide-in/out should
-                                // be displayed out of bounds.
-                                SizeTransform(clip = false)
-                            )
+                            slideInVertically { -it } + fadeIn() togetherWith
+                                slideOutVertically { -it } + fadeOut()
                         }
-                    ) { (selection, entry) ->
-                        Text(
-                            text = when {
-                                Routes.NavigationSettings.equals(entry) -> stringResource(R.string.item_settings)
-                                selection != null -> selection.displayName
-                                else -> stringResource(R.string.app_name)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
+                    ) { searching ->
+                        if (searching) {
+                            Text(stringResource(R.string.search))
+                        } else {
+                            AnimatedTitleText(selectionWithCurrentDestination)
+                        }
                     }
                 },
-                navigationIcon = {
+                leadingIcon = {
                     AnimatedVisibility(
                         visible = Routes.NavigationHome.equals(currentBackStackEntry) && currentSelection != null,
                         enter = slideInHorizontally { -it },
@@ -355,32 +361,39 @@ fun MainScreen(
                         }
                     }
                 },
-                actions = {
-                    val selection by viewModel.selection.observeAsState()
-
-                    AnimatedContent(
-                        targetState = selection,
-                        label = "edit-button"
-                    ) { data ->
-                        if (apiKey != null && data != null) {
-                            IconButton(
-                                onClick = {
-                                    if (data is Area) {
-                                        onCreateOrEdit(Area::class, null, data)
-                                    } else if (data is Zone) {
-                                        onCreateOrEdit(Zone::class, data.parentId, data)
-                                    }
+                trailingIcon = {
+                    SearchBarActions(isSearching, apiKey, viewModel, onCreateOrEdit)
+                }
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(searchResults) { entity ->
+                        ListItem(
+                            headlineContent = { Text(text = entity.displayName) },
+                            trailingContent = {
+                                Badge {
+                                    Text(
+                                        text = stringResource(
+                                            when (entity) {
+                                                is Area -> R.string.type_area
+                                                is Zone -> R.string.type_zone
+                                                is Sector -> R.string.type_sector
+                                                else -> R.string.type_route
+                                            }
+                                        )
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Edit,
-                                    stringResource(R.string.action_edit)
-                                )
+                            },
+                            modifier = Modifier.clickable {
+                                navigate(entity)
+                                viewModel.searchQuery.tryEmit("")
+                                viewModel.isSearching.tryEmit(false)
                             }
-                        }
+                        )
                     }
                 }
-            )
+            }
         },
         floatingActionButton = {
             if (apiKey != null) {
@@ -528,6 +541,119 @@ fun MainScreen(
             }
 
             else -> {}
+        }
+    }
+}
+
+@Composable
+private fun AnimatedTitleText(selectionWithCurrentDestination: Pair<DataEntity?, NavDestination?>) {
+    AnimatedContent(
+        targetState = selectionWithCurrentDestination,
+        label = "animate-title-change",
+        transitionSpec = {
+            val initialData = initialState.first
+            val targetData = targetState.first
+
+            val initialDestination = initialState.second
+            val targetDestination = targetState.second
+
+            if (Routes.NavigationSettings.equals(initialDestination)) {
+                // Going to Home
+                slideInHorizontally { -it } + fadeIn() togetherWith
+                    slideOutHorizontally { it } + fadeOut()
+            } else if (
+                Routes.NavigationHome.equals(initialDestination) &&
+                !Routes.NavigationHome.equals(targetDestination)
+            ) {
+                // Going from Home
+                slideInHorizontally { it } + fadeIn() togetherWith
+                    slideOutHorizontally { -it } + fadeOut()
+            } else if (
+            // Going back from area
+                (targetData == null && initialData is Area) ||
+                // Going back from zone to area
+                (targetData is Area && initialData is Zone) ||
+                // Going back from sector to zone
+                (targetData is Zone && initialData is Sector)
+            ) {
+                slideInVertically { it } + fadeIn() togetherWith
+                    slideOutVertically { -it } + fadeOut()
+            } else {
+                // Going forward
+                slideInVertically { -it } + fadeIn() togetherWith
+                    slideOutVertically { it } + fadeOut()
+            }.using(
+                // Disable clipping since the faded slide-in/out should
+                // be displayed out of bounds.
+                SizeTransform(clip = false)
+            )
+        }
+    ) { (selection, entry) ->
+        Text(
+            text = when {
+                Routes.NavigationSettings.equals(entry) -> stringResource(R.string.item_settings)
+                selection != null -> selection.displayName
+                else -> stringResource(R.string.app_name)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge.copy(
+                platformStyle = PlatformTextStyle(includeFontPadding = false)
+            )
+        )
+    }
+}
+
+@Composable
+private fun SearchBarActions(
+    isSearching: Boolean,
+    apiKey: String?,
+    viewModel: MainViewModel,
+    onCreateOrEdit: MainActivity.ICreateOrEdit<ImageEntity>
+) {
+    AnimatedContent(
+        targetState = isSearching,
+        label = "search-close-button"
+    ) { searching ->
+        if (searching) {
+            IconButton(
+                onClick = {
+                    viewModel.searchQuery.tryEmit("")
+                    viewModel.isSearching.tryEmit(false)
+                }
+            ) {
+                Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
+            }
+        } else Row {
+            val selection by viewModel.selection.observeAsState()
+
+            IconButton(
+                onClick = { viewModel.isSearching.tryEmit(true) }
+            ) {
+                Icon(
+                    Icons.Rounded.Search,
+                    stringResource(R.string.search)
+                )
+            }
+
+            selection?.let { data ->
+                if (apiKey != null) {
+                    IconButton(
+                        onClick = {
+                            if (selection is Area) {
+                                onCreateOrEdit(Area::class, null, data)
+                            } else if (selection is Zone) {
+                                onCreateOrEdit(Zone::class, data.parentId, data)
+                            }
+                        }
+                    ) {
+                        Icon(
+                            Icons.Rounded.Edit,
+                            stringResource(R.string.action_edit)
+                        )
+                    }
+                }
+            }
         }
     }
 }
