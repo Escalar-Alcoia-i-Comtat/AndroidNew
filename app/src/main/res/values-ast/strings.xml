@@ -105,6 +105,7 @@
     <string name="type_route">Route</string>
     <string name="new_element_choose_title">Choose a parent</string>
     <string name="toast_data_corrupt">Local data corrupted, reloading from server…</string>
+    <string name="toast_up_to_date">Already up to date</string>
     <string name="creation_step_compressing">Compressing image…</string>
     <string name="creation_step_uploading">Uploading… %.2f %%</string>
     <string name="creation_step_finishing">Finishing…</string>
