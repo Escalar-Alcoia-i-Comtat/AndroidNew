@@ -27,6 +27,13 @@ import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.sentry.ITransaction
+import io.sentry.Sentry
+import io.sentry.SpanStatus
+import java.io.IOException
+import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.firstOrNull
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.exception.remote.RequestException
@@ -46,6 +53,7 @@ import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.data.propertiesWith
+import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.map
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
@@ -54,11 +62,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
-import java.io.IOException
-import java.time.Instant
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import org.escalaralcoiaicomtat.android.utils.await
 
 class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
@@ -164,8 +167,11 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // setForeground(createForegroundInfo())
 
+        val transaction = Sentry.startTransaction("SyncWorker", "doWork()")
+        transaction.setData("force", inputData.getBoolean(DATA_FORCE, false))
+
         return try {
-            if (!shouldRunSynchronization()) {
+            if (!shouldRunSynchronization(transaction)) {
                 return Result.success()
             }
 
@@ -187,15 +193,29 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             Preferences.setLastSync(applicationContext, Instant.now())
             Preferences.setLastModification(applicationContext, null)
 
+            transaction.status = SpanStatus.OK
+
             Result.success()
         } catch (e: JSONException) {
             Timber.e(e, "Got an invalid response from server.")
+            transaction.throwable = e
+            transaction.status = SpanStatus.INTERNAL_ERROR
 
             Result.retry()
         } catch (e: IOException) {
             Timber.w(e, "Internet or server is not reachable. Sync failed.")
+            transaction.throwable = e
+            transaction.status = SpanStatus.INTERNAL_ERROR
 
             Result.failure()
+        } catch (e: Exception) {
+            Timber.e(e, "An error occurred while synchronizing.")
+            transaction.throwable = e
+            transaction.status = SpanStatus.UNKNOWN_ERROR
+
+            Result.failure()
+        } finally {
+            transaction.finish()
         }
     }
 
@@ -545,7 +565,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
     /**
      * Checks all the update times to consider running synchronization or not.
      */
-    private suspend fun shouldRunSynchronization(): Boolean {
+    private suspend fun shouldRunSynchronization(transaction: ITransaction): Boolean {
         if (inputData.getBoolean(DATA_FORCE, false)) {
             return true
         }
@@ -553,11 +573,13 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
         get(EndpointUtils.getUrl("last_update")) { data ->
             if (data == null) {
                 Timber.w("Last update from server didn't return any data. Running sync...")
+                transaction.setData("sync_reason", "no_last_update")
                 return true
             }
             val lastUpdate = data.getLongOrNull("last_update")?.let(Instant::ofEpochMilli)
             if (lastUpdate == null) {
                 Timber.w("Last update from server is null. Running sync...")
+                transaction.setData("sync_reason", "null_last_update")
                 return true
             }
             val localLastUpdate = Preferences.getLastUpdate(applicationContext)
@@ -567,14 +589,20 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
             if (localLastUpdate == null) {
                 Timber.i("No last update stored locally, running sync...")
+                transaction.setData("sync_reason", "no_local_last_update")
             } else if (localLastUpdate < lastUpdate) {
                 Timber.i("Server has been updated, running sync...")
+                transaction.setData("sync_reason", "server_updated")
             } else if (localLastModification != null && localLastModification > localLastUpdate) {
                 Timber.i("Local data has been modified after local, running sync...")
+                transaction.setData("sync_reason", "local_modified")
             } else if (localLastModification != null && localLastModification > lastUpdate) {
                 Timber.i("Local data has been modified after server, running sync...")
+                transaction.setData("sync_reason", "local_modified_after_server")
             } else {
                 Timber.i("Local data up to date with server. Won't run sync.")
+                transaction.setData("sync_reason", "up_to_date")
+                transaction.status = SpanStatus.ABORTED
                 return false
             }
             return true
