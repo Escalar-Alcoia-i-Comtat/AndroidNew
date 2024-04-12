@@ -68,7 +68,6 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
@@ -522,7 +521,9 @@ fun MainScreen(
                         .padding(top = 12.dp),
                     onClick = navigate,
                     onFavoriteToggle = onFavoriteToggle,
-                    onMove = null // Favorites cannot be reordered
+                    onMove = null, // Favorites cannot be reordered
+                    // Since the list mixes multiple data types, sorting is not possible
+                    sortItems = false
                 )
             }
 
