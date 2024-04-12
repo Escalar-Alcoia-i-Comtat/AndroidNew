@@ -105,7 +105,7 @@
     <string name="type_route">Via</string>
     <string name="new_element_choose_title">Tria un element pare</string>
     <string name="toast_data_corrupt">Dades corromputes, recarregant del servidor…</string>
-    <string name="toast_up_to_date">Already up to date</string>
+    <string name="toast_up_to_date">Ja està actualitzat</string>
     <string name="creation_step_compressing">Comprimint imatge…</string>
     <string name="creation_step_uploading">Pujant… %.2f %%</string>
     <string name="creation_step_finishing">Acabant…</string>
