@@ -354,6 +354,17 @@ fun SettingsPage(
                 )
             }
         )
+
+        val deviceId by Preferences.getDeviceId(context).collectAsState(initial = null)
+        Text(
+            text = deviceId ?: "",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 8.dp)
+                .padding(horizontal = 8.dp),
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = .5f)
+        )
     }
 }
 

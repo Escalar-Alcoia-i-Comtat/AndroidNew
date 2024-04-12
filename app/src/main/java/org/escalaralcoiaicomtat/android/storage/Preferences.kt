@@ -42,6 +42,12 @@ val errorCollection = booleanPreferencesKey("error_collection")
  */
 val performanceMetrics = booleanPreferencesKey("performance_metrics")
 
+/**
+ * A random, unique and anonymous identifier for this device.
+ */
+val deviceId = stringPreferencesKey("device_id")
+
+
 object Preferences {
     fun getApiKey(context: Context) = context.dataStore
         .data
@@ -74,6 +80,10 @@ object Preferences {
     fun hasOptedInForPerformanceMetrics(context: Context) = context.dataStore
         .data
         .map { it[performanceMetrics] ?: true }
+
+    fun getDeviceId(context: Context) = context.dataStore
+        .data
+        .map { it[deviceId] }
 
 
     suspend fun setApiKey(context: Context, value: String) =
@@ -109,4 +119,7 @@ object Preferences {
 
     suspend fun optInForPerformanceMetrics(context: Context, value: Boolean) =
         context.dataStore.edit { it[performanceMetrics] = value }
+
+    suspend fun setDeviceId(context: Context, value: String) =
+        context.dataStore.edit { it[deviceId] = value }
 }
