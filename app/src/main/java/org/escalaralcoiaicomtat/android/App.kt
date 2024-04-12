@@ -1,7 +1,10 @@
 package org.escalaralcoiaicomtat.android
 
 import android.app.Application
+import io.sentry.Sentry
 import io.sentry.android.core.SentryAndroid
+import io.sentry.protocol.User
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -19,16 +22,27 @@ class App: Application() {
 
         // Enable Sentry conditionally
         CoroutineScope(Dispatchers.IO).launch {
+            var deviceId = Preferences.getDeviceId(this@App).firstOrNull()
             val errorCollection = Preferences.hasOptedInForErrorCollection(this@App).firstOrNull()
             val performanceMetrics = Preferences.hasOptedInForPerformanceMetrics(this@App).firstOrNull()
 
             if (errorCollection != false) {
+                // If there's no device id available, generate one and store it
+                if (deviceId == null) {
+                    val newDeviceId = UUID.randomUUID().toString()
+                    Preferences.setDeviceId(this@App, newDeviceId)
+                    deviceId = newDeviceId
+                }
+
                 SentryAndroid.init(this@App) { options ->
                     options.dsn = BuildConfig.SENTRY_DSN
                     // Only enable for production builds
                     options.isEnabled = BuildConfig.DEBUG
                     // Enable performance metrics if opted in
                     options.enableTracing = performanceMetrics != false
+
+                    // Set the device id as the id of the user
+                    Sentry.setUser(User().apply { id = deviceId })
                 }
             }
         }
