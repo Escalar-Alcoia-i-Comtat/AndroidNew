@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -18,7 +19,6 @@ import org.escalaralcoiaicomtat.android.utils.await
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
-import java.util.UUID
 
 abstract class ImageEntity : DataEntity() {
     abstract val image: String
@@ -81,7 +81,6 @@ abstract class ImageEntity : DataEntity() {
         } catch (e: IllegalStateException) {
             // Server is not available
             // TODO - show error
-            throw e
         }
     }
 }
