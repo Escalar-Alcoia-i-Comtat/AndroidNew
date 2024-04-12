@@ -99,6 +99,10 @@
     <string name="edit_zone_title">Aldatu Zona</string>
     <string name="edit_sector_title">Aldatu Sektoa</string>
     <string name="edit_path_title">Aldatu Ibilbidea</string>
+    <string name="type_area">Area</string>
+    <string name="type_zone">Zone</string>
+    <string name="type_sector">Sector</string>
+    <string name="type_route">Route</string>
     <string name="new_element_choose_title">Aukeratu guraso bat</string>
     <string name="toast_data_corrupt">Datu lokalak hondatuak dira, zerbitzaritik berriz kargatzen…</string>
     <string name="creation_step_compressing">Irudiaren konprimitzea…</string>
