@@ -99,6 +99,10 @@
     <string name="edit_zone_title">Modificar zona</string>
     <string name="edit_sector_title">Modificar sector</string>
     <string name="edit_path_title">Modificar vía</string>
+    <string name="type_area">Área</string>
+    <string name="type_zone">Zona</string>
+    <string name="type_sector">Sector</string>
+    <string name="type_route">Vía</string>
     <string name="new_element_choose_title">Elige un elemento padre</string>
     <string name="toast_data_corrupt">Datos locales dañados, recargando desde el servidor…</string>
     <string name="creation_step_compressing">Comprimiendo imagen…</string>
