@@ -105,6 +105,7 @@
     <string name="type_route">Route</string>
     <string name="new_element_choose_title">Aukeratu guraso bat</string>
     <string name="toast_data_corrupt">Datu lokalak hondatuak dira, zerbitzaritik berriz kargatzen…</string>
+    <string name="toast_up_to_date">Already up to date</string>
     <string name="creation_step_compressing">Irudiaren konprimitzea…</string>
     <string name="creation_step_uploading">Igartzen… %.2f %%</string>
     <string name="creation_step_finishing">Amaitzen…</string>
