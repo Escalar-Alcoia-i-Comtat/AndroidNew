@@ -297,7 +297,7 @@ fun SettingsPage(
         }
     )
 
-    if (BuildConfig.DEBUG) {
+    if (!BuildConfig.DEBUG) {
         val hasOptedInForErrorCollection by Preferences.hasOptedInForErrorCollection(context)
             .collectAsState(initial = true)
         var optedInForErrorCollectionEnabled by remember { mutableStateOf(true) }
