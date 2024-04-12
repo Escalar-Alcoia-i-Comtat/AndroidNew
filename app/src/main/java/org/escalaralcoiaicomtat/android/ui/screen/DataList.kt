@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.reflect.KClass
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.NoDragCancelledAnimation
@@ -42,7 +43,6 @@ import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
 import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
 import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import org.escalaralcoiaicomtat.android.utils.letIf
-import kotlin.reflect.KClass
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -58,7 +58,8 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
     crossinline onFavoriteToggle: (ItemType) -> Job,
     noinline onCreate: (() -> Unit)? = null,
     noinline onEdit: ((ItemType) -> Unit)? = null,
-    noinline onMove: ((from: Int, to: Int) -> Unit)? = null
+    noinline onMove: ((from: Int, to: Int) -> Unit)? = null,
+    sortItems: Boolean = true
 ) {
     val context = LocalContext.current
 
@@ -172,7 +173,7 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
                 }
             }
             itemsIndexed(
-                items = list.sorted(),
+                items = if (sortItems) list.sorted() else list,
                 key = { _, item -> item.id },
                 contentType = { _, item -> item::class.simpleName }
             ) { index, item ->
