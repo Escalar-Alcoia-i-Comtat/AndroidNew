@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Feedback
@@ -22,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,9 +43,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.work.WorkInfo
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.BuildConfig
 import org.escalaralcoiaicomtat.android.R
@@ -53,9 +60,6 @@ import org.escalaralcoiaicomtat.android.ui.dialog.LanguageDialog
 import org.escalaralcoiaicomtat.android.utils.launchUrl
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 fun SettingsPage(
@@ -85,7 +89,9 @@ fun SettingsPage(
                 Icon(
                     imageVector = Icons.Outlined.Feedback,
                     contentDescription = stringResource(R.string.settings_warning_debug_title),
-                    modifier = Modifier.padding(8.dp).size(32.dp)
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(32.dp)
                 )
                 Column(
                     modifier = Modifier.weight(1f)
@@ -290,6 +296,65 @@ fun SettingsPage(
             context.launchUrl("https://crowdin.com/project/escalar-alcoia-i-comtat")
         }
     )
+
+    if (BuildConfig.DEBUG) {
+        val hasOptedInForErrorCollection by Preferences.hasOptedInForErrorCollection(context)
+            .collectAsState(initial = true)
+        var optedInForErrorCollectionEnabled by remember { mutableStateOf(true) }
+        val hasOptedInForPerformanceMetrics by Preferences.hasOptedInForPerformanceMetrics(context)
+            .collectAsState(initial = true)
+        var optedInForPerformanceMetricsEnabled by remember { mutableStateOf(true) }
+        ListItem(
+            leadingContent = {
+                Icon(Icons.Outlined.BugReport, stringResource(R.string.settings_info_error_collection_title))
+            },
+            headlineContent = { Text(stringResource(R.string.settings_info_error_collection_title)) },
+            supportingContent = { Text(stringResource(R.string.settings_info_error_collection_message)) },
+            modifier = Modifier.clickable(optedInForErrorCollectionEnabled) {
+                optedInForErrorCollectionEnabled = false
+                CoroutineScope(Dispatchers.IO).async {
+                    Preferences.optInForErrorCollection(context, !hasOptedInForErrorCollection)
+                }.invokeOnCompletion { optedInForErrorCollectionEnabled = true }
+            },
+            trailingContent = {
+                Switch(
+                    checked = hasOptedInForErrorCollection,
+                    onCheckedChange = {
+                        optedInForErrorCollectionEnabled = false
+                        CoroutineScope(Dispatchers.IO).async {
+                            Preferences.optInForErrorCollection(context, it)
+                        }.invokeOnCompletion { optedInForErrorCollectionEnabled = true }
+                    },
+                    enabled = optedInForErrorCollectionEnabled
+                )
+            }
+        )
+        ListItem(
+            leadingContent = {
+                Icon(Icons.Outlined.Bolt, stringResource(R.string.settings_info_performance_metrics_title))
+            },
+            headlineContent = { Text(stringResource(R.string.settings_info_performance_metrics_title)) },
+            supportingContent = { Text(stringResource(R.string.settings_info_performance_metrics_message)) },
+            modifier = Modifier.clickable(hasOptedInForErrorCollection && optedInForPerformanceMetricsEnabled) {
+                optedInForPerformanceMetricsEnabled = false
+                CoroutineScope(Dispatchers.IO).async {
+                    Preferences.optInForPerformanceMetrics(context, !hasOptedInForPerformanceMetrics)
+                }.invokeOnCompletion { optedInForPerformanceMetricsEnabled = true }
+            },
+            trailingContent = {
+                Switch(
+                    checked = hasOptedInForErrorCollection && hasOptedInForPerformanceMetrics,
+                    onCheckedChange = {
+                        optedInForPerformanceMetricsEnabled = false
+                        CoroutineScope(Dispatchers.IO).async {
+                            Preferences.optInForPerformanceMetrics(context, it)
+                        }.invokeOnCompletion { optedInForPerformanceMetricsEnabled = true }
+                    },
+                    enabled = hasOptedInForErrorCollection && optedInForPerformanceMetricsEnabled
+                )
+            }
+        )
+    }
 }
 
 @Preview(showBackground = true)
