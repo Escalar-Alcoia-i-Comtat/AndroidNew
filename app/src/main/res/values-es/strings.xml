@@ -105,6 +105,7 @@
     <string name="type_route">Vía</string>
     <string name="new_element_choose_title">Elige un elemento padre</string>
     <string name="toast_data_corrupt">Datos locales dañados, recargando desde el servidor…</string>
+    <string name="toast_up_to_date">Already up to date</string>
     <string name="creation_step_compressing">Comprimiendo imagen…</string>
     <string name="creation_step_uploading">Subiendo… %.2f %%</string>
     <string name="creation_step_finishing">Finalizando…</string>
