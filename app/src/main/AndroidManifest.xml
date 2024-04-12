@@ -85,8 +85,8 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
 
-        <!-- Sentry DSN -->
-        <meta-data android:name="io.sentry.dsn" android:value="@string/sentry_dsn" />
+        <!-- Sentry DSN - enabled manually from the app -->
+        <meta-data android:name="io.sentry.auto-init" android:value="false" />
         <meta-data android:name="io.sentry.breadcrumbs.user-interaction" android:value="true" />
         <meta-data android:name="io.sentry.traces.profiling.enable-app-start" android:value="true" />
         <meta-data android:name="io.sentry.traces.sample-rate" android:value="1.0" />

@@ -100,6 +100,10 @@
     <string name="settings_info_source_code_message">The source code for the app is available in GitHub. Tap to view.</string>
     <string name="settings_info_translations_title">Translations</string>
     <string name="settings_info_translations_message">Translations for the app are available at Crowdin, for whoever that wants to contribute to their own language. Tap to view.</string>
+    <string name="settings_info_error_collection_title">Error Collection</string>
+    <string name="settings_info_error_collection_message">If checked, whenever the app crashes an anonymous report will be sent to the developers to fix the issue. Requires to restart the app for changes to apply.</string>
+    <string name="settings_info_performance_metrics_title">Performance Metrics</string>
+    <string name="settings_info_performance_metrics_message">Helps the developers to find performance issues, and improve the overall experience in the app. Requires to restart the app for changes to apply.</string>
 
     <string name="new_area_title">Create New Area</string>
     <string name="new_zone_title">Create New Zone</string>

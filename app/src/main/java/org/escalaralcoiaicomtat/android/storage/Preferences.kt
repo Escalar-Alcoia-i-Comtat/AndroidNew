@@ -8,9 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import java.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore("settings")
 
@@ -31,6 +31,16 @@ val lastUpdate = longPreferencesKey("last_update")
 val lastModification = longPreferencesKey("last_modification")
 
 val shownIntro = booleanPreferencesKey("shown_intro")
+
+/**
+ * Whether the user has opted in to error collection.
+ */
+val errorCollection = booleanPreferencesKey("error_collection")
+
+/**
+ * Whether the user has opted in to performance metrics collection.
+ */
+val performanceMetrics = booleanPreferencesKey("performance_metrics")
 
 object Preferences {
     fun getApiKey(context: Context) = context.dataStore
@@ -56,6 +66,14 @@ object Preferences {
     fun hasShownIntro(context: Context) = context.dataStore
         .data
         .map { it[shownIntro] ?: false }
+
+    fun hasOptedInForErrorCollection(context: Context) = context.dataStore
+        .data
+        .map { it[errorCollection] ?: true }
+
+    fun hasOptedInForPerformanceMetrics(context: Context) = context.dataStore
+        .data
+        .map { it[performanceMetrics] ?: true }
 
 
     suspend fun setApiKey(context: Context, value: String) =
@@ -85,4 +103,10 @@ object Preferences {
 
     suspend fun markIntroShown(context: Context) = context.dataStore
         .edit { it[shownIntro] = true }
+
+    suspend fun optInForErrorCollection(context: Context, value: Boolean) =
+        context.dataStore.edit { it[errorCollection] = value }
+
+    suspend fun optInForPerformanceMetrics(context: Context, value: Boolean) =
+        context.dataStore.edit { it[performanceMetrics] = value }
 }
