@@ -155,8 +155,6 @@ import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarAction
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarActionsOverflow
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
-import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
-import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import timber.log.Timber
 
 @OptIn(
@@ -668,13 +666,7 @@ class SectorViewer : AppCompatActivity() {
                     title = stringResource(R.string.info_sector_location),
                     subtitle = "${point.latitude}, ${point.longitude}",
                     actions = listOfNotNull(
-                        point
-                            .uri(sector.displayName)
-                            .viewIntent
-                            .apply {
-                                setPackage("com.google.android.apps.maps")
-                            }
-                            .takeIf { it.canBeResolved(this@SectorViewer) }
+                        point.intent(this@SectorViewer, sector.displayName)
                             ?.let { intent ->
                                 Icons.Rounded.Map to {
                                     startActivity(intent)

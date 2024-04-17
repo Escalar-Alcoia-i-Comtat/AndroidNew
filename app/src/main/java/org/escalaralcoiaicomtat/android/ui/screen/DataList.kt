@@ -40,8 +40,6 @@ import org.escalaralcoiaicomtat.android.storage.type.PointOptions
 import org.escalaralcoiaicomtat.android.ui.list.CreateCard
 import org.escalaralcoiaicomtat.android.ui.list.DataCard
 import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
-import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
-import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import org.escalaralcoiaicomtat.android.utils.letIf
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -109,12 +107,7 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
                             subtitle = "${zonePoint.latitude}, ${zonePoint.longitude}",
                             actions = listOfNotNull(
                                 zonePoint
-                                    .uri(zone.displayName)
-                                    .viewIntent
-                                    .apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    .takeIf { it.canBeResolved(context) }
+                                    .intent(context, zone.displayName)
                                     ?.let { intent ->
                                         Icons.Rounded.Map to {
                                             context.startActivity(intent)
@@ -135,13 +128,7 @@ inline fun <ParentType : ImageEntity, ItemType : ImageEntity> DataList(
                             title = point.label,
                             subtitle = "${pointLocation.latitude}, ${pointLocation.longitude}",
                             actions = listOfNotNull(
-                                pointLocation
-                                    .uri(point.label)
-                                    .viewIntent
-                                    .apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    .takeIf { it.canBeResolved(context) }
+                                pointLocation.intent(context, point.label)
                                     ?.let { intent ->
                                         Icons.Rounded.Map to {
                                             context.startActivity(intent)
