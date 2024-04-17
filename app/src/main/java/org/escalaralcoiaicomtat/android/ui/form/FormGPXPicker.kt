@@ -6,14 +6,14 @@ import androidx.compose.ui.res.stringResource
 import org.escalaralcoiaicomtat.android.R
 
 @Composable
-fun FormKMZPicker(
+fun FormGPXPicker(
     fileName: String?,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     FormFilePicker(
         fileName = fileName,
-        label = stringResource(R.string.form_kmz_pick),
+        label = stringResource(R.string.form_gpx_pick),
         modifier = modifier,
         onClick = onClick
     )
