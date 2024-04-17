@@ -72,8 +72,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -99,6 +99,7 @@ import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
+import org.escalaralcoiaicomtat.android.ui.modifier.negativePaddingVertical
 import org.escalaralcoiaicomtat.android.ui.pages.SettingsPage
 import org.escalaralcoiaicomtat.android.ui.reusable.ActionsFloatingActionButton
 import org.escalaralcoiaicomtat.android.ui.reusable.FloatingActionButtonAction
@@ -595,11 +596,11 @@ private fun AnimatedTitleText(selectionWithCurrentDestination: Pair<DataEntity?,
                 selection != null -> selection.displayName
                 else -> stringResource(R.string.app_name)
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().negativePaddingVertical(top = (-8).dp),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge.copy(
-                platformStyle = PlatformTextStyle(includeFontPadding = false)
-            )
+            style = MaterialTheme.typography.titleLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
