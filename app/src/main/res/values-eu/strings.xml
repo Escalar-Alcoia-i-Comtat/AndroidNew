@@ -56,6 +56,9 @@
         <item quantity="one">Aproximadamente %d minutu behar da aparkalekutik sektorrera joateko ibiltzeko.</item>
         <item quantity="other">Aproximadamente %d minutu behar da aparkalekutik sektorrera ibiltzeko.</item>
     </plurals>
+    <string name="sector_gpx_title">Track</string>
+    <string name="sector_gpx_message_download">Tap to download and open the track in GPX format in your preferred app.</string>
+    <string name="sector_gpx_message_open">Tap to open the track in GPX format in your preferred app.</string>
     <string name="list_item_favorite">Gogokoak</string>
     <string name="list_item_download">Deskargatu</string>
     <string name="list_item_create">Sortu Berria</string>
@@ -126,6 +129,7 @@
     <string name="form_web_url">Web URL</string>
     <string name="form_image_pick">Pick Image</string>
     <string name="form_kmz_pick">Pick KMZ File</string>
+    <string name="form_gpx_pick">Pick GPX File</string>
     <string name="form_latitude">Latitude</string>
     <string name="form_longitude">Longitude</string>
     <string name="form_point_label">Label</string>
