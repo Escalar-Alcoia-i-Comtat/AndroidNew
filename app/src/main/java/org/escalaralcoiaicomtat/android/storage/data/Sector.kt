@@ -3,6 +3,7 @@ package org.escalaralcoiaicomtat.android.storage.data
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import java.time.Instant
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
@@ -10,11 +11,11 @@ import org.escalaralcoiaicomtat.android.utils.getEnum
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.getSerializable
+import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.json.JSONObject
-import java.time.Instant
 
 @Entity(tableName = "sectors")
 @Suppress("LongParameterList")
@@ -27,10 +28,11 @@ data class Sector(
     val sunTime: SunTime,
     val walkingTime: Long?,
     override val image: String,
+    override val gpx: String?,
     val point: LatLng?,
     val weight: String,
     override val parentId: Long
-) : ImageEntity(), JsonSerializable {
+) : GpxEntity(), JsonSerializable {
     companion object: JsonSerializer<Sector> {
         override fun fromJson(json: JSONObject): Sector = Sector(
             json.getLong("id"),
@@ -40,6 +42,7 @@ data class Sector(
             json.getEnum("sun_time"),
             json.getLongOrNull("walking_time"),
             json.getString("image"),
+            json.getStringOrNull("gpx"),
             json.getSerializable<LatLng, LatLng.Companion>("point"),
             json.getString("weight"),
             json.getLong("zone_id")
@@ -60,6 +63,7 @@ data class Sector(
         "sun_time" to sunTime,
         "walking_time" to walkingTime,
         "image" to image,
+        "gpx" to gpx,
         "point" to point,
         "weight" to weight,
         "zone_id" to parentId
@@ -79,6 +83,7 @@ data class Sector(
         if (sunTime != other.sunTime) return false
         if (walkingTime != other.walkingTime) return false
         if (image != other.image) return false
+        if (gpx != other.gpx) return false
         if (point != other.point) return false
         if (weight != other.weight) return false
         if (parentId != other.parentId) return false
@@ -95,6 +100,7 @@ data class Sector(
         result = 31 * result + sunTime.hashCode()
         result = 31 * result + (walkingTime?.hashCode() ?: 0)
         result = 31 * result + image.hashCode()
+        result = 31 * result + (gpx?.hashCode() ?: 0)
         result = 31 * result + (point?.hashCode() ?: 0)
         result = 31 * result + weight.hashCode()
         result = 31 * result + parentId.hashCode()

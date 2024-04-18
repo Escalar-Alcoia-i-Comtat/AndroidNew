@@ -56,6 +56,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -676,6 +677,25 @@ class SectorViewer : AppCompatActivity() {
                 )
             }
         }
+        if (sector.gpx != null) {
+            item(
+                key = "sector-gpx-file",
+                contentType = "sector-info"
+            ) {
+                val gpxFile by sector.rememberGpxFile().collectAsState()
+
+                InfoRow(
+                    icon = Icons.Rounded.Route,
+                    iconContentDescription = stringResource(R.string.sector_gpx_title),
+                    title = stringResource(R.string.sector_gpx_title),
+                    subtitle = if (gpxFile == null) {
+                        stringResource(R.string.sector_gpx_message_download)
+                    } else {
+                        stringResource(R.string.sector_gpx_message_open)
+                    }
+                )
+            }
+        }
         if (sector.walkingTime != null) {
             item(
                 key = "sector-walking-time",
@@ -958,13 +978,17 @@ class SectorViewer : AppCompatActivity() {
                                         text = pitch.gradeValue?.displayName ?: "",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = pitch.gradeValue?.color?.current ?: Color.Black,
-                                        modifier = Modifier.padding(start = 4.dp).width(gradesWidth)
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .width(gradesWidth)
                                     )
 
                                     Text(
                                         text = pitch.heightUnits?.decimalLabel() ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.padding(start = 8.dp).width(heightWidth)
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(heightWidth)
                                     )
 
                                     Text(
@@ -977,7 +1001,9 @@ class SectorViewer : AppCompatActivity() {
                                             stringResource(it.displayName)
                                         } ?: "",
                                         style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.weight(1f).padding(start = 4.dp)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 4.dp)
                                     )
                                 }
                                 if (pitches.last() != pitch) HorizontalDivider()
