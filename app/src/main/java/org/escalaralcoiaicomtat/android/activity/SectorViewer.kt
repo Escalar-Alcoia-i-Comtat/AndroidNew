@@ -53,7 +53,9 @@ import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ChildFriendly
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Route
@@ -156,6 +158,7 @@ import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarAction
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarActionsOverflow
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
+import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import timber.log.Timber
 
 @OptIn(
@@ -682,7 +685,12 @@ class SectorViewer : AppCompatActivity() {
                 key = "sector-gpx-file",
                 contentType = "sector-info"
             ) {
+                val context = LocalContext.current
+
                 val gpxFile by sector.rememberGpxFile().collectAsState()
+                val gpxProgress by viewModel.gpxProgress.observeAsState()
+
+                val intent = remember(sector) { sector.gpxFileIntent(context) }
 
                 InfoRow(
                     icon = Icons.Rounded.Route,
@@ -692,7 +700,18 @@ class SectorViewer : AppCompatActivity() {
                         stringResource(R.string.sector_gpx_message_download)
                     } else {
                         stringResource(R.string.sector_gpx_message_open)
-                    }
+                    },
+                    actions = listOf(
+                        if (gpxProgress != null) {
+                            Icons.Rounded.Downloading to null
+                        } else if (gpxFile == null) {
+                            Icons.Rounded.FileDownload to viewModel::downloadGpx
+                        } else {
+                            Icons.Rounded.Route to {
+                                context.startActivity(intent)
+                            }.takeIf { intent?.canBeResolved(context) == true }
+                        }
+                    )
                 )
             }
         }
@@ -1212,6 +1231,9 @@ class SectorViewer : AppCompatActivity() {
         private val _blocks = MutableLiveData<Map<Path, List<Blocking>>>()
         val blocks: LiveData<Map<Path, List<Blocking>>> get() = _blocks
 
+        private val _gpxProgress = MutableLiveData<Pair<Long, Long>?>(null)
+        val gpxProgress: LiveData<Pair<Long, Long>?> get() = _gpxProgress
+
         val selection: MutableLiveData<Selection?> = MutableLiveData(null)
 
         val apiKey = Preferences.getApiKey(application).asLiveData(Dispatchers.Main)
@@ -1284,6 +1306,20 @@ class SectorViewer : AppCompatActivity() {
 
             viewModelScope.launch(Dispatchers.IO) {
                 userDao.toggleFavorite(sector)
+            }
+        }
+
+        fun downloadGpx() {
+            // Allow only one concurrent download
+            if (_gpxProgress.value != null) return
+            // Make sure there's a sector
+            val sector = _sector.value ?: return
+
+            viewModelScope.launch(Dispatchers.IO) {
+                sector.updateGpxIfNeeded(getApplication()) { current, max ->
+                    _gpxProgress.postValue(current to max)
+                }
+                _gpxProgress.postValue(null)
             }
         }
 
