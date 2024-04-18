@@ -82,6 +82,11 @@ import io.ktor.client.request.header
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import java.io.ByteArrayOutputStream
+import java.io.FileInputStream
+import java.util.UUID
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -109,11 +114,6 @@ import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
 import org.escalaralcoiaicomtat.android.utils.toMap
 import org.escalaralcoiaicomtat.android.utils.toast
 import timber.log.Timber
-import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.util.UUID
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
 abstract class EditorActivity<
@@ -221,6 +221,11 @@ abstract class EditorActivity<
     protected val kmzPicker = registerForActivityResult(OpenDocument()) { uri ->
         if (uri == null) return@registerForActivityResult
         model.loadKmz(uri)
+    }
+
+    protected val gpxPicker = registerForActivityResult(OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        model.loadGpx(uri)
     }
 
     protected open val maxWidth: Int = 1000
@@ -644,7 +649,7 @@ abstract class EditorActivity<
         /**
          * Stores the original imageUUID if any. Used for checking if image has been updated.
          */
-        val imageUUID = MutableLiveData<UUID?>(null)
+        private val imageUUID = MutableLiveData<UUID?>(null)
 
         /**
          * Used together with [kmzData] to hold the currently selected KMZ file if any. This
@@ -656,7 +661,19 @@ abstract class EditorActivity<
          * Used together with [kmzName] to hold the currently selected KMZ file if any. This
          * variable holds the contents of the KMZ file selected.
          */
-        var kmzData: ByteArray? = null
+        private var kmzData: ByteArray? = null
+
+        /**
+         * Used together with [gpxData] to hold the currently selected GPX file if any. This
+         * variable stores the name of the GPX file selected.
+         */
+        val gpxName = MutableLiveData<String?>(null)
+
+        /**
+         * Used together with [gpxName] to hold the currently selected GPX file if any. This
+         * variable holds the contents of the GPX file selected.
+         */
+        private var gpxData: ByteArray? = null
 
         /**
          * Whether the image is being loaded from the filesystem after being selected.
@@ -828,6 +845,12 @@ abstract class EditorActivity<
                                 append(HttpHeaders.ContentDisposition, "filename=track.kmz")
                             })
                         }
+                        gpxData?.let { bytes ->
+                            append("gpx", bytes, Headers.build {
+                                append(HttpHeaders.ContentType, "application/gpx+xml")
+                                append(HttpHeaders.ContentDisposition, "filename=track.gpx")
+                            })
+                        }
 
                         extraData()
                         getFormData()
@@ -913,16 +936,31 @@ abstract class EditorActivity<
             isLoadingImage.postValue(false)
         }
 
-        fun loadKmz(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
+        private fun loadFile(
+            uri: Uri,
+            nameState: MutableLiveData<String?>,
+            onDataLoaded: (ByteArray) -> Unit
+        ) = viewModelScope.launch(Dispatchers.IO) {
             val fileName = getApplication<Application>().getFileName(uri)
-            kmzName.postValue(fileName)
+            if (fileName == null) Timber.w("Could not get name for file at $uri.")
+            withContext(Dispatchers.Main) { nameState.value = fileName }
 
             getApplication<Application>().contentResolver.openFileDescriptor(uri, "r")?.use { pdf ->
                 FileInputStream(pdf.fileDescriptor).use { stream ->
                     val bytes = stream.readBytes()
-                    kmzData = bytes
+                    onDataLoaded(bytes)
                 }
             }
+        }
+
+        fun loadKmz(uri: Uri) = loadFile(uri, kmzName) {
+            Timber.d("Picked new KMZ file: ${kmzName.value}. Size: ${it.size}")
+            kmzData = it
+        }
+
+        fun loadGpx(uri: Uri) = loadFile(uri, gpxName) {
+            Timber.d("Picked new GPX file: ${gpxName.value}. Size: ${it.size}")
+            gpxData = it
         }
 
         open class CreationStep(@StringRes val messageRes: Int) {

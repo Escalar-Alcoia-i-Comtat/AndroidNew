@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ImageSearch
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
@@ -25,7 +24,6 @@ import androidx.lifecycle.LiveData
 import org.escalaralcoiaicomtat.android.R
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun FormImagePicker(
     image: Bitmap?,
     contentDescription: String?,

@@ -36,6 +36,7 @@ import org.escalaralcoiaicomtat.android.storage.type.LatLng
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
 import org.escalaralcoiaicomtat.android.ui.form.FormCheckbox
 import org.escalaralcoiaicomtat.android.ui.form.FormField
+import org.escalaralcoiaicomtat.android.ui.form.FormGPXPicker
 import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.ui.form.FormSegmentedButton
 import org.escalaralcoiaicomtat.android.ui.form.SizeMode
@@ -56,6 +57,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
     override fun ColumnScope.Editor(parent: Zone?) {
         val displayName by model.displayName.observeAsState(initial = "")
         val image by model.image.observeAsState()
+        val gpxFile by model.gpxName.observeAsState()
         val latitude by model.latitude.observeAsState(initial = "")
         val longitude by model.longitude.observeAsState(initial = "")
         val kidsApt by model.kidsApt.observeAsState(initial = false)
@@ -84,6 +86,10 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
 
         FormImagePicker(image, contentDescription = displayName, model.isLoadingImage) {
             imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+
+        FormGPXPicker(fileName = gpxFile) {
+            gpxPicker.launch(arrayOf("*/*"))
         }
 
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -196,6 +202,9 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, NewSectorActivity.M
             child.readImageFile(getApplication(), lifecycle).collect {
                 val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
                 image.postValue(bitmap)
+            }
+            child.readGpxFile(getApplication(), lifecycle).collect {
+                gpxName.postValue(it?.let { String(it) })
             }
         }
 

@@ -1,5 +1,6 @@
 package org.escalaralcoiaicomtat.android.storage.files
 
+import android.content.Context
 import android.os.Build
 import android.os.FileObserver
 import androidx.annotation.MainThread
@@ -9,6 +10,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.core.content.FileProvider
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -16,17 +18,17 @@ import coil.request.ImageRequest
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyAndClose
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
-import org.escalaralcoiaicomtat.android.utils.json
-import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
+import org.escalaralcoiaicomtat.android.utils.json
+import timber.log.Timber
 
 /**
  * Provides a way of handling files that require additional metadata ([RemoteFileInfo]).
@@ -56,6 +58,12 @@ constructor(private val file: File, private val meta: File) {
     constructor(parent: File, uuid: UUID, suffix: String? = null) : this(
         File(parent, "$uuid${suffix ?: ""}"),
         File(parent, "$uuid${suffix ?: ""}.meta")
+    )
+
+    fun getUri(context: Context) = FileProvider.getUriForFile(
+        context,
+        context.applicationContext.packageName + ".provider",
+        file
     )
 
     /**

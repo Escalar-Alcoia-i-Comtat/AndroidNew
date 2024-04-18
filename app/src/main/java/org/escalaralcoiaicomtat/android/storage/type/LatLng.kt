@@ -1,6 +1,10 @@
 package org.escalaralcoiaicomtat.android.storage.type
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
+import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
@@ -44,12 +48,29 @@ data class LatLng(
 
     val uri: Uri = Uri.parse("geo:$latitude,$longitude")
 
-    fun uri(label: String): Uri {
+    private fun gmapsUri(label: String): Uri {
         val builder = StringBuilder(uri.toString())
         builder.append("?q=$latitude,$longitude")
         val labelValue = label.replace(' ', '+')
         builder.append("($labelValue)")
         return Uri.parse(builder.toString())
+    }
+
+    private fun sygicUri(label: String, type: String = "walk"): Uri {
+        return Uri.parse("com.sygic.aura://coordinateaddr|$longitude,$latitude|$label|$type")
+    }
+
+    fun intent(context: Context, label: String, sygicType: String = "walk"): Intent? {
+        val googleMapsIntent = gmapsUri(label)
+            .viewIntent
+            .setPackage("com.google.android.apps.maps")
+            .takeIf { it.canBeResolved(context) }
+        val sygicIntent = sygicUri(sygicType)
+            .viewIntent
+            .setPackage("com.sygic.aura")
+            .takeIf { it.canBeResolved(context) }
+
+        return sygicIntent ?: googleMapsIntent
     }
 
     override fun toString(): String = toJson().toString()

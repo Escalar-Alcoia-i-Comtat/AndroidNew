@@ -22,7 +22,7 @@ fun InfoRow(
     iconContentDescription: String?,
     title: String,
     subtitle: String?,
-    actions: List<Pair<ImageVector, () -> Unit>> = emptyList()
+    actions: List<Pair<ImageVector, (() -> Unit)?>> = emptyList()
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -59,7 +59,10 @@ fun InfoRow(
                 }
             }
             for ((actionIcon, onClick) in actions) {
-                IconButton(onClick = onClick) {
+                IconButton(
+                    enabled = onClick != null,
+                    onClick = { onClick?.invoke() }
+                ) {
                     Icon(actionIcon, null)
                 }
             }

@@ -14,9 +14,12 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.set
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -29,7 +32,6 @@ import org.escalaralcoiaicomtat.android.network.get
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.json.JSONException
 import timber.log.Timber
-import java.util.UUID
 
 /**
  * Provides an interface between a local file and a remote one. As well, provides the option to
@@ -192,6 +194,7 @@ data class SynchronizedFile(
     }
 
     @Composable
+    @Deprecated("Use Flows", replaceWith = ReplaceWith("rememberData()"))
     fun rememberImageData(): LiveData<ByteArray?> =
         remember { MutableLiveData<ByteArray?>(null) }.apply {
             DisposableEffect(this) {
@@ -232,6 +235,59 @@ data class SynchronizedFile(
                 if (targetFile.exists()) {
                     Timber.d("Reading target file and sending to flow... $targetFile")
                     targetFile.inputStream().use { it.readBytes() }.let { postValue(it) }
+                }
+
+                onDispose {
+                    permanentObserver.forEach { it.stopWatching() }
+                    cacheObserver.forEach { it.stopWatching() }
+
+                    stopListening(permanent, fileUpdatedListener)
+                    stopListening(cache, fileUpdatedListener)
+                }
+            }
+        }
+
+    @Composable
+    fun rememberData(): StateFlow<ByteArray?> =
+        remember { MutableStateFlow<ByteArray?>(null) }.apply {
+            DisposableEffect(this) {
+                val fileUpdatedListener: (LocalFile) -> Unit = { file ->
+                    if (file.exists()) {
+                        Timber.d("Got update to $file. Sending update...")
+                        val bytes = file.inputStream().use { it.readBytes() }
+                        tryEmit(bytes)
+                    } else {
+                        Timber.w("Could not read $file. It doesn't exist.")
+                        tryEmit(null)
+                    }
+                }
+
+                val observer = object : FileUpdateListener(permanent) {
+                    override fun onCreate(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onModify(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+
+                    override fun onDelete(file: LocalFile) {
+                        fileUpdatedListener(file)
+                    }
+                }
+
+                val permanentObserver = permanent.observer(observer)
+                val cacheObserver = cache.observer(observer)
+
+                permanentObserver.forEach { it.startWatching() }
+                cacheObserver.forEach { it.startWatching() }
+
+                startListening(permanent, fileUpdatedListener)
+                startListening(cache, fileUpdatedListener)
+
+                if (targetFile.exists()) {
+                    Timber.d("Reading target file and sending to flow... $targetFile")
+                    targetFile.inputStream().use { it.readBytes() }.let { tryEmit(it) }
                 }
 
                 onDispose {

@@ -53,9 +53,12 @@ import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ChildFriendly
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -155,7 +158,6 @@ import org.escalaralcoiaicomtat.android.ui.reusable.InfoRow
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarAction
 import org.escalaralcoiaicomtat.android.ui.reusable.toolbar.ToolbarActionsOverflow
 import org.escalaralcoiaicomtat.android.ui.theme.setContentThemed
-import org.escalaralcoiaicomtat.android.utils.UriUtils.viewIntent
 import org.escalaralcoiaicomtat.android.utils.canBeResolved
 import timber.log.Timber
 
@@ -668,18 +670,47 @@ class SectorViewer : AppCompatActivity() {
                     title = stringResource(R.string.info_sector_location),
                     subtitle = "${point.latitude}, ${point.longitude}",
                     actions = listOfNotNull(
-                        point
-                            .uri(sector.displayName)
-                            .viewIntent
-                            .apply {
-                                setPackage("com.google.android.apps.maps")
-                            }
-                            .takeIf { it.canBeResolved(this@SectorViewer) }
+                        point.intent(this@SectorViewer, sector.displayName)
                             ?.let { intent ->
                                 Icons.Rounded.Map to {
                                     startActivity(intent)
                                 }
                             }
+                    )
+                )
+            }
+        }
+        if (sector.gpx != null) {
+            item(
+                key = "sector-gpx-file",
+                contentType = "sector-info"
+            ) {
+                val context = LocalContext.current
+
+                val gpxFile by sector.rememberGpxFile().collectAsState()
+                val gpxProgress by viewModel.gpxProgress.observeAsState()
+
+                val intent = remember(sector) { sector.gpxFileIntent(context) }
+
+                InfoRow(
+                    icon = Icons.Rounded.Route,
+                    iconContentDescription = stringResource(R.string.sector_gpx_title),
+                    title = stringResource(R.string.sector_gpx_title),
+                    subtitle = if (gpxFile == null) {
+                        stringResource(R.string.sector_gpx_message_download)
+                    } else {
+                        stringResource(R.string.sector_gpx_message_open)
+                    },
+                    actions = listOf(
+                        if (gpxProgress != null) {
+                            Icons.Rounded.Downloading to null
+                        } else if (gpxFile == null) {
+                            Icons.Rounded.FileDownload to viewModel::downloadGpx
+                        } else {
+                            Icons.Rounded.Route to {
+                                context.startActivity(intent)
+                            }.takeIf { intent?.canBeResolved(context) == true }
+                        }
                     )
                 )
             }
@@ -966,13 +997,17 @@ class SectorViewer : AppCompatActivity() {
                                         text = pitch.gradeValue?.displayName ?: "",
                                         style = MaterialTheme.typography.labelLarge,
                                         color = pitch.gradeValue?.color?.current ?: Color.Black,
-                                        modifier = Modifier.padding(start = 4.dp).width(gradesWidth)
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .width(gradesWidth)
                                     )
 
                                     Text(
                                         text = pitch.heightUnits?.decimalLabel() ?: "",
                                         style = MaterialTheme.typography.labelLarge,
-                                        modifier = Modifier.padding(start = 8.dp).width(heightWidth)
+                                        modifier = Modifier
+                                            .padding(start = 8.dp)
+                                            .width(heightWidth)
                                     )
 
                                     Text(
@@ -985,7 +1020,9 @@ class SectorViewer : AppCompatActivity() {
                                             stringResource(it.displayName)
                                         } ?: "",
                                         style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.weight(1f).padding(start = 4.dp)
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 4.dp)
                                     )
                                 }
                                 if (pitches.last() != pitch) HorizontalDivider()
@@ -1194,6 +1231,9 @@ class SectorViewer : AppCompatActivity() {
         private val _blocks = MutableLiveData<Map<Path, List<Blocking>>>()
         val blocks: LiveData<Map<Path, List<Blocking>>> get() = _blocks
 
+        private val _gpxProgress = MutableLiveData<Pair<Long, Long>?>(null)
+        val gpxProgress: LiveData<Pair<Long, Long>?> get() = _gpxProgress
+
         val selection: MutableLiveData<Selection?> = MutableLiveData(null)
 
         val apiKey = Preferences.getApiKey(application).asLiveData(Dispatchers.Main)
@@ -1266,6 +1306,20 @@ class SectorViewer : AppCompatActivity() {
 
             viewModelScope.launch(Dispatchers.IO) {
                 userDao.toggleFavorite(sector)
+            }
+        }
+
+        fun downloadGpx() {
+            // Allow only one concurrent download
+            if (_gpxProgress.value != null) return
+            // Make sure there's a sector
+            val sector = _sector.value ?: return
+
+            viewModelScope.launch(Dispatchers.IO) {
+                sector.updateGpxIfNeeded(getApplication()) { current, max ->
+                    _gpxProgress.postValue(current to max)
+                }
+                _gpxProgress.postValue(null)
             }
         }
 

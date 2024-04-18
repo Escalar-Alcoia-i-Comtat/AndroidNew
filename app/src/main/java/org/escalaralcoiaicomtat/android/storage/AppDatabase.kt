@@ -10,6 +10,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import java.time.Instant
+import java.util.concurrent.Executors
 import kotlinx.coroutines.runBlocking
 import org.escalaralcoiaicomtat.android.storage.converters.AndroidConverters
 import org.escalaralcoiaicomtat.android.storage.converters.Converters
@@ -27,8 +29,6 @@ import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
 import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
 import timber.log.Timber
-import java.time.Instant
-import java.util.concurrent.Executors
 
 @Database(
     entities = [
@@ -37,9 +37,10 @@ import java.util.concurrent.Executors
         FavoriteArea::class, FavoriteZone::class, FavoriteSector::class
     ],
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3)
     ],
-    version = 2
+    version = 3
 )
 @TypeConverters(
     ListConverters::class,
