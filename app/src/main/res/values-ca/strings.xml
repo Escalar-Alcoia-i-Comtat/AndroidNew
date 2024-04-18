@@ -57,8 +57,8 @@
         <item quantity="other">Es tarda aproximadament %d minuts a peu des del lloc d\'aparcament fins al sector.</item>
     </plurals>
     <string name="sector_gpx_title">Track</string>
-    <string name="sector_gpx_message_download">Tap to download and open the track in GPX format in your preferred app.</string>
-    <string name="sector_gpx_message_open">Tap to open the track in GPX format in your preferred app.</string>
+    <string name="sector_gpx_message_download">Toqueu per descarregar i obrir el track en format GPX a la vostra aplicació preferida.</string>
+    <string name="sector_gpx_message_open">Toqueu per obrir el track en format GPX a la vostra aplicació preferida.</string>
     <string name="list_item_favorite">Preferit</string>
     <string name="list_item_download">Descarregar</string>
     <string name="list_item_create">Crear Nou</string>
@@ -129,7 +129,7 @@
     <string name="form_web_url">URL Web</string>
     <string name="form_image_pick">Tria una imatge</string>
     <string name="form_kmz_pick">Tria un fitxer KMZ</string>
-    <string name="form_gpx_pick">Pick GPX File</string>
+    <string name="form_gpx_pick">Tria un fitxer GPX</string>
     <string name="form_latitude">Latitud</string>
     <string name="form_longitude">Longitud</string>
     <string name="form_point_label">Etiqueta</string>
