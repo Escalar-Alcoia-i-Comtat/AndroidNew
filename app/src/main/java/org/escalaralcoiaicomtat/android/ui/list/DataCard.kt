@@ -154,7 +154,7 @@ fun <T: ImageEntity> DataCard(
 
     Column(
         modifier = modifier.clickable(
-            enabled = imageFile != null || isNetworkAvailable,
+            enabled = !imageFileNotAvailable && (imageFile != null || isNetworkAvailable),
             onClick = onClick
         )
     ) {
