@@ -8,6 +8,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.Blocking
 import org.escalaralcoiaicomtat.android.storage.data.LocalDeletion
@@ -46,14 +47,21 @@ abstract class DataDao {
     @Query("SELECT * FROM areas")
     abstract suspend fun getAllAreas(): List<Area>
 
-    @WorkerThread
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllAreasFlow()"))
     @Query("SELECT * FROM areas")
     abstract fun getAllAreasLive(): LiveData<List<Area>>
 
-    @WorkerThread
+    @Query("SELECT * FROM areas")
+    abstract fun getAllAreasFlow(): Flow<List<Area>>
+
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getZonesFromAreaFlow(areaId)"))
     @Transaction
     @Query("SELECT * FROM areas WHERE id=:areaId")
     abstract fun getZonesFromAreaLive(areaId: Long): LiveData<AreaWithZones>
+
+    @Transaction
+    @Query("SELECT * FROM areas WHERE id=:areaId")
+    abstract fun getZonesFromAreaFlow(areaId: Long): Flow<AreaWithZones>
 
     @WorkerThread
     @Transaction
@@ -89,10 +97,14 @@ abstract class DataDao {
     @Query("SELECT * FROM zones")
     abstract fun getAllZonesLive(): LiveData<List<Zone>>
 
-    @WorkerThread
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getSectorsFromZoneFlow(zoneId)"))
     @Transaction
     @Query("SELECT * FROM zones WHERE id=:zoneId")
     abstract fun getSectorsFromZoneLive(zoneId: Long): LiveData<ZoneWithSectors>
+
+    @Transaction
+    @Query("SELECT * FROM zones WHERE id=:zoneId")
+    abstract fun getSectorsFromZoneFlow(zoneId: Long): Flow<ZoneWithSectors>
 
     @WorkerThread
     @Transaction
@@ -124,14 +136,21 @@ abstract class DataDao {
     @Query("SELECT * FROM sectors")
     abstract suspend fun getAllSectors(): List<Sector>
 
-    @WorkerThread
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllSectorsFlow()"))
     @Query("SELECT * FROM sectors")
     abstract fun getAllSectorsLive(): LiveData<List<Sector>>
 
-    @WorkerThread
+    @Query("SELECT * FROM sectors")
+    abstract fun getAllSectorsFlow(): Flow<List<Sector>>
+
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getPathsFromSectorFlow(sectorId)"))
     @Transaction
     @Query("SELECT * FROM sectors WHERE id=:sectorId")
     abstract fun getPathsFromSectorLive(sectorId: Long): LiveData<SectorWithPaths?>
+
+    @Transaction
+    @Query("SELECT * FROM sectors WHERE id=:sectorId")
+    abstract fun getPathsFromSectorFlow(sectorId: Long): Flow<SectorWithPaths?>
 
     @WorkerThread
     @Transaction
@@ -168,9 +187,14 @@ abstract class DataDao {
     @Query("SELECT * FROM paths WHERE parentId=:sectorId")
     abstract suspend fun getPathWithBlocks(sectorId: Long): List<PathWithBlocks>
 
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getPathWithBlocksFlow(sectorId)"))
     @Transaction
     @Query("SELECT * FROM paths WHERE parentId=:sectorId")
     abstract fun getPathWithBlocksLive(sectorId: Long): LiveData<List<PathWithBlocks>>
+
+    @Transaction
+    @Query("SELECT * FROM paths WHERE parentId=:sectorId")
+    abstract fun getPathWithBlocksFlow(sectorId: Long): Flow<List<PathWithBlocks>>
 
     @Query("SELECT builder FROM paths")
     abstract suspend fun getAllBuilders(): List<String>
