@@ -67,7 +67,7 @@ android {
     buildTypes {
         configureEach {
             val properties = readPropertiesFile("local.properties")
-            buildConfigField("String", "SENTRY_DSN", "\"${properties.getProperty("sentry_dsn")}\"")
+            buildConfigField("String", "SENTRY_DSN", "\"${properties.getProperty("sentry_dsn")!!}\"")
         }
         debug {
             buildConfigField("Boolean", "PRODUCTION", "false")
