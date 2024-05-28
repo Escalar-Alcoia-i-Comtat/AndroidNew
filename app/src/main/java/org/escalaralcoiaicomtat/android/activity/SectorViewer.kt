@@ -187,6 +187,8 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
+        viewModel.load()
+
         setContentThemed {
             val windowSizeClass = calculateWindowSizeClass(activity = this)
 
@@ -195,8 +197,6 @@ class SectorViewer : AppCompatActivity() {
 
             val apiKey by viewModel.apiKey.observeAsState()
             val isFavorite by viewModel.isFavorite.collectAsState(initial = null)
-
-            LaunchedEffect(Unit) { viewModel.load() }
 
             Scaffold(
                 topBar = {
