@@ -228,7 +228,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         try {
             loadingSearchResults.tryEmit(true)
 
-            Timber.d("Searching for $query")
+            Timber.d("Searching for \"$query\"")
 
             val results = dataDao.search(query)
 
