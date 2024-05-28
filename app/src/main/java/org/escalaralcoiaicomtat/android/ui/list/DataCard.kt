@@ -129,9 +129,12 @@ fun <T: ImageEntity> DataCard(
             }
         )
 
-    LaunchedEffect(item) {
+    LaunchedEffect(item, isNetworkAvailable) {
         withContext(Dispatchers.IO) {
             if (imageFile != null) return@withContext
+
+            // Reset state
+            imageFileNotAvailable = false
 
             // Get the display's width
             val height = with(localDensity) { imageHeight.roundToPx() }
