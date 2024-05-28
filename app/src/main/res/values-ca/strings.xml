@@ -49,6 +49,9 @@
     <string name="list_area_children">Zones</string>
     <string name="list_zone_children">Sectors</string>
     <string name="list_sector_children">Vies</string>
+    <string name="list_image_not_available">No Disponible</string>
+    <string name="first_sync_network_required_title">Connexió a Internet Necessària</string>
+    <string name="first_sync_network_required_message">Cal que tinguis connexió a Internet la primera vegada que iniciïs l\'aplicació per sincronitzar totes les dades.</string>
     <string name="sector_kids_apt_title">Apte per a Xiquets</string>
     <string name="sector_kids_apt_message">Aquest sector té zones segures per a que els xiquets puguen estar sense perill.</string>
     <string name="sector_walking_time_title">Temps a Peu</string>

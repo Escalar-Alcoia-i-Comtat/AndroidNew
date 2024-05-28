@@ -49,6 +49,9 @@
     <string name="list_area_children">Zonas</string>
     <string name="list_zone_children">Sectores</string>
     <string name="list_sector_children">Vías</string>
+    <string name="list_image_not_available">No Disponible</string>
+    <string name="first_sync_network_required_title">Conexión a Internet requerida</string>
+    <string name="first_sync_network_required_message">Debe tener conexión a Internet la primera vez que inicie la aplicación para sincronizar todos los datos.</string>
     <string name="sector_kids_apt_title">Apto para niños</string>
     <string name="sector_kids_apt_message">Este sector cuenta con lugares seguros en los que los niños pueden quedarse sin sufrir daños.</string>
     <string name="sector_walking_time_title">Tiempo de caminata</string>
