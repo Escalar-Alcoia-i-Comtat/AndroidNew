@@ -32,7 +32,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -137,16 +139,19 @@ import timber.log.Timber
 class SectorViewer : AppCompatActivity() {
     companion object {
         const val EXTRA_SECTOR_ID = "sector_id"
+        const val EXTRA_PATH_ID = "path_id"
     }
 
     data class Input(
-        val sectorId: Long
+        val sectorId: Long,
+        val pathId: Long?
     )
 
     object Contract : ActivityResultContract<Input, Void?>() {
         override fun createIntent(context: Context, input: Input): Intent =
             Intent(context, SectorViewer::class.java).apply {
                 putExtra(EXTRA_SECTOR_ID, input.sectorId)
+                putExtra(EXTRA_PATH_ID, input.pathId)
             }
 
         override fun parseResult(resultCode: Int, intent: Intent?): Void? = null
@@ -170,6 +175,10 @@ class SectorViewer : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val highlightPathId = intent.extras
+            ?.getLong(EXTRA_PATH_ID, -1)
+            ?.takeIf { it >= 0 }
 
         if (!viewModel.hasValidId) {
             Timber.e("Sector ID not specified, going back...")
@@ -296,7 +305,7 @@ class SectorViewer : AppCompatActivity() {
                                 .fillMaxSize()
                                 .padding(paddingValues)
                         ) {
-                            Content(sector, paths)
+                            Content(sector, paths, highlightPathId)
                         }
                     }
                 }
@@ -305,9 +314,11 @@ class SectorViewer : AppCompatActivity() {
     }
 
     @Composable
-    fun RowScope.Content(sector: Sector, paths: List<Path>) {
+    fun RowScope.Content(sector: Sector, paths: List<Path>, highlightPathId: Long?) {
         val context = LocalContext.current
         val windowSizeClass = calculateWindowSizeClass(this@SectorViewer)
+
+        val lazyListState = rememberLazyListState()
 
         val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
 
@@ -326,8 +337,17 @@ class SectorViewer : AppCompatActivity() {
             }
         }
 
+        LaunchedEffect(highlightPathId) {
+            if (highlightPathId != null) {
+                val index = paths.indexOfFirst { it.id == highlightPathId }
+                if (index >= 0) {
+                    lazyListState.scrollToItem(index)
+                }
+            }
+        }
+
         if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded) {
-            SidePathsView(sector, paths, blocks, apiKey)
+            SidePathsView(lazyListState, sector, paths, highlightPathId, blocks, apiKey)
         }
 
         imageFile?.let { image ->
@@ -358,7 +378,7 @@ class SectorViewer : AppCompatActivity() {
                 }
 
                 if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.Expanded) {
-                    BottomPathsView(sector, paths)
+                    BottomPathsView(lazyListState, sector, paths, highlightPathId)
                 }
             }
         } ?: Box(
@@ -377,7 +397,12 @@ class SectorViewer : AppCompatActivity() {
     }
 
     @Composable
-    fun BottomPathsView(sector: Sector, paths: List<Path>) {
+    fun BottomPathsView(
+        lazyListState: LazyListState,
+        sector: Sector,
+        paths: List<Path>,
+        highlightPathId: Long?
+    ) {
         val apiKey by Preferences.getApiKey(this).collectAsState(initial = null)
 
         val selection = viewModel.selection
@@ -402,15 +427,19 @@ class SectorViewer : AppCompatActivity() {
                 ) { viewModel.clearSelection() }
             } else if (path == null) {
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier.fillMaxHeight(.35f)
                 ) {
                     itemsIndexed(
                         items = paths,
                         key = { _, path -> path.id }
                     ) { index, path ->
-                        PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
-                            viewModel.select(Selection.Index(index))
-                        }
+                        PathItem(
+                            path = path,
+                            blocks = blocks[path] ?: emptyList(),
+                            apiKey = apiKey,
+                            shouldHighlight = highlightPathId == path.id
+                        ) { viewModel.select(Selection.Index(index)) }
                     }
                 }
             } else {
@@ -441,8 +470,10 @@ class SectorViewer : AppCompatActivity() {
 
     @Composable
     fun RowScope.SidePathsView(
+        lazyListState: LazyListState,
         sector: Sector,
         paths: List<Path>,
+        highlightPathId: Long?,
         blocks: Map<Path, List<Blocking>>,
         apiKey: String?
     ) {
@@ -455,6 +486,7 @@ class SectorViewer : AppCompatActivity() {
             val selectedIndex = (selection as? Selection.Index)?.index
 
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier.weight(1f)
             ) {
                 populateSectorInformation(sector)
@@ -472,9 +504,12 @@ class SectorViewer : AppCompatActivity() {
                     )
                 }
                 itemsIndexed(paths, key = { _, path -> path.id }) { index, path ->
-                    PathItem(path, blocks = blocks[path] ?: emptyList(), apiKey = apiKey) {
-                        viewModel.select(Selection.Index(index))
-                    }
+                    PathItem(
+                        path = path,
+                        blocks = blocks[path] ?: emptyList(),
+                        apiKey = apiKey,
+                        shouldHighlight = highlightPathId == path.id
+                    ) { viewModel.select(Selection.Index(index)) }
                 }
             }
 

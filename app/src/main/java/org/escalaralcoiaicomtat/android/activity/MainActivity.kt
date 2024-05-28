@@ -105,9 +105,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val onSectorView: (Sector) -> Unit = {
+    private val onSectorView: (sectorId: Long, pathId: Long?) -> Unit = { sectorId, pathId ->
         sectorViewerRequestLauncher.launch(
-            SectorViewer.Input(it.id)
+            SectorViewer.Input(sectorId, pathId)
         )
     }
 
@@ -162,7 +162,8 @@ class MainActivity : AppCompatActivity() {
                     zoneId = target.id
                 )
             )
-            is Sector -> onSectorView(target)
+            is Sector -> onSectorView(target.id, null)
+            is Path -> onSectorView(target.parentId, target.id)
             else -> navController?.navigate(
                 Routes.NavigationHome.createRoute()
             )
