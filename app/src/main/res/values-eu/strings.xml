@@ -49,6 +49,9 @@
     <string name="list_area_children">Zonaldeak</string>
     <string name="list_zone_children">Sektoreak</string>
     <string name="list_sector_children">Ibilbideak</string>
+    <string name="list_image_not_available">Not Available</string>
+    <string name="first_sync_network_required_title">Internet Connection Required</string>
+    <string name="first_sync_network_required_message">You must have Internet connection the first time you launch the app to synchronize all the data.</string>
     <string name="sector_kids_apt_title">Kids Apt</string>
     <string name="sector_kids_apt_message">Sektore honek leku seguruak ditu non sorginik gabe egon daitezkeen umeak.</string>
     <string name="sector_walking_time_title">Ibilaldi Denbora</string>
