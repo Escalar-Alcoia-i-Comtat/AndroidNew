@@ -45,7 +45,7 @@ class SectorViewerModel(
 
     private val pathWithBlocks = dataDao.getPathWithBlocksFlow(sectorId)
 
-    val paths = pathWithBlocks.map { list -> list.map { it.path } }
+    val paths = pathWithBlocks.map { list -> list.map { it.path }.sortedBy { it.sketchId } }
 
     val blocks = pathWithBlocks.map { list ->
         list.associate { it.path to it.blocks }
