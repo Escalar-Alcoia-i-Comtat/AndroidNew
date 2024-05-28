@@ -41,8 +41,8 @@ import org.escalaralcoiaicomtat.android.storage.data.sorted
 import org.escalaralcoiaicomtat.android.ui.modifier.backAnimation
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
-import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 import org.escalaralcoiaicomtat.android.ui.warning.FirstSyncConnectionRequired
+import org.escalaralcoiaicomtat.android.viewmodel.MainViewModel
 
 @Composable
 fun NavigationScreen(

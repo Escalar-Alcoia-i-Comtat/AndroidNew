@@ -1,4 +1,4 @@
-package org.escalaralcoiaicomtat.android.ui.viewmodel
+package org.escalaralcoiaicomtat.android.viewmodel
 
 import android.app.Application
 import androidx.compose.runtime.Composable
@@ -10,10 +10,16 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import java.time.Instant
 import kotlin.reflect.KClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +32,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.escalaralcoiaicomtat.android.network.EndpointUtils
+import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
+import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.dao.search
+import org.escalaralcoiaicomtat.android.storage.dao.toggleFavorite
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
@@ -40,6 +50,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
     private val dataDao = database.dataDao()
     private val userDao = database.userDao()
+
+    private val apiKeyRegex = Regex("[0-9a-zA-Z]+")
 
     var navController: NavHostController? = null
 
@@ -225,6 +237,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
         } finally {
             loadingSearchResults.tryEmit(false)
+        }
+    }
+
+    fun trySubmittingApiKey(apiKey: String): Job = viewModelScope.launch {
+        if (apiKeyRegex.matches(apiKey)) {
+            ktorHttpClient.submitFormWithBinaryData(
+                url = EndpointUtils.getUrl("area"),
+                formData = formData()
+            ) {
+                header(HttpHeaders.Authorization, "Bearer $apiKey")
+            }.apply {
+                if (status == HttpStatusCode.BadRequest) {
+                    // Request was "successful"
+                    Preferences.setApiKey(getApplication(), apiKey)
+                } else {
+                    // Request failed
+                }
+            }
+        }
+    }
+
+    fun toggleFavorite(data: DataEntity): Job = viewModelScope.launch {
+        when (data) {
+            is Area -> userDao.toggleFavorite(data)
+            is Zone -> userDao.toggleFavorite(data)
+            is Sector -> userDao.toggleFavorite(data)
         }
     }
 }

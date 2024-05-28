@@ -109,7 +109,7 @@ import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationScaffol
 import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AREA_ID
 import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.ZONE_ID
 import org.escalaralcoiaicomtat.android.ui.theme.AppTheme
-import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
+import org.escalaralcoiaicomtat.android.viewmodel.MainViewModel
 
 object Routes {
     object Arguments {
