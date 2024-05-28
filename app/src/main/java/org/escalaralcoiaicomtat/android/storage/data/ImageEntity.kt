@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
+import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -58,7 +59,7 @@ abstract class ImageEntity : DataEntity() {
         width: Int? = null,
         height: Int? = null,
         progress: (suspend (current: Long, max: Long) -> Unit)? = null
-    ) {
+    ): Throwable? {
         Timber.d("Checking if image file needs to be updated...")
         try {
             val imageFile = imageFile(context, width != null || height != null)
@@ -80,6 +81,12 @@ abstract class ImageEntity : DataEntity() {
         } catch (e: IllegalStateException) {
             // Server is not available
             // TODO - show error
+            return e
+        } catch (e: IOException) {
+            // Network error
+            Timber.e(e, "Could not update image file. Network may not be available.")
+            return e
         }
+        return null
     }
 }

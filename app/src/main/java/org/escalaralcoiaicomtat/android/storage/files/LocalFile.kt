@@ -272,7 +272,7 @@ constructor(private val file: File, private val meta: File) {
     }
 
     @Composable
-    fun existsLive(): State<Boolean> = remember { mutableStateOf(exists()) }.apply {
+    fun rememberExistsState(): State<Boolean> = remember { mutableStateOf(exists()) }.apply {
         DisposableEffect(this) {
             val fileObserver = observer(
                 object : FileUpdateListener(this@LocalFile) {

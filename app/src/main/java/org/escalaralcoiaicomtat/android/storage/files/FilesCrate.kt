@@ -10,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,8 +20,6 @@ import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
 import org.escalaralcoiaicomtat.android.utils.FileUtils.dirSize
 import org.escalaralcoiaicomtat.android.utils.json
 import timber.log.Timber
-import java.io.File
-import java.util.UUID
 
 class FilesCrate private constructor(context: Context) {
     companion object {
@@ -86,13 +86,13 @@ class FilesCrate private constructor(context: Context) {
     private val observers = mutableStateListOf<FileObserver>()
 
     @Composable
-    fun existsLive(uuid: UUID): State<Boolean> = permanent(uuid).existsLive()
+    fun rememberExistsPermanent(uuid: UUID): State<Boolean> = permanent(uuid).rememberExistsState()
 
     @Composable
-    fun existsLiveCache(uuid: UUID): State<Boolean> = cache(uuid).existsLive()
+    fun rememberExistsCache(uuid: UUID): State<Boolean> = cache(uuid).rememberExistsState()
 
     @Composable
-    fun cacheSize(): LiveData<Long> = MutableLiveData<Long>().apply {
+    fun cacheSizeLive(): LiveData<Long> = MutableLiveData<Long>().apply {
         DisposableEffect(cachesDir) {
             @Suppress("Deprecation")
             val file = LocalFile(cachesDir, cachesDir)

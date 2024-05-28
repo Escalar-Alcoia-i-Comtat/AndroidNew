@@ -166,7 +166,7 @@ fun SettingsPage(
         },
         headlineContent = { Text(stringResource(R.string.settings_storage_cache_title)) },
         supportingContent = {
-            val size by crate.cacheSize().observeAsState()
+            val size by crate.cacheSizeLive().observeAsState()
 
             Text(
                 stringResource(

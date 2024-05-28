@@ -2,6 +2,7 @@ package org.escalaralcoiaicomtat.android.ui.list
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bookmark
@@ -25,6 +27,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,11 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.CoroutineScope
@@ -77,7 +83,7 @@ fun <T: ImageEntity> DataCard(
     val localDensity = LocalDensity.current
 
     val networkObserver = rememberNetworkObserver()
-    val isNetworkAvailable by networkObserver.isNetworkAvailable.collectAsState()
+    val isNetworkAvailable by networkObserver.collectIsNetworkAvailable()
 
     val filesCrate = FilesCrate.rememberInstance()
     val appDatabase = AppDatabase.rememberInstance()
@@ -85,11 +91,12 @@ fun <T: ImageEntity> DataCard(
 
     val imageFile by item.rememberImageFile().collectAsState(null)
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var imageFileNotAvailable by remember { mutableStateOf(false) }
 
     var isDownloading by remember { mutableStateOf(false) }
     var isTogglingFavorite by remember { mutableStateOf(false) }
 
-    val isDownloaded by filesCrate.existsLive(item.imageUUID)
+    val isDownloaded by filesCrate.rememberExistsPermanent(item.imageUUID)
     val isFavoriteLive = when (item) {
         is Area -> userDao.getAreaFlow(item.id)
         is Zone -> userDao.getSectorFlow(item.id)
@@ -129,11 +136,16 @@ fun <T: ImageEntity> DataCard(
             // Get the display's width
             val height = with(localDensity) { imageHeight.roundToPx() }
 
-            item.updateImageIfNeeded(context, height = height) { current, max ->
+            val error = item.updateImageIfNeeded(context, height = height) { current, max ->
                 progress = current.toInt() to max.toInt()
             }
 
             // TODO - if bitmap is null, show error
+            if (error != null) {
+                // Probably no Internet Connection, so the image of the card cannot be loaded.
+                // in any case, show the placeholder
+                imageFileNotAvailable = true
+            }
         }
     }
 
@@ -147,6 +159,7 @@ fun <T: ImageEntity> DataCard(
             text = item.displayName,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
+            fontStyle = if (imageFileNotAvailable) FontStyle.Italic else FontStyle.Normal,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -159,7 +172,32 @@ fun <T: ImageEntity> DataCard(
                 .height(imageHeight),
             contentAlignment = Alignment.Center
         ) {
-            imageFile?.let { file ->
+            if (imageFileNotAvailable) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_launcher_monochrome),
+                            contentDescription = null,
+                            modifier = Modifier.size(.4 * imageHeight),
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.list_image_not_available),
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+            } else imageFile?.let { file ->
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(file)
@@ -219,6 +257,7 @@ fun <T: ImageEntity> DataCard(
                 enabled = !isDownloading && imageFile != null,
                 onClick = {
                     // If clicked, isDownloaded is not null
+                    // TODO: Move logic to ViewModel
                     if (isDownloaded) {
                         isShowingDeleteDialog = true
                     } else {
