@@ -248,7 +248,7 @@ data class SynchronizedFile(
         }
 
     @Composable
-    fun rememberData(): StateFlow<ByteArray?> =
+    fun rememberDataFlow(): StateFlow<ByteArray?> =
         remember { MutableStateFlow<ByteArray?>(null) }.apply {
             DisposableEffect(this) {
                 val fileUpdatedListener: (LocalFile) -> Unit = { file ->

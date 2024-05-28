@@ -1,13 +1,13 @@
 package org.escalaralcoiaicomtat.android
 
 import android.net.Uri
+import java.time.Instant
+import java.util.UUID
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.Path
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
 import org.escalaralcoiaicomtat.android.storage.type.SunTime
-import java.time.Instant
-import java.util.UUID
 
 object SampleDataProvider {
     val SampleArea: Area = Area(
@@ -36,6 +36,7 @@ object SampleDataProvider {
         SunTime.Day,
         0L,
         UUID.randomUUID().toString(),
+        null,
         null,
         "aaa",
         0

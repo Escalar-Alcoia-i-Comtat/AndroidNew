@@ -60,7 +60,7 @@ abstract class GpxEntity : ImageEntity() {
 
         val gpxFile = remember { gpxFile(context) }
 
-        return gpxFile?.rememberData() ?: MutableStateFlow(null)
+        return gpxFile?.rememberDataFlow() ?: MutableStateFlow(null)
     }
 
     @WorkerThread

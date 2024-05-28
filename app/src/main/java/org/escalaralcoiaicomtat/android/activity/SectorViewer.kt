@@ -311,7 +311,7 @@ class SectorViewer : AppCompatActivity() {
 
         val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
 
-        val imageFile by sector.rememberImageFile(false).observeAsState()
+        val imageFile by sector.rememberImageFile(false).collectAsState(null)
         var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
         val blocks by viewModel.blocks.collectAsState(initial = emptyMap())

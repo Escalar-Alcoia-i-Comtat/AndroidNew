@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LiveData
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -45,12 +44,12 @@ abstract class ImageEntity : DataEntity() {
     }
 
     @Composable
-    fun rememberImageFile(isScaled: Boolean = true): LiveData<ByteArray?> {
+    fun rememberImageFile(isScaled: Boolean = true): Flow<ByteArray?> {
         val context = LocalContext.current
 
         val imageFile = remember { SynchronizedFile.create(context, imageUUID, isScaled) }
 
-        return imageFile.rememberImageData()
+        return imageFile.rememberDataFlow()
     }
 
     @WorkerThread

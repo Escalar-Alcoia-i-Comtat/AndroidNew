@@ -7,12 +7,16 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import org.escalaralcoiaicomtat.android.BuildConfig
 import java.net.UnknownHostException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.escalaralcoiaicomtat.android.BuildConfig
 
 class NetworkObserver private constructor(context: Context) {
     companion object {
@@ -44,16 +48,16 @@ class NetworkObserver private constructor(context: Context) {
             try {
                 network.getByName(BuildConfig.HOSTNAME)
 
-                _isNetworkAvailable.postValue(true)
+                _isNetworkAvailable.tryEmit(true)
             } catch (_: UnknownHostException) {
-                _isNetworkAvailable.postValue(false)
+                _isNetworkAvailable.tryEmit(false)
             }
         }
 
         override fun onLost(network: Network) {
             super.onLost(network)
 
-            _isNetworkAvailable.postValue(false)
+            _isNetworkAvailable.tryEmit(false)
         }
     }
 
@@ -63,8 +67,8 @@ class NetworkObserver private constructor(context: Context) {
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
 
-    private val _isNetworkAvailable = MutableLiveData(false)
-    val isNetworkAvailable: LiveData<Boolean> get() = _isNetworkAvailable
+    private val _isNetworkAvailable = MutableStateFlow(false)
+    val isNetworkAvailable: StateFlow<Boolean> get() = _isNetworkAvailable.asStateFlow()
 
     fun startListening() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -76,5 +80,14 @@ class NetworkObserver private constructor(context: Context) {
 
     fun stopListening() {
         connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+
+    @Composable
+    fun collectIsNetworkAvailable(): State<Boolean> {
+        DisposableEffect(Unit) {
+            startListening()
+            onDispose { stopListening() }
+        }
+        return isNetworkAvailable.collectAsState()
     }
 }

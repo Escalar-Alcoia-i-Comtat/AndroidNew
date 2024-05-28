@@ -3,6 +3,7 @@ package org.escalaralcoiaicomtat.android.ui.screen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +29,7 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.MainActivity
+import org.escalaralcoiaicomtat.android.network.NetworkObserver.Companion.rememberNetworkObserver
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
@@ -40,6 +42,7 @@ import org.escalaralcoiaicomtat.android.ui.modifier.backAnimation
 import org.escalaralcoiaicomtat.android.ui.reusable.CircularProgressIndicator
 import org.escalaralcoiaicomtat.android.ui.reusable.SideNavigationItem
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
+import org.escalaralcoiaicomtat.android.ui.warning.FirstSyncConnectionRequired
 
 @Composable
 fun NavigationScreen(
@@ -52,6 +55,9 @@ fun NavigationScreen(
     viewModel: MainViewModel
 ) {
     val context = LocalContext.current
+
+    val networkObserver = rememberNetworkObserver()
+    val isNetworkAvailable by networkObserver.collectIsNetworkAvailable()
 
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
     val hasEverSynchronized by Preferences.hasEverSynchronized(context).collectAsState(initial = false)
@@ -149,11 +155,21 @@ fun NavigationScreen(
         when {
             // First synchronization
             !hasEverSynchronized -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                // Network is required for the first synchronization
+                if (isNetworkAvailable) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    FirstSyncConnectionRequired(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 12.dp)
+                    )
                 }
             }
             // Areas List

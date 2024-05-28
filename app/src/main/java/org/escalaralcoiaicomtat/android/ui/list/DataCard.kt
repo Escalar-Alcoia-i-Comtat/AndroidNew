@@ -29,8 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -77,13 +77,13 @@ fun <T: ImageEntity> DataCard(
     val localDensity = LocalDensity.current
 
     val networkObserver = rememberNetworkObserver()
-    val isNetworkAvailable by networkObserver.isNetworkAvailable.observeAsState()
+    val isNetworkAvailable by networkObserver.isNetworkAvailable.collectAsState()
 
     val filesCrate = FilesCrate.rememberInstance()
     val appDatabase = AppDatabase.rememberInstance()
     val userDao = appDatabase.userDao()
 
-    val imageFile by item.rememberImageFile().observeAsState()
+    val imageFile by item.rememberImageFile().collectAsState(null)
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     var isDownloading by remember { mutableStateOf(false) }
@@ -91,12 +91,12 @@ fun <T: ImageEntity> DataCard(
 
     val isDownloaded by filesCrate.existsLive(item.imageUUID)
     val isFavoriteLive = when (item) {
-        is Area -> userDao.getAreaLive(item.id)
-        is Zone -> userDao.getZoneLive(item.id)
-        is Sector -> userDao.getSectorLive(item.id)
+        is Area -> userDao.getAreaFlow(item.id)
+        is Zone -> userDao.getSectorFlow(item.id)
+        is Sector -> userDao.getSectorFlow(item.id)
         else -> throw IllegalArgumentException("Item type is not supported: ${item::class.simpleName}")
     }
-    val isFavorite by isFavoriteLive.observeAsState()
+    val isFavorite by isFavoriteLive.collectAsState(null)
 
     var isShowingDeleteDialog by remember { mutableStateOf(false) }
     if (isShowingDeleteDialog)
@@ -139,7 +139,7 @@ fun <T: ImageEntity> DataCard(
 
     Column(
         modifier = modifier.clickable(
-            enabled = imageFile != null || isNetworkAvailable == true,
+            enabled = imageFile != null || isNetworkAvailable,
             onClick = onClick
         )
     ) {

@@ -57,6 +57,9 @@
     <string name="list_zone_children">Sectors</string>
     <string name="list_sector_children">Routes</string>
 
+    <string name="first_sync_network_required_title">Internet Connection Required</string>
+    <string name="first_sync_network_required_message">You must have Internet connection the first time you launch the app to synchronize all the data.</string>
+
     <string name="sector_kids_apt_title">Kids Apt</string>
     <string name="sector_kids_apt_message">This sector has safe places where children can stay without being hurt.</string>
     <string name="sector_walking_time_title">Walking Time</string>
