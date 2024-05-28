@@ -18,19 +18,16 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.MainActivity
-import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
@@ -59,12 +56,12 @@ fun NavigationScreen(
     val apiKey by Preferences.getApiKey(context).collectAsState(initial = null)
     val hasEverSynchronized by Preferences.hasEverSynchronized(context).collectAsState(initial = false)
 
-    val areas by viewModel.areas.observeAsState(initial = emptyList())
-    val zones by viewModel.zones.observeAsState(initial = emptyList())
-    val sectors by viewModel.sectors.observeAsState(initial = emptyList())
-    val paths by viewModel.paths.observeAsState(initial = emptyList())
+    val areas by viewModel.areas.collectAsState(initial = emptyList())
+    val zones by viewModel.zones.collectAsState(initial = emptyList())
+    val sectors by viewModel.sectors.collectAsState(initial = emptyList())
+    val paths by viewModel.paths.collectAsState(initial = emptyList())
 
-    val selection by viewModel.selection.observeAsState()
+    val selection by viewModel.selection.collectAsState()
 
     PermanentNavigationDrawer(
         drawerContent = {
@@ -180,7 +177,7 @@ fun NavigationScreen(
             }
             // Zones List
             data is Area -> {
-                val areaWithZones by viewModel.areaWithZones.observeAsState()
+                val areaWithZones by viewModel.areaWithZones.collectAsState(null)
 
                 DataList(
                     kClass = Zone::class,
@@ -202,7 +199,7 @@ fun NavigationScreen(
             }
             // Sectors List
             data is Zone -> {
-                val sectorsFromZone by viewModel.sectorsFromZone.observeAsState()
+                val sectorsFromZone by viewModel.sectorsFromZone.collectAsState(null)
 
                 DataList(
                     kClass = Sector::class,

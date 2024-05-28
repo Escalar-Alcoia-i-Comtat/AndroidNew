@@ -52,11 +52,19 @@ interface UserDao {
     @Query("SELECT * FROM favorite_zones WHERE zoneId=:zoneId")
     suspend fun getZone(zoneId: Long): FavoriteZone?
 
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getSectorFlow(zoneId)"))
     @Query("SELECT * FROM favorite_zones WHERE zoneId=:zoneId")
     fun getZoneLive(zoneId: Long): LiveData<FavoriteZone?>
 
+    @Query("SELECT * FROM favorite_zones WHERE zoneId=:zoneId")
+    fun getZoneFlow(zoneId: Long): Flow<FavoriteZone?>
+
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllZonesFlow()"))
     @Query("SELECT * FROM favorite_zones")
     fun getAllZonesLive(): LiveData<List<FavoriteZone>>
+
+    @Query("SELECT * FROM favorite_zones")
+    fun getAllZonesFlow(): Flow<List<FavoriteZone>>
 
 
     @WorkerThread
@@ -78,10 +86,10 @@ interface UserDao {
     @Query("SELECT * FROM favorite_sectors WHERE sectorId=:sectorId")
     fun getSectorFlow(sectorId: Long): Flow<FavoriteSector?>
 
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllSectorsFlow()"))
     @Query("SELECT * FROM favorite_sectors")
     fun getAllSectorsLive(): LiveData<List<FavoriteSector>>
 
-    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllSectorsFlow()"))
     @Query("SELECT * FROM favorite_sectors")
     fun getAllSectorsFlow(): Flow<List<FavoriteSector>>
 

@@ -5,11 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -17,7 +13,18 @@ import androidx.navigation.NavHostController
 import java.time.Instant
 import kotlin.reflect.KClass
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.dao.search
@@ -26,9 +33,6 @@ import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.storage.data.ImageEntity
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
-import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteArea
-import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteSector
-import org.escalaralcoiaicomtat.android.storage.data.favorites.FavoriteZone
 import org.escalaralcoiaicomtat.android.worker.SyncWorker
 import timber.log.Timber
 
@@ -39,63 +43,58 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     var navController: NavHostController? = null
 
-    private val syncWorkers = SyncWorker.getLive(application)
+    private val syncWorkers = SyncWorker.getFlow(application)
     val isRunningSync = syncWorkers.map { list -> list.any { !it.state.isFinished } }
 
-    private val _selection = MutableLiveData<ImageEntity?>()
-    val selection: LiveData<ImageEntity?> get() = _selection
+    private val _selection = MutableStateFlow<ImageEntity?>(null)
+    val selection: StateFlow<ImageEntity?> get() = _selection.asStateFlow()
 
-    private val _currentDestination = MutableLiveData<NavDestination>()
+    private val _currentDestination = MutableStateFlow<NavDestination?>(null)
 
     val creationOptionsList = MutableLiveData<List<DataEntity>?>()
     val pendingCreateOperation = MutableLiveData<((DataEntity) -> Unit)?>()
 
-    val areas = dataDao.getAllAreasLive()
-    val zones = dataDao.getAllZonesLive()
-    val sectors = dataDao.getAllSectorsLive()
-    val paths = dataDao.getAllPathsLive()
+    val areas = dataDao.getAllAreasFlow()
+    val zones = dataDao.getAllZonesFlow()
+    val sectors = dataDao.getAllSectorsFlow()
+    val paths = dataDao.getAllPathsFlow()
 
-    val areaWithZones = _selection.switchMap {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val areaWithZones = selection.flatMapLatest {
         if (it is Area) {
-            dataDao.getZonesFromAreaLive(it.id)
+            dataDao.getZonesFromAreaFlow(it.id)
         } else {
-            null
+            emptyFlow()
         }
     }
 
-    val sectorsFromZone = _selection.switchMap {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val sectorsFromZone = selection.flatMapLatest {
         if (it is Zone) {
-            dataDao.getSectorsFromZoneLive(it.id)
+            dataDao.getSectorsFromZoneFlow(it.id)
         } else {
-            null
+            emptyFlow()
         }
     }
 
-    private val favoriteAreas = userDao.getAllAreasLive()
-    private val favoriteZones = userDao.getAllZonesLive()
-    private val favoriteSectors = userDao.getAllSectorsLive()
+    private val favoriteAreas = userDao.getAllAreasFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val favoriteZones = userDao.getAllZonesFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val favoriteSectors = userDao.getAllSectorsFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _favorites = MutableLiveData<List<ImageEntity>>()
     val favorites: LiveData<List<ImageEntity>> get() = _favorites
 
-    private val favoriteAreasObserver = Observer<List<FavoriteArea>> {
-        updateFavorites()
-    }
-    private val favoriteZonesObserver = Observer<List<FavoriteZone>> {
-        updateFavorites()
-    }
-    private val favoriteSectorsObserver = Observer<List<FavoriteSector>> {
+    private val favoritesCollector = FlowCollector<List<*>?> {
         updateFavorites()
     }
 
-    val selectionWithCurrentDestination = MediatorLiveData<Pair<DataEntity?, NavDestination?>>().apply {
-        addSource(_selection) {
-            value = it to _currentDestination.value
+    val selectionWithCurrentDestination: Flow<Pair<DataEntity?, NavDestination?>> =
+        combine(selection, _currentDestination) { values ->
+            (values[0] as DataEntity?) to (values[1] as NavDestination?)
         }
-        addSource(_currentDestination) {
-            value = _selection.value to it
-        }
-    }
 
     val searchQuery = MutableStateFlow("")
     val isSearching = MutableStateFlow(false)
@@ -104,20 +103,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val searchResults = MutableStateFlow(emptyList<DataEntity>())
 
     init {
-        favoriteAreas.observeForever(favoriteAreasObserver)
-        favoriteZones.observeForever(favoriteZonesObserver)
-        favoriteSectors.observeForever(favoriteSectorsObserver)
+        viewModelScope.launch { favoriteAreas.collect(favoritesCollector) }
+        viewModelScope.launch { favoriteZones.collect(favoritesCollector) }
+        viewModelScope.launch { favoriteSectors.collect(favoritesCollector) }
     }
 
     fun load(areaId: Long?, zoneId: Long?) = viewModelScope.launch(Dispatchers.IO) {
         if (zoneId != null) {
             Timber.d("Loading zone $zoneId...")
-            _selection.postValue(dataDao.getZone(zoneId))
+            _selection.tryEmit(dataDao.getZone(zoneId))
         } else if (areaId != null) {
             Timber.d("Loading area $areaId...")
-            _selection.postValue(dataDao.getArea(areaId))
+            _selection.tryEmit(dataDao.getArea(areaId))
         } else {
-            _selection.postValue(null)
+            _selection.tryEmit(null)
         }
     }
 
@@ -125,7 +124,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun Navigation() {
         DisposableEffect(navController) {
             val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-                _currentDestination.postValue(destination)
+                _currentDestination.tryEmit(destination)
             }
 
             navController?.addOnDestinationChangedListener(listener)
@@ -140,7 +139,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Moves the sector at index [from] to index [to].
      */
     fun moveSector(from: Int, to: Int) = viewModelScope.launch(Dispatchers.IO) {
-        val zone = selection.value ?: return@launch Timber.w("Tried to move sector while not in zone")
+        val zone =
+            selection.value ?: return@launch Timber.w("Tried to move sector while not in zone")
 
         Timber.d("Moving sector from $from to $to")
         // Get a list of all the sectors in the zone
@@ -172,19 +172,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *
      * @throws IllegalArgumentException When [type] is not valid.
      */
-    fun <T: DataEntity> createChooser(type: KClass<T>, operation: (T) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        val list = when(type) {
-            Area::class -> dataDao.getAllAreas()
-            Zone::class -> dataDao.getAllZones()
-            Sector::class -> dataDao.getAllSectors()
-            else -> throw IllegalArgumentException("Could not select as parent ${type.simpleName}")
+    fun <T : DataEntity> createChooser(type: KClass<T>, operation: (T) -> Unit) =
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = when (type) {
+                Area::class -> dataDao.getAllAreas()
+                Zone::class -> dataDao.getAllZones()
+                Sector::class -> dataDao.getAllSectors()
+                else -> throw IllegalArgumentException("Could not select as parent ${type.simpleName}")
+            }
+            pendingCreateOperation.postValue {
+                @Suppress("UNCHECKED_CAST")
+                operation(it as T)
+            }
+            creationOptionsList.postValue(list)
         }
-        pendingCreateOperation.postValue {
-            @Suppress("UNCHECKED_CAST")
-            operation(it as T)
-        }
-        creationOptionsList.postValue(list)
-    }
 
     fun dismissChooser() {
         pendingCreateOperation.postValue(null)

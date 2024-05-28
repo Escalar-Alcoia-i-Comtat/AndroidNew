@@ -106,24 +106,24 @@ import org.escalaralcoiaicomtat.android.ui.reusable.FloatingActionButtonAction
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationItem.ILabel
 import org.escalaralcoiaicomtat.android.ui.reusable.navigation.NavigationScaffold
-import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AreaId
-import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.ZoneId
+import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.AREA_ID
+import org.escalaralcoiaicomtat.android.ui.screen.Routes.Arguments.ZONE_ID
 import org.escalaralcoiaicomtat.android.ui.theme.AppTheme
 import org.escalaralcoiaicomtat.android.ui.viewmodel.MainViewModel
 
 object Routes {
     object Arguments {
-        const val AreaId = "areaId"
-        const val ZoneId = "zoneId"
+        const val AREA_ID = "areaId"
+        const val ZONE_ID = "zoneId"
     }
 
     object NavigationHome : NavigationItem(
-        route = "home?$AreaId={$AreaId}&$ZoneId={$ZoneId}",
+        route = "home?$AREA_ID={$AREA_ID}&$ZONE_ID={$ZONE_ID}",
         root = "home",
         arguments = listOf(
             // Use String instead of Int for id since Int is not nullable in Java
-            Argument(AreaId, NavType.StringType, true),
-            Argument(ZoneId, NavType.StringType, true)
+            Argument(AREA_ID, NavType.StringType, true),
+            Argument(ZONE_ID, NavType.StringType, true)
         ),
         label = ILabel { stringResource(R.string.item_home) },
         activeIcon = Icons.Filled.Home,
@@ -134,8 +134,8 @@ object Routes {
          */
         fun createRoute(areaId: Long? = null, zoneId: Long? = null): String {
             val params = mutableMapOf<String, Long?>()
-            areaId?.let { params[AreaId] = it }
-            zoneId?.let { params[ZoneId] = it }
+            areaId?.let { params[AREA_ID] = it }
+            zoneId?.let { params[ZONE_ID] = it }
             return "home" + (params
                 .takeIf { it.isNotEmpty() }
                 ?.let { "?" + it.toList().joinToString("&") { (k, v) -> "$k=$v" } } ?: "")
@@ -172,7 +172,7 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
 
-    val selectionWithCurrentDestination by viewModel.selectionWithCurrentDestination.observeAsState(
+    val selectionWithCurrentDestination by viewModel.selectionWithCurrentDestination.collectAsState(
         null to null
     )
     val (currentSelection, currentBackStackEntry) = selectionWithCurrentDestination
@@ -214,7 +214,7 @@ fun MainScreen(
     viewModel.Navigation()
 
     // Progress bar shows over everything
-    val isRunningSync by viewModel.isRunningSync.observeAsState(initial = true)
+    val isRunningSync by viewModel.isRunningSync.collectAsState(initial = true)
 
     AnimatedVisibility(visible = isRunningSync) {
         LinearProgressIndicator(
@@ -455,10 +455,10 @@ fun MainScreen(
                 Routes.NavigationHome.equals(targetState.destination)
             ) {
                 // Navigating inside Home
-                val initialAreaId = initialState.arguments?.getString(AreaId)?.toLongOrNull()
-                val initialZoneId = initialState.arguments?.getString(ZoneId)?.toLongOrNull()
-                val targetAreaId = targetState.arguments?.getString(AreaId)?.toLongOrNull()
-                val targetZoneId = targetState.arguments?.getString(ZoneId)?.toLongOrNull()
+                val initialAreaId = initialState.arguments?.getString(AREA_ID)?.toLongOrNull()
+                val initialZoneId = initialState.arguments?.getString(ZONE_ID)?.toLongOrNull()
+                val targetAreaId = targetState.arguments?.getString(AREA_ID)?.toLongOrNull()
+                val targetZoneId = targetState.arguments?.getString(ZONE_ID)?.toLongOrNull()
 
                 when {
                     (
@@ -496,8 +496,8 @@ fun MainScreen(
     ) { page, entry ->
         when (page) {
             Routes.NavigationHome -> {
-                val areaId = entry.arguments?.getString(AreaId)?.toLongOrNull()
-                val zoneId = entry.arguments?.getString(ZoneId)?.toLongOrNull()
+                val areaId = entry.arguments?.getString(AREA_ID)?.toLongOrNull()
+                val zoneId = entry.arguments?.getString(ZONE_ID)?.toLongOrNull()
 
                 viewModel.load(areaId, zoneId)
 
@@ -626,7 +626,7 @@ private fun SearchBarActions(
                 Icon(Icons.Rounded.Close, stringResource(R.string.action_close))
             }
         } else Row {
-            val selection by viewModel.selection.observeAsState()
+            val selection by viewModel.selection.collectAsState()
 
             IconButton(
                 onClick = { viewModel.isSearching.tryEmit(true) }

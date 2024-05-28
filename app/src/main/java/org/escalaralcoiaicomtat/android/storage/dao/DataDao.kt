@@ -93,9 +93,14 @@ abstract class DataDao {
     @Query("SELECT * FROM zones")
     abstract suspend fun getAllZones(): List<Zone>
 
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllZonesFlow()"))
     @WorkerThread
     @Query("SELECT * FROM zones")
     abstract fun getAllZonesLive(): LiveData<List<Zone>>
+
+    @WorkerThread
+    @Query("SELECT * FROM zones")
+    abstract fun getAllZonesFlow(): Flow<List<Zone>>
 
     @Deprecated("Use Flow", replaceWith = ReplaceWith("getSectorsFromZoneFlow(zoneId)"))
     @Transaction
@@ -178,9 +183,14 @@ abstract class DataDao {
     @Query("SELECT * FROM paths")
     abstract suspend fun getAllPaths(): List<Path>
 
+    @Deprecated("Use Flow", replaceWith = ReplaceWith("getAllPathsFlow()"))
     @WorkerThread
     @Query("SELECT * FROM paths")
     abstract fun getAllPathsLive(): LiveData<List<Path>>
+
+    @WorkerThread
+    @Query("SELECT * FROM paths")
+    abstract fun getAllPathsFlow(): Flow<List<Path>>
 
     @WorkerThread
     @Transaction

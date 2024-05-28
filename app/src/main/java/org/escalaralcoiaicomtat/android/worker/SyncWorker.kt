@@ -145,8 +145,15 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
             Timber.d("Periodic synchronization enqueued")
         }
 
+        @Deprecated(
+            message = "Use Flows instead of LiveData",
+            replaceWith = ReplaceWith("getFlow(context)")
+        )
         fun getLive(context: Context) = WorkManager.getInstance(context)
             .getWorkInfosByTagLiveData(SYNC_WORKER_TAG)
+
+        fun getFlow(context: Context) = WorkManager.getInstance(context)
+            .getWorkInfosByTagFlow(SYNC_WORKER_TAG)
     }
 
     private val notificationManager: NotificationManager =

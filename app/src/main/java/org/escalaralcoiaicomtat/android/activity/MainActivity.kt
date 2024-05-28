@@ -1,9 +1,7 @@
 package org.escalaralcoiaicomtat.android.activity
 
 import android.app.Application
-import android.app.assist.AssistContent
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.viewModels
@@ -122,18 +120,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onProvideAssistContent(outContent: AssistContent?) {
-        super.onProvideAssistContent(outContent)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mainViewModel.selection.observe(this) { entity ->
-                val uri = (entity as? Area)?.webUrl ?: (entity as? Zone)?.webUrl
-
-                outContent?.webUri = uri
-            }
-        }
-    }
-
     private val onSectorView: (Sector) -> Unit = {
         sectorViewerRequestLauncher.launch(
             SectorViewer.Input(it.id)
@@ -187,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             )
             is Zone -> navController?.navigate(
                 Routes.NavigationHome.createRoute(
-                    areaId = currentEntryArgs?.getString(Routes.Arguments.AreaId)?.toLongOrNull(),
+                    areaId = currentEntryArgs?.getString(Routes.Arguments.AREA_ID)?.toLongOrNull(),
                     zoneId = target.id
                 )
             )
