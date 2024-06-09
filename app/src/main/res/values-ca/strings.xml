@@ -319,4 +319,8 @@
     <string name="distance_unit_feet_decimal">%d ft</string>
     <string name="distance_unit_feet_float">%f ft</string>
     <string name="distance_unit_feet_tag">Peus</string>
+    <string name="link_view_area">View Area</string>
+    <string name="link_view_zone">View Zone</string>
+    <string name="link_view_sector">View Sector</string>
+    <string name="link_view_path">View Path</string>
 </resources>
