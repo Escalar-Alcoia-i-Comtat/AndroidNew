@@ -93,6 +93,9 @@ class MainActivity : AppCompatActivity() {
             LaunchedEffect(navController) {
                 mainViewModel.navController = navController
             }
+            LaunchedEffect(Unit) {
+                handleDeepLink(navController)
+            }
 
             MainScreen(
                 widthSizeClass = windowSizeClass.widthSizeClass,
@@ -167,6 +170,25 @@ class MainActivity : AppCompatActivity() {
             else -> navController?.navigate(
                 Routes.NavigationHome.createRoute()
             )
+        }
+    }
+
+    private fun handleDeepLink(navController: NavController?) {
+        val data = intent.data
+        if (data != null) {
+            val path = data.path ?: return
+            val id = data.lastPathSegment?.toLongOrNull() ?: return
+            when {
+                path.contains("area", true) -> navController?.navigate(
+                    Routes.NavigationHome.createRoute(areaId = id)
+                )
+                path.contains("zone", true) -> navController?.navigate(
+                    Routes.NavigationHome.createRoute(zoneId = id)
+                )
+                path.contains("sector", true) -> sectorViewerRequestLauncher.launch(
+                    SectorViewer.Input(id, null)
+                )
+            }
         }
     }
 
