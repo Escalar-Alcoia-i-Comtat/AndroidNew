@@ -32,6 +32,56 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="default-url"
+                android:value="https://app.escalaralcoiaicomtat.org" />
+
+            <!-- Deep Links -->
+            <intent-filter android:label="@string/app_name" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="app.escalaralcoiaicomtat.org" />
+            </intent-filter>
+            <intent-filter android:label="@string/link_view_area" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="app.escalaralcoiaicomtat.org" />
+                <data android:pathAdvancedPattern="/area/[0-9]+" />
+            </intent-filter>
+            <intent-filter android:label="@string/link_view_zone" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="app.escalaralcoiaicomtat.org" />
+                <data android:pathAdvancedPattern="/zone/[0-9]+" />
+            </intent-filter>
+            <intent-filter android:label="@string/link_view_sector" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="app.escalaralcoiaicomtat.org" />
+                <data android:pathAdvancedPattern="/sector/[0-9]+" />
+            </intent-filter>
+            <intent-filter android:label="@string/link_view_path" android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="app.escalaralcoiaicomtat.org" />
+                <data android:pathAdvancedPattern="/path/[0-9]+" />
+            </intent-filter>
         </activity>
 
         <activity
