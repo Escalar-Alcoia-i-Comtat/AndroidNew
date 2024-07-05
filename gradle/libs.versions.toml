@@ -1,5 +1,5 @@
 [versions]
-agp = "8.4.2"
+agp = "8.5.0"
 amazonappstorepublisher = "0.1.0"
 android-desugar = "2.0.4"
 androidx-activity = "1.9.0"
@@ -22,9 +22,9 @@ compose-runtime = "1.6.8"
 compose-ui = "1.6.8"
 compose-zoomable = "1.6.1"
 junit = "4.13.2"
-kotlin = "1.9.24"
+kotlin = "2.0.0"
 kotlinx-serialization-json = "1.7.1"
-ksp = "1.9.24-1.0.20"
+ksp = "2.0.0-1.0.22"
 ktor = "2.3.12"
 sentry = "4.9.0"
 timber = "5.0.1"
@@ -74,6 +74,7 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 [plugins]
 amazonappstorepublisher = { id = "app.brant.amazonappstorepublisher", version.ref = "amazonappstorepublisher" }
 android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
