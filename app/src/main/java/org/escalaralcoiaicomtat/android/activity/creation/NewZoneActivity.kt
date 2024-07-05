@@ -1,8 +1,5 @@
 package org.escalaralcoiaicomtat.android.activity.creation
 
-import android.app.Application
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -31,13 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import io.ktor.client.request.forms.FormBuilder
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.Sector
@@ -51,18 +41,17 @@ import org.escalaralcoiaicomtat.android.ui.form.FormImagePicker
 import org.escalaralcoiaicomtat.android.ui.form.FormKMZPicker
 import org.escalaralcoiaicomtat.android.ui.form.FormListCreator
 import org.escalaralcoiaicomtat.android.ui.form.PointOption
-import org.escalaralcoiaicomtat.android.utils.appendDifference
-import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
+import org.escalaralcoiaicomtat.android.viewmodel.editor.ZoneModel
 
 @OptIn(ExperimentalFoundationApi::class)
-class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model>(
+class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
     createTitleRes = R.string.new_zone_title,
     editTitleRes = R.string.edit_zone_title
 ) {
 
     object Contract : ResultContract<NewZoneActivity>(NewZoneActivity::class)
 
-    override val model: Model by viewModels { Model.Factory(parentId!!, elementId, ::onBack) }
+    override val model: ZoneModel by viewModels { ZoneModel.Factory(parentId!!, elementId, ::onBack) }
 
     @Composable
     override fun ColumnScope.Editor(parent: Area?) {
@@ -245,98 +234,5 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, NewZoneActivity.Model
                 )
             }
         )
-    }
-
-    class Model(
-        application: Application,
-        areaId: Long,
-        zoneId: Long?,
-        override val whenNotFound: suspend () -> Unit
-    ) : EditorModel<Area, Zone, Sector>(application, areaId, zoneId) {
-        companion object {
-            fun Factory(
-                areaId: Long,
-                zoneId: Long?,
-                whenNotFound: () -> Unit
-            ): ViewModelProvider.Factory = viewModelFactory {
-                initializer {
-                    val application = this[APPLICATION_KEY] as Application
-                    Model(application, areaId, zoneId, whenNotFound)
-                }
-            }
-        }
-
-        override val elementSerializer: JsonSerializer<Zone> = Zone.Companion
-
-        override val creatorEndpoint: String = "zone"
-
-        override val hasParent: Boolean = true
-
-        val displayName = MutableLiveData("")
-        val webUrl = MutableLiveData("")
-        val latitude = MutableLiveData("")
-        val longitude = MutableLiveData("")
-        val points = MutableLiveData<List<DataPoint>>()
-
-        init {
-            onInit()
-        }
-
-        private fun checkRequirements(): Boolean {
-            return displayName.value?.isNotBlank() == true &&
-                webUrl.value?.isNotBlank() == true &&
-                image.value != null &&
-                kmzName.value != null &&
-                latitude.value?.toDoubleOrNull() != null &&
-                longitude.value?.toDoubleOrNull() != null
-        }
-
-        override val isFilled: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
-            addSource(displayName) { value = checkRequirements() }
-            addSource(webUrl) { value = checkRequirements() }
-            addSource(image) { value = checkRequirements() }
-            addSource(kmzName) { value = checkRequirements() }
-            addSource(latitude) { value = checkRequirements() }
-            addSource(longitude) { value = checkRequirements() }
-            addSource(points) { value = checkRequirements() }
-        }
-
-        override suspend fun fill(child: Zone) {
-            displayName.postValue(child.displayName)
-            webUrl.postValue(child.webUrl.toString())
-            latitude.postValue(child.point?.latitude?.toString())
-            longitude.postValue(child.point?.longitude?.toString())
-            points.postValue(child.points)
-            kmzName.postValue(child.kmz)
-
-            child.readImageFile(getApplication(), lifecycle).collect {
-                val bitmap: Bitmap? = it?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
-                image.postValue(bitmap)
-            }
-        }
-
-        override suspend fun fetchParent(parentId: Long): Area? = dao.getArea(parentId)
-
-        override suspend fun fetchChild(childId: Long): Zone? = dao.getZone(childId)
-
-        override fun FormBuilder.getFormData() {
-            appendDifference("displayName", displayName.value, element.value?.displayName)
-            appendDifference("webUrl", webUrl.value, element.value?.webUrl)
-            appendDifference(
-                "point",
-                LatLng(latitude.value!!.toDouble(), longitude.value!!.toDouble()),
-                element.value?.point
-            )
-            appendDifference(
-                "points",
-                points.value ?: emptyList(),
-                element.value?.points ?: emptyList()
-            )
-            append("area", parentId!!)
-        }
-
-        override suspend fun insert(element: Zone) { dao.insert(element) }
-
-        override suspend fun update(element: Zone) = dao.update(element)
     }
 }
