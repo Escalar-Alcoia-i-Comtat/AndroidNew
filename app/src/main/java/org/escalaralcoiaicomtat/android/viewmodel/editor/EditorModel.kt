@@ -11,7 +11,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import io.ktor.client.plugins.onUpload
@@ -24,6 +23,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -138,7 +138,7 @@ abstract class EditorModel
      * Whether the form is completely filled or not. The creation button should be disabled if
      * this is not true.
      */
-    abstract val isFilled: MediatorLiveData<Boolean>
+    abstract val isFilled: StateFlow<Boolean>
 
     abstract val hasParent: Boolean
 

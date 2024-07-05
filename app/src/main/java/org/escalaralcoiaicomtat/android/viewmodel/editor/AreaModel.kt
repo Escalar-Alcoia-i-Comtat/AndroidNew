@@ -6,9 +6,13 @@ import android.graphics.BitmapFactory
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Zone
@@ -50,11 +54,14 @@ class AreaModel(
                 webUrl.value?.isNotBlank() == true &&
                 image.value != null
 
-    override val isFilled = MediatorLiveData<Boolean>().apply {
-        addSource(displayName) { value = checkRequirements() }
-        addSource(webUrl) { value = checkRequirements() }
-        addSource(image) { value = checkRequirements() }
-    }
+    override val isFilled = MediatorLiveData<Boolean>()
+        .apply {
+            addSource(displayName) { value = checkRequirements() }
+            addSource(webUrl) { value = checkRequirements() }
+            addSource(image) { value = checkRequirements() }
+        }
+        .asFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     override suspend fun fill(child: Area) {
         displayName.postValue(child.displayName)

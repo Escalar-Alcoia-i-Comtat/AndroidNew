@@ -38,6 +38,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -132,32 +133,33 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
     @Composable
     override fun ColumnScope.Editor(parent: Sector?) {
-        val displayName by model.displayName.observeAsState()
-        val sketchId by model.sketchId.observeAsState()
+        val uiState by model.uiState.collectAsState()
+        val displayName = uiState.displayName
+        val sketchId = uiState.sketchId
 
-        val height by model.height.observeAsState()
-        val grade by model.grade.observeAsState()
-        val ending by model.ending.observeAsState()
+        val height = uiState.height
+        val grade = uiState.grade
+        val ending = uiState.ending
 
-        val pitches by model.pitches.observeAsState()
+        val pitches = uiState.pitches
 
-        val stringCount by model.stringCount.observeAsState()
-        val paraboltCount by model.paraboltCount.observeAsState()
-        val burilCount by model.burilCount.observeAsState()
-        val pitonCount by model.pitonCount.observeAsState()
-        val spitCount by model.spitCount.observeAsState()
-        val tensorCount by model.tensorCount.observeAsState()
+        val stringCount = uiState.stringCount
+        val paraboltCount = uiState.paraboltCount
+        val burilCount = uiState.burilCount
+        val pitonCount = uiState.pitonCount
+        val spitCount = uiState.spitCount
+        val tensorCount = uiState.tensorCount
 
-        val crackerRequired by model.crackerRequired.observeAsState()
-        val friendRequired by model.friendRequired.observeAsState()
-        val lanyardRequired by model.lanyardRequired.observeAsState()
-        val nailRequired by model.nailRequired.observeAsState()
-        val pitonRequired by model.pitonRequired.observeAsState()
-        val stapesRequired by model.stapesRequired.observeAsState()
+        val crackerRequired = uiState.crackerRequired
+        val friendRequired = uiState.friendRequired
+        val lanyardRequired = uiState.lanyardRequired
+        val nailRequired = uiState.nailRequired
+        val pitonRequired = uiState.pitonRequired
+        val stapesRequired = uiState.stapesRequired
 
-        val reBuilders by model.reBuilders.observeAsState(initial = emptyList())
+        val reBuilders = uiState.reBuilders
 
-        val showDescription by model.showDescription.observeAsState(initial = false)
+        val showDescription = uiState.showDescription
 
         val sketchIdFocusRequester = remember { FocusRequester() }
         val heightFocusRequester = remember { FocusRequester() }
@@ -175,7 +177,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
         FormField(
             value = displayName,
-            onValueChange = { model.displayName.value = it },
+            onValueChange = model::setDisplayName,
             label = stringResource(R.string.form_display_name),
             modifier = Modifier.fillMaxWidth(),
             nextFocusRequester = sketchIdFocusRequester
@@ -183,7 +185,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
         FormField(
             value = sketchId,
-            onValueChange = { model.sketchId.value = it },
+            onValueChange = model::setSketchId,
             label = stringResource(R.string.form_sketch_id),
             modifier = Modifier.fillMaxWidth(),
             thisFocusRequester = sketchIdFocusRequester,
@@ -194,7 +196,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
         FormField(
             value = height,
-            onValueChange = { model.height.value = it.takeIf { it.isNotBlank() } },
+            onValueChange = model::setHeight,
             label = stringResource(R.string.form_height),
             modifier = Modifier.fillMaxWidth(),
             thisFocusRequester = heightFocusRequester,
@@ -203,26 +205,14 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
         )
         FormDropdown(
             selection = grade,
-            onSelectionChanged = {
-                if (grade == it) {
-                    model.grade.value = null
-                } else {
-                    model.grade.value = it
-                }
-            },
+            onSelectionChanged = model::toggleGrade,
             options = SportsGrade.entries + ArtificialGrade.entries,
             label = stringResource(R.string.form_grade),
             modifier = Modifier.fillMaxWidth()
         ) { it.displayName }
         FormDropdown(
             selection = ending,
-            onSelectionChanged = {
-                if (ending == it) {
-                    model.ending.value = null
-                } else {
-                    model.ending.value = it
-                }
-            },
+            onSelectionChanged = model::toggleEnding,
             options = Ending.entries,
             label = stringResource(R.string.form_ending),
             modifier = Modifier.fillMaxWidth()
@@ -230,7 +220,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
         FormField(
             value = stringCount,
-            onValueChange = { model.stringCount.value = it.takeIf { it.isNotBlank() } },
+            onValueChange = model::setStringCount,
             label = stringResource(R.string.form_string_count),
             modifier = Modifier.fillMaxWidth(),
             keyboardType = KeyboardType.Number,
@@ -250,11 +240,11 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
 
-            CountField(paraboltCount, model.paraboltCount::setValue, R.string.safe_type_parabolt)
-            CountField(burilCount, model.burilCount::setValue, R.string.safe_type_buril)
-            CountField(pitonCount, model.pitonCount::setValue, R.string.safe_type_piton)
-            CountField(spitCount, model.spitCount::setValue, R.string.safe_type_spit)
-            CountField(tensorCount, model.tensorCount::setValue, R.string.safe_type_tensor)
+            CountField(paraboltCount, model::setParaboltCount, R.string.safe_type_parabolt)
+            CountField(burilCount, model::setBurilCount, R.string.safe_type_buril)
+            CountField(pitonCount, model::setPitonCount, R.string.safe_type_piton)
+            CountField(spitCount, model::setSpitCount, R.string.safe_type_spit)
+            CountField(tensorCount, model::setTensorCount, R.string.safe_type_tensor)
 
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -274,28 +264,32 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
             RequiredField(
                 crackerRequired,
-                model.crackerRequired::setValue,
+                model::setCrackerRequired,
                 R.string.required_type_cracker
             )
             RequiredField(
                 friendRequired,
-                model.friendRequired::setValue,
+                model::setFriendRequired,
                 R.string.required_type_friend
             )
             RequiredField(
                 lanyardRequired,
-                model.lanyardRequired::setValue,
+                model::setLanyardRequired,
                 R.string.required_type_lanyard
             )
-            RequiredField(nailRequired, model.nailRequired::setValue, R.string.required_type_nail)
+            RequiredField(
+                nailRequired,
+                model::setNailRequired,
+                R.string.required_type_nail
+            )
             RequiredField(
                 pitonRequired,
-                model.pitonRequired::setValue,
+                model::setPitonRequired,
                 R.string.required_type_piton
             )
             RequiredField(
                 stapesRequired,
-                model.stapesRequired::setValue,
+                model::setStapesRequired,
                 R.string.required_type_stapes
             )
 
@@ -305,8 +299,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
         PitchesEditor(pitches ?: emptyList())
 
         BuilderField(
-            builder = model.builder.value,
-            onValueChange = model.builder::setValue,
+            builder = uiState.builder,
+            onValueChange = model::setBuilder,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -323,7 +317,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
             LaunchedEffect(richEditorState) {
                 snapshotFlow { richEditorState.annotatedString }
-                    .collect { model.description.postValue(richEditorState.toMarkdown()) }
+                    .collect { model.setDescription(richEditorState.toMarkdown()) }
             }
 
             Row(
@@ -339,7 +333,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
                 )
                 Switch(
                     checked = showDescription,
-                    onCheckedChange = { model.showDescription.value = it },
+                    onCheckedChange = model::setShowDescription,
                     enabled = richEditorState.toMarkdown().isNotEmpty()
                 )
             }
@@ -458,15 +452,13 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
                             pitchHeight?.toUIntOrNull(),
                             pitchEnding
                         )
-                        synchronized(model.pitches) {
-                            val list = (model.pitches.value ?: emptyList()).toMutableList()
-                            if (index != null) {
-                                list[index] = pitchInfo
-                            } else {
-                                list.add(pitchInfo)
-                            }
-                            model.pitches.postValue(list)
+                        val list = (model.uiState.value.pitches ?: emptyList()).toMutableList()
+                        if (index != null) {
+                            list[index] = pitchInfo
+                        } else {
+                            list.add(pitchInfo)
                         }
+                        model.setPitches(list)
 
                         // Clear all fields
                         pitchGrade = null
@@ -546,11 +538,9 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
                 IconButton(
                     onClick = {
-                        synchronized(model.pitches) {
-                            val list = (model.pitches.value ?: emptyList()).toMutableList()
-                            list.removeAt(index)
-                            model.pitches.postValue(list)
-                        }
+                        val list = (model.uiState.value.pitches ?: emptyList()).toMutableList()
+                        list.removeAt(index)
+                        model.setPitches(list)
                     },
                     modifier = Modifier.onGloballyPositioned {
                         deleteButtonWidth = with(localDensity) { it.size.width.toDp() }
@@ -678,9 +668,10 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
                 OutlinedButton(
                     onClick = {
-                        model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
+                        val list = (reBuilders ?: emptyList()).toMutableList().apply {
                             add(reBuilder ?: return@OutlinedButton)
                         }
+                        model.setReBuilders(list)
                     },
                     enabled = reBuilder?.let { it.name != null || it.date != null } ?: false
                 ) {
@@ -702,9 +693,10 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
 
                 IconButton(
                     onClick = {
-                        model.reBuilders.value = (reBuilders ?: emptyList()).toMutableList().apply {
+                        val list = (reBuilders ?: emptyList()).toMutableList().apply {
                             removeAt(index)
                         }
+                        model.setReBuilders(list)
                     }
                 ) {
                     Icon(Icons.Outlined.DeleteForever, stringResource(R.string.action_remove))

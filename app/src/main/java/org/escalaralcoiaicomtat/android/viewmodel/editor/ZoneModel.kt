@@ -7,9 +7,13 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import org.escalaralcoiaicomtat.android.storage.data.Area
 import org.escalaralcoiaicomtat.android.storage.data.Sector
 import org.escalaralcoiaicomtat.android.storage.data.Zone
@@ -62,15 +66,18 @@ class ZoneModel(
                 longitude.value?.toDoubleOrNull() != null
     }
 
-    override val isFilled: MediatorLiveData<Boolean> = MediatorLiveData<Boolean>().apply {
-        addSource(displayName) { value = checkRequirements() }
-        addSource(webUrl) { value = checkRequirements() }
-        addSource(image) { value = checkRequirements() }
-        addSource(kmzName) { value = checkRequirements() }
-        addSource(latitude) { value = checkRequirements() }
-        addSource(longitude) { value = checkRequirements() }
-        addSource(points) { value = checkRequirements() }
-    }
+    override val isFilled = MediatorLiveData<Boolean>()
+        .apply {
+            addSource(displayName) { value = checkRequirements() }
+            addSource(webUrl) { value = checkRequirements() }
+            addSource(image) { value = checkRequirements() }
+            addSource(kmzName) { value = checkRequirements() }
+            addSource(latitude) { value = checkRequirements() }
+            addSource(longitude) { value = checkRequirements() }
+            addSource(points) { value = checkRequirements() }
+        }
+        .asFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     override suspend fun fill(child: Zone) {
         displayName.postValue(child.displayName)

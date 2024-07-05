@@ -48,6 +48,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -494,7 +495,7 @@ abstract class EditorActivity<
 
             val element by model.element.observeAsState()
 
-            val isFilled by model.isFilled.observeAsState(initial = false)
+            val isFilled by model.isFilled.collectAsState()
             val isCreating by model.isCreating.observeAsState()
 
             Text(
