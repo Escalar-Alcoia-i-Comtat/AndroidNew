@@ -657,8 +657,8 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            dialog = {
-                var reBuilder by remember { mutableStateOf<Builder?>(null) }
+            dialog = { editing ->
+                var reBuilder by remember { mutableStateOf(editing?.second) }
 
                 BuilderField(
                     builder = reBuilder,
@@ -669,6 +669,10 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
                 OutlinedButton(
                     onClick = {
                         val list = (reBuilders ?: emptyList()).toMutableList().apply {
+                            // If we were editing, first remove the existing one
+                            if (editing != null) {
+                                removeAt(editing.first)
+                            }
                             add(reBuilder ?: return@OutlinedButton)
                         }
                         model.setReBuilders(list)
