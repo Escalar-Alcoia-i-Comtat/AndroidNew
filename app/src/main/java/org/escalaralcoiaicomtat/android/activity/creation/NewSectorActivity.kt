@@ -11,8 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,13 +45,14 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, SectorModel>(
 
     @Composable
     override fun ColumnScope.Editor(parent: Zone?) {
-        val displayName by model.displayName.observeAsState(initial = "")
-        val image by model.image.observeAsState()
-        val gpxFile by model.gpxName.observeAsState()
-        val latitude by model.latitude.observeAsState(initial = "")
-        val longitude by model.longitude.observeAsState(initial = "")
-        val kidsApt by model.kidsApt.observeAsState(initial = false)
-        val walkingTime by model.walkingTime.observeAsState(initial = "")
+        val uiState by model.uiState.collectAsState()
+        val displayName = uiState.displayName
+        val image = uiState.image
+        val gpxFile = uiState.gpxName
+        val latitude = uiState.latitude
+        val longitude = uiState.longitude
+        val kidsApt = uiState.kidsApt
+        val walkingTime = uiState.walkingTime
 
         val latitudeFocusRequester = remember { FocusRequester() }
         val longitudeFocusRequester = remember { FocusRequester() }
@@ -69,7 +70,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, SectorModel>(
 
         FormField(
             value = displayName,
-            onValueChange = { model.displayName.value = it },
+            onValueChange = model::setDisplayName,
             label = stringResource(R.string.form_display_name),
             modifier = Modifier.fillMaxWidth()
         )
@@ -85,7 +86,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, SectorModel>(
         Row(modifier = Modifier.fillMaxWidth()) {
             FormField(
                 value = latitude,
-                onValueChange = { model.latitude.value = it },
+                onValueChange = model::setLatitude,
                 label = stringResource(R.string.form_latitude),
                 modifier = Modifier
                     .weight(1f)
@@ -96,7 +97,7 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, SectorModel>(
             )
             FormField(
                 value = longitude,
-                onValueChange = { model.longitude.value = it },
+                onValueChange = model::setLongitude,
                 label = stringResource(R.string.form_longitude),
                 modifier = Modifier
                     .weight(1f)
@@ -111,18 +112,18 @@ class NewSectorActivity : EditorActivity<Zone, Sector, Path, SectorModel>(
             label = stringResource(R.string.form_sun_time),
             modifier = Modifier.padding(top = 8.dp),
             mode = SizeMode.FILL_MAX_WIDTH,
-            onItemSelection = { model.sunTime.postValue(SunTime.entries[it]) }
+            onItemSelection = { SunTime.entries[it].let(model::setSunTime) }
         )
 
         FormCheckbox(
             checked = kidsApt,
-            onCheckedChange = { model.kidsApt.postValue(it) },
+            onCheckedChange = model::setKidsApt,
             label = stringResource(R.string.form_kids_apt)
         )
 
         FormField(
             value = walkingTime,
-            onValueChange = { model.walkingTime.value = it },
+            onValueChange = model::setWalkingTime,
             label = stringResource(R.string.form_walking_time),
             modifier = Modifier.fillMaxWidth(),
             keyboardType = KeyboardType.Number

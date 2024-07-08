@@ -17,8 +17,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,13 +55,15 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
 
     @Composable
     override fun ColumnScope.Editor(parent: Area?) {
-        val displayName by model.displayName.observeAsState(initial = "")
-        val webUrl by model.webUrl.observeAsState(initial = "")
-        val image by model.image.observeAsState()
-        val kmzFile by model.kmzName.observeAsState()
-        val latitude by model.latitude.observeAsState(initial = "")
-        val longitude by model.longitude.observeAsState(initial = "")
-        val points by model.points.observeAsState()
+        val uiState by model.uiState.collectAsState()
+
+        val displayName = uiState.displayName
+        val webUrl = uiState.webUrl
+        val image = uiState.image
+        val kmzFile = uiState.kmzName
+        val latitude = uiState.latitude
+        val longitude = uiState.longitude
+        val points = uiState.points
 
         val webUrlFocusRequester = remember { FocusRequester() }
         val latitudeFocusRequester = remember { FocusRequester() }
@@ -80,14 +82,14 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
 
         FormField(
             value = displayName,
-            onValueChange = { model.displayName.value = it },
+            onValueChange = model::setDisplayName,
             label = stringResource(R.string.form_display_name),
             modifier = Modifier.fillMaxWidth(),
             nextFocusRequester = webUrlFocusRequester
         )
         FormField(
             value = webUrl,
-            onValueChange = { model.webUrl.value = it },
+            onValueChange = model::setWebUrl,
             label = stringResource(R.string.form_web_url),
             modifier = Modifier.fillMaxWidth(),
             keyboardType = KeyboardType.Uri,
@@ -109,7 +111,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
         Row(modifier = Modifier.fillMaxWidth()) {
             FormField(
                 value = latitude,
-                onValueChange = { model.latitude.value = it },
+                onValueChange = model::setLatitude,
                 label = stringResource(R.string.form_latitude),
                 modifier = Modifier
                     .weight(1f)
@@ -120,7 +122,7 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
             )
             FormField(
                 value = longitude,
-                onValueChange = { model.longitude.value = it },
+                onValueChange = model::setLongitude,
                 label = stringResource(R.string.form_longitude),
                 modifier = Modifier
                     .weight(1f)
@@ -185,8 +187,8 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
                         rowLatitude.toDoubleOrNull() != null &&
                         rowLongitude.toDoubleOrNull() != null,
                     onClick = {
-                        model.points.postValue(
-                            (points ?: emptyList()).toMutableList().apply {
+                        model.setPoints(
+                            points.toMutableList().apply {
                                 add(
                                     DataPoint(
                                         LatLng(rowLatitude.toDouble(), rowLongitude.toDouble()),
@@ -221,10 +223,10 @@ class NewZoneActivity : EditorActivity<Area, Zone, Sector, ZoneModel>(
                     trailingContent = {
                         IconButton(
                             onClick = {
-                                model.points.postValue(
-                                    (points ?: emptyList()).toMutableList().apply {
+                                model.setPoints(
+                                    points.toMutableList().apply {
                                         remove(point)
-                                    }.takeIf { it.isNotEmpty() }
+                                    }
                                 )
                             }
                         ) {

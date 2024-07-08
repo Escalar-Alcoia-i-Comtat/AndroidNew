@@ -50,7 +50,6 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.exception.remote.RequestException
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
@@ -74,7 +74,6 @@ import org.escalaralcoiaicomtat.android.utils.toMap
 import org.escalaralcoiaicomtat.android.utils.toast
 import org.escalaralcoiaicomtat.android.viewmodel.editor.EditorModel
 import timber.log.Timber
-import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
@@ -82,7 +81,7 @@ abstract class EditorActivity<
     ParentType : BaseEntity?,
     ElementType : BaseEntity,
     ChildrenType : BaseEntity?,
-    Model : EditorModel<ParentType, ElementType, ChildrenType>
+    Model : EditorModel<ParentType, ElementType, ChildrenType, *>
     >(
     @StringRes private val createTitleRes: Int,
     @StringRes private val editTitleRes: Int
@@ -192,10 +191,10 @@ abstract class EditorActivity<
 
     protected open val maxWidth: Int = 1000
 
-    protected val parentId: Long? by extras()
-    protected val parentName: String? by extras()
+    protected val parentId: Long? by lazy { intent?.extras?.getLong(EXTRA_PARENT_ID) }
+    protected val parentName: String? by lazy { intent?.extras?.getString(EXTRA_PARENT_ID) }
 
-    protected val elementId: Long? by extras()
+    protected val elementId: Long? by lazy { intent?.extras?.getLong(EXTRA_ELEMENT_ID) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -212,15 +211,15 @@ abstract class EditorActivity<
                     progress.collect { }
                     // code for completion
                     onBack()
-                } catch (e: CancellationException) {
+                } catch (_: CancellationException) {
                     // code for cancellation
                 }
             }
 
-            val isDeleting by model.isDeleting.observeAsState(false)
+            val isDeleting by model.isDeleting.collectAsState()
             var requestedDeletion by remember { mutableStateOf(false) }
             if (requestedDeletion) {
-                val element by model.element.observeAsState()
+                val element by model.element.collectAsState()
 
                 AlertDialog(
                     onDismissRequest = { if (!isDeleting) requestedDeletion = false },
@@ -266,10 +265,10 @@ abstract class EditorActivity<
                 )
             }
 
-            val serverError by model.serverError.observeAsState()
+            val serverError by model.requestException.collectAsState()
             serverError?.let { error ->
                 AlertDialog(
-                    onDismissRequest = { model.serverError.postValue(null) },
+                    onDismissRequest = model::dismissServerError,
                     title = { Text(stringResource(R.string.server_error_dialog_title)) },
                     text = {
                         Column(
@@ -277,7 +276,11 @@ abstract class EditorActivity<
                                 .verticalScroll(rememberScrollState())
                                 .horizontalScroll(rememberScrollState())
                         ) {
-                            Text(stringResource(R.string.server_error_dialog_headline, error.code))
+                            if (error is RequestException) {
+                                Text(
+                                    stringResource(R.string.server_error_dialog_headline, error.code)
+                                )
+                            }
                             error.message?.let {
                                 Text(stringResource(R.string.server_error_dialog_message, it))
                             }
@@ -300,7 +303,7 @@ abstract class EditorActivity<
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = { model.serverError.postValue(null) }) {
+                        TextButton(onClick = model::dismissServerError) {
                             Text(stringResource(android.R.string.ok))
                         }
                     },
@@ -324,7 +327,7 @@ abstract class EditorActivity<
 
             Scaffold(
                 topBar = {
-                    val element by model.element.observeAsState()
+                    val element by model.element.collectAsState()
 
                     CenterAlignedTopAppBar(
                         title = {
@@ -365,10 +368,12 @@ abstract class EditorActivity<
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    val parent by model.parent.observeAsState()
+                    val parent by model.parent.collectAsState()
 
                     // Show side panel on top in mobile
-                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact && (!model.hasParent || parent != null)) {
+                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact &&
+                        (!model.hasParent || parent != null)
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -405,7 +410,7 @@ abstract class EditorActivity<
                                         .verticalScroll(rememberScrollState()),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    val editing by model.element.observeAsState()
+                                    val editing by model.element.collectAsState()
                                     editing?.let {
                                         FormField(
                                             value = it.id.toString(),
@@ -429,7 +434,7 @@ abstract class EditorActivity<
                         }
                     }
 
-                    val isCreating by model.isCreating.observeAsState()
+                    val isCreating by model.isCreating.collectAsState()
                     AnimatedVisibility(
                         visible = isCreating != null,
                         enter = slideInVertically { it },
@@ -493,10 +498,10 @@ abstract class EditorActivity<
         ) {
             val context = LocalContext.current
 
-            val element by model.element.observeAsState()
+            val element by model.element.collectAsState()
 
             val isFilled by model.isFilled.collectAsState()
-            val isCreating by model.isCreating.observeAsState()
+            val isCreating by model.isCreating.collectAsState()
 
             Text(
                 text = isCreating?.getString(context) ?: "",
@@ -507,7 +512,7 @@ abstract class EditorActivity<
             TextButton(
                 onClick = {
                     model.create().invokeOnCompletion { throwable ->
-                        val hasServerError = model.serverError.value != null
+                        val hasServerError = model.requestException.value != null
                         if (throwable == null && !hasServerError) {
                             Timber.i("Creation successful")
 
@@ -552,15 +557,4 @@ abstract class EditorActivity<
         Timber.d("Stopped ${this::class.simpleName}")
     }
 
-    @Suppress("UNCHECKED_CAST", "DEPRECATION")
-    private fun <
-        ParentType : BaseEntity?,
-        ElementType : BaseEntity,
-        ChildrenType : BaseEntity?,
-        M : EditorModel<ParentType, ElementType, ChildrenType>,
-        Z : EditorActivity<ParentType, ElementType, ChildrenType, M>,
-        T : Any
-        > extras(): ReadOnlyProperty<Z, T?> = ReadOnlyProperty { _, property ->
-        intent?.extras?.get(property.name) as? T?
-    }
 }

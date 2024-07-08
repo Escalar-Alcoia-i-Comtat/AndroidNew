@@ -6,16 +6,9 @@ import android.graphics.BitmapFactory
 import androidx.annotation.UiThread
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.ktor.client.request.forms.FormBuilder
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import org.burnoutcrew.reorderable.ItemPosition
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.Path
@@ -26,14 +19,22 @@ import org.escalaralcoiaicomtat.android.storage.type.GradeValue
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
 import org.escalaralcoiaicomtat.android.utils.appendDifference
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
+import org.escalaralcoiaicomtat.android.utils.takeIfNotBlank
 import timber.log.Timber
+import java.util.UUID
 
+@Suppress("TooManyFunctions")
 class PathModel(
     application: Application,
     sectorId: Long,
     pathId: Long?,
     override val whenNotFound: suspend () -> Unit
-) : EditorModel<Sector, Path, BaseEntity>(application, sectorId, pathId) {
+) : EditorModel<Sector, Path, BaseEntity, PathModel.UiState>(
+    application,
+    sectorId,
+    pathId,
+    { UiState() }
+) {
     companion object {
         fun Factory(
             sectorId: Long,
@@ -51,43 +52,6 @@ class PathModel(
     override val elementSerializer: JsonSerializer<Path> = Path.Companion
 
     override val creatorEndpoint: String = "path"
-
-    data class UiState(
-        val displayName: String = "",
-        val sketchId: String = "",
-
-        val height: String? = null,
-        val grade: GradeValue? = null,
-        val ending: Ending? = null,
-
-        val pitches: List<PitchInfo>? = null,
-
-        val stringCount: String? = null,
-
-        val paraboltCount: String? = null,
-        val burilCount: String? = null,
-        val pitonCount: String? = null,
-        val spitCount: String? = null,
-        val tensorCount: String? = null,
-
-        val crackerRequired: Boolean = false,
-        val friendRequired: Boolean = false,
-        val lanyardRequired: Boolean = false,
-        val nailRequired: Boolean = false,
-        val pitonRequired: Boolean = false,
-        val stapesRequired: Boolean = false,
-
-        val showDescription: Boolean = false,
-        val description: String? = null,
-
-        val builder: Builder? = null,
-        val reBuilders: List<Builder>? = null
-    )
-
-    private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState())
-    val uiState: StateFlow<UiState> = _uiState
-        .asStateFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     /**
      * Used for displaying the current sector's image in the side of the screen.
@@ -140,13 +104,9 @@ class PathModel(
         setReBuilders(child.reBuilder)
     }
 
-    private fun checkRequirements(): Boolean {
-        return uiState.value.let { it.displayName.isNotBlank() && it.sketchId.isNotBlank() }
+    override fun checkRequirements(state: UiState): Boolean {
+        return state.displayName.isNotBlank() && state.sketchId.isNotBlank()
     }
-
-    override val isFilled = uiState
-        .map { checkRequirements() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun setDisplayName(value: String) {
         _uiState.value = _uiState.value.copy(displayName = value)
@@ -248,56 +208,38 @@ class PathModel(
 
     override suspend fun fetchChild(childId: Long): Path? = dao.getPath(childId)
 
-    override fun FormBuilder.getFormData() {
+    override fun FormBuilder.getFormData(state: UiState, element: Path?) {
         Timber.i("Creating a new path for sector #$parentId")
 
-        appendDifference("displayName", uiState.value.displayName, element.value?.displayName)
-        appendDifference("sketchId", uiState.value.sketchId, element.value?.sketchId)
+        appendDifference("displayName", state.displayName, element?.displayName)
+        appendDifference("sketchId", state.sketchId.toLongOrNull(), element?.sketchId)
 
-        appendDifference("height", uiState.value.height?.toULongOrNull(), element.value?.height)
-        appendDifference("grade", uiState.value.grade, element.value?.grade)
-        appendDifference("ending", uiState.value.ending, element.value?.ending)
+        appendDifference("height", state.height?.toLongOrNull(), element?.height)
+        appendDifference("grade", state.grade, element?.grade)
+        appendDifference("ending", state.ending, element?.ending)
 
-        appendDifference("pitches", uiState.value.pitches, element.value?.pitches)
+        appendDifference("pitches", state.pitches, element?.pitches)
 
-        appendDifference("stringCount", uiState.value.stringCount, element.value?.stringCount)
+        appendDifference("stringCount", state.stringCount?.toLongOrNull(), element?.stringCount)
 
-        appendDifference("paraboltCount", uiState.value.paraboltCount, element.value?.paraboltCount)
-        appendDifference("burilCount", uiState.value.burilCount, element.value?.burilCount)
-        appendDifference("pitonCount", uiState.value.pitonCount, element.value?.pitonCount)
-        appendDifference("spitCount", uiState.value.spitCount, element.value?.spitCount)
-        appendDifference("tensorCount", uiState.value.tensorCount, element.value?.tensorCount)
+        appendDifference("paraboltCount", state.paraboltCount?.toLongOrNull(), element?.paraboltCount)
+        appendDifference("burilCount", state.burilCount?.toLongOrNull(), element?.burilCount)
+        appendDifference("pitonCount", state.pitonCount?.toLongOrNull(), element?.pitonCount)
+        appendDifference("spitCount", state.spitCount?.toLongOrNull(), element?.spitCount)
+        appendDifference("tensorCount", state.tensorCount?.toLongOrNull(), element?.tensorCount)
 
-        appendDifference(
-            "crackerRequired",
-            uiState.value.crackerRequired,
-            element.value?.crackerRequired
-        )
-        appendDifference("friendRequired", uiState.value.friendRequired, element.value?.friendRequired)
-        appendDifference(
-            "lanyardRequired",
-            uiState.value.lanyardRequired,
-            element.value?.lanyardRequired
-        )
-        appendDifference("nailRequired", uiState.value.nailRequired, element.value?.nailRequired)
-        appendDifference("pitonRequired", uiState.value.pitonRequired, element.value?.pitonRequired)
-        appendDifference("stapesRequired", uiState.value.stapesRequired, element.value?.stapesRequired)
+        appendDifference("crackerRequired", state.crackerRequired, element?.crackerRequired)
+        appendDifference("friendRequired", state.friendRequired, element?.friendRequired)
+        appendDifference("lanyardRequired", state.lanyardRequired, element?.lanyardRequired)
+        appendDifference("nailRequired", state.nailRequired, element?.nailRequired)
+        appendDifference("pitonRequired", state.pitonRequired, element?.pitonRequired)
+        appendDifference("stapesRequired", state.stapesRequired, element?.stapesRequired)
 
-        appendDifference(
-            "showDescription",
-            uiState.value.showDescription,
-            element.value?.showDescription
-        )
-        appendDifference(
-            "description",
-            uiState.value.description?.takeIf { it.isNotBlank() },
-            element.value?.description
-        )
+        appendDifference("showDescription", state.showDescription, element?.showDescription)
+        appendDifference("description", state.description.takeIfNotBlank(), element?.description)
 
-        appendDifference("builder", uiState.value.builder, element.value?.builder)
-        appendDifference("reBuilders", uiState.value.reBuilders, element.value?.reBuilder)
-
-        append("sector", parentId!!)
+        appendDifference("builder", state.builder, element?.builder)
+        appendDifference("reBuilder", state.reBuilders, element?.reBuilder)
     }
 
     @UiThread
@@ -339,4 +281,76 @@ class PathModel(
     }
 
     override suspend fun update(element: Path) = dao.update(element)
+
+
+    data class UiState(
+        val displayName: String = "",
+        val sketchId: String = "",
+
+        val height: String? = null,
+        val grade: GradeValue? = null,
+        val ending: Ending? = null,
+
+        val pitches: List<PitchInfo>? = null,
+
+        val stringCount: String? = null,
+
+        val paraboltCount: String? = null,
+        val burilCount: String? = null,
+        val pitonCount: String? = null,
+        val spitCount: String? = null,
+        val tensorCount: String? = null,
+
+        val crackerRequired: Boolean = false,
+        val friendRequired: Boolean = false,
+        val lanyardRequired: Boolean = false,
+        val nailRequired: Boolean = false,
+        val pitonRequired: Boolean = false,
+        val stapesRequired: Boolean = false,
+
+        val showDescription: Boolean = false,
+        val description: String? = null,
+
+        val builder: Builder? = null,
+        val reBuilders: List<Builder>? = null,
+
+        override val image: Bitmap? = null,
+        override val imageUUID: UUID? = null,
+        override val kmzName: String? = null,
+        override val gpxName: String? = null
+    ): BaseUiState(image, imageUUID, kmzName, gpxName) {
+        override fun copy(
+            image: Bitmap?,
+            imageUUID: UUID?,
+            kmzName: String?,
+            gpxName: String?
+        ): BaseUiState = copy(
+            displayName = displayName,
+            sketchId = sketchId,
+            height = height,
+            grade = grade,
+            ending = ending,
+            pitches = pitches,
+            stringCount = stringCount,
+            paraboltCount = paraboltCount,
+            burilCount = burilCount,
+            pitonCount = pitonCount,
+            spitCount = spitCount,
+            tensorCount = tensorCount,
+            crackerRequired = crackerRequired,
+            friendRequired = friendRequired,
+            lanyardRequired = lanyardRequired,
+            nailRequired = nailRequired,
+            pitonRequired = pitonRequired,
+            stapesRequired = stapesRequired,
+            showDescription = showDescription,
+            description = description,
+            builder = builder,
+            reBuilders = reBuilders,
+            image = image,
+            imageUUID = imageUUID,
+            kmzName = kmzName,
+            gpxName = gpxName
+        )
+    }
 }
