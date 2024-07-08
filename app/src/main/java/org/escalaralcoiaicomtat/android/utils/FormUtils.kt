@@ -13,7 +13,7 @@ fun FormBuilder.appendULong(key: String, value: ULong) = append(key, value.toInt
 
 fun <E: Enum<E>> FormBuilder.appendEnum(key: String, value: E) = append(key, value.name)
 
-fun <T> FormBuilder.appendDifference(key: String, new: T?, current: T?) {
+fun <T: Any> FormBuilder.appendDifference(key: String, new: T?, current: T?) {
     if (new == null) return
     if (new == current) return
 

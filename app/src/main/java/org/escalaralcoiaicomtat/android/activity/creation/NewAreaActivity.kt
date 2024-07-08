@@ -10,8 +10,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -59,22 +59,23 @@ class NewAreaActivity : EditorActivity<BaseEntity, Area, Zone, AreaModel>(
 
     @Composable
     override fun ColumnScope.Editor(parent: BaseEntity?) {
-        val displayName by model.displayName.observeAsState(initial = "")
-        val webUrl by model.webUrl.observeAsState(initial = "")
-        val image by model.image.observeAsState()
+        val uiState by model.uiState.collectAsState()
+        val displayName = uiState.displayName
+        val webUrl = uiState.webUrl
+        val image = uiState.image
 
         val webUrlFocusRequester = remember { FocusRequester() }
 
         FormField(
             value = displayName,
-            onValueChange = { model.displayName.value = it },
+            onValueChange = model::setDisplayName,
             label = stringResource(R.string.form_display_name),
             modifier = Modifier.fillMaxWidth(),
             nextFocusRequester = webUrlFocusRequester
         )
         FormField(
             value = webUrl,
-            onValueChange = { model.webUrl.value = it },
+            onValueChange = model::setWebUrl,
             label = stringResource(R.string.form_web_url),
             modifier = Modifier.fillMaxWidth(),
             keyboardType = KeyboardType.Uri,

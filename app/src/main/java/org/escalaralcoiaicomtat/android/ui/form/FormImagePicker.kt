@@ -13,21 +13,21 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.R
 
 @Composable
 fun FormImagePicker(
     image: Bitmap?,
     contentDescription: String?,
-    isLoadingImage: LiveData<Boolean>,
+    isLoadingImage: Flow<Boolean>,
     onClick: () -> Unit
 ) {
     OutlinedCard(
@@ -49,7 +49,7 @@ fun FormImagePicker(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                val loading by isLoadingImage.observeAsState(initial = false)
+                val loading by isLoadingImage.collectAsState(initial = false)
 
                 if (loading) {
                     CircularProgressIndicator()

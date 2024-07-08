@@ -13,3 +13,11 @@ inline fun <T, O> T.letIfNotNull(obj: O?, block: T.(O) -> T) =
     } else {
         this
     }
+
+/**
+ * Alias for [String.takeIf] that checks if the string is not blank.
+ * ```kotlin
+ * takeIf { it.isNotBlank() }
+ * ```
+ */
+fun String?.takeIfNotBlank(): String? = this?.takeIf { it.isNotBlank() }

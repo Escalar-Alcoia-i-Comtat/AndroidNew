@@ -11,27 +11,31 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import io.ktor.client.plugins.onUpload
 import io.ktor.client.request.forms.FormBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.escalaralcoiaicomtat.android.R
 import org.escalaralcoiaicomtat.android.activity.creation.EditorActivity
 import org.escalaralcoiaicomtat.android.exception.remote.RequestException
 import org.escalaralcoiaicomtat.android.network.EndpointUtils
-import org.escalaralcoiaicomtat.android.network.bodyAsJson
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.escalaralcoiaicomtat.android.storage.AppDatabase
 import org.escalaralcoiaicomtat.android.storage.Preferences
@@ -42,6 +46,8 @@ import org.escalaralcoiaicomtat.android.utils.UriUtils.getFileName
 import org.escalaralcoiaicomtat.android.utils.compat.BitmapCompat
 import org.escalaralcoiaicomtat.android.utils.letIf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializer
+import org.json.JSONException
+import org.json.JSONObject
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
@@ -56,11 +62,17 @@ import java.util.UUID
  * }
  * ```
  */
-abstract class EditorModel
-<ParentType : BaseEntity?, ElementType : BaseEntity, ChildrenType : BaseEntity?>(
+@Suppress("TooManyFunctions")
+abstract class EditorModel<
+        ParentType : BaseEntity?,
+        ElementType : BaseEntity,
+        ChildrenType : BaseEntity?,
+        UiStateClass : EditorModel.BaseUiState
+        >(
     application: Application,
     protected val parentId: Long?,
-    protected val elementId: Long?
+    protected val elementId: Long?,
+    defaultStateClass: () -> UiStateClass
 ) : AndroidViewModel(application), LifecycleOwner {
     @Suppress("LeakingThis")
     @SuppressLint("StaticFieldLeak")
@@ -83,36 +95,18 @@ abstract class EditorModel
      */
     protected abstract val creatorEndpoint: String
 
-    /**
-     * The image of the object to create, if any.
-     */
-    val image = MutableLiveData<Bitmap?>(null)
+    protected val _uiState = MutableStateFlow(defaultStateClass())
+    val uiState = _uiState.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), defaultStateClass())
 
     /**
-     * Stores the original imageUUID if any. Used for checking if image has been updated.
-     */
-    private val imageUUID = MutableLiveData<UUID?>(null)
-
-    /**
-     * Used together with [kmzData] to hold the currently selected KMZ file if any. This
-     * variable stores the name of the KMZ file selected.
-     */
-    val kmzName = MutableLiveData<String?>(null)
-
-    /**
-     * Used together with [kmzName] to hold the currently selected KMZ file if any. This
+     * Used together with [BaseUiState.kmzName] to hold the currently selected KMZ file if any. This
      * variable holds the contents of the KMZ file selected.
      */
     private var kmzData: ByteArray? = null
 
     /**
-     * Used together with [gpxData] to hold the currently selected GPX file if any. This
-     * variable stores the name of the GPX file selected.
-     */
-    val gpxName = MutableLiveData<String?>(null)
-
-    /**
-     * Used together with [gpxName] to hold the currently selected GPX file if any. This
+     * Used together with [BaseUiState.gpxName] to hold the currently selected GPX file if any. This
      * variable holds the contents of the GPX file selected.
      */
     private var gpxData: ByteArray? = null
@@ -120,43 +114,76 @@ abstract class EditorModel
     /**
      * Whether the image is being loaded from the filesystem after being selected.
      */
-    val isLoadingImage = MutableLiveData(false)
+    private val _isLoadingImage = MutableStateFlow(false)
+
+    /**
+     * Whether the image is being loaded from the filesystem after being selected.
+     */
+    val isLoadingImage = _isLoadingImage.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /**
      * Will be not be null while the object is being created, contains the progress of upload.
      * `-1` for indeterminate.
      */
-    val isCreating = MutableLiveData<CreationStep?>(null)
+    private val _isCreating = MutableStateFlow<CreationStep?>(null)
+
+    /**
+     * Will be not be null while the object is being created, contains the progress of upload.
+     * `-1` for indeterminate.
+     */
+    val isCreating = _isCreating.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /**
      * Stores whether a process of deletion is being performed. This is used by the deletion
      * dialog to block the user interaction until the operation is complete.
      */
-    val isDeleting = MutableLiveData<Boolean>()
+    private val _isDeleting = MutableStateFlow(false)
+
+    /**
+     * Stores whether a process of deletion is being performed. This is used by the deletion
+     * dialog to block the user interaction until the operation is complete.
+     */
+    val isDeleting = _isDeleting.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     /**
      * Whether the form is completely filled or not. The creation button should be disabled if
      * this is not true.
      */
-    abstract val isFilled: StateFlow<Boolean>
+    val isFilled: StateFlow<Boolean> = uiState
+        .map { checkRequirements(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     abstract val hasParent: Boolean
 
-    val parent = MutableLiveData<ParentType>()
+    private val _parent = MutableStateFlow<ParentType?>(null)
+    val parent: StateFlow<ParentType?> = _parent.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val element = MutableLiveData<ElementType?>()
+    private val _element = MutableStateFlow<ElementType?>(null)
+    val element: StateFlow<ElementType?> = _element.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /**
      * If the server returns an error while performing an operation, it should be passed here,
      * and the UI will be updated.
      */
-    val serverError = MutableLiveData<RequestException?>()
+    private val _serverError = MutableStateFlow<RequestException?>(null)
+
+    /**
+     * If the server returns an error while performing an operation, it should be passed here,
+     * and the UI will be updated.
+     */
+    val serverError = _serverError.asStateFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /**
      * For appending all the data required for creating the object in the server. Will be sent
-     * to the creation endpoint. Automatically appends the data in [image] when it's not null.
+     * to the creation endpoint. Automatically appends the data in [BaseUiState.image] when it's not null.
      */
-    protected abstract fun FormBuilder.getFormData()
+    protected abstract fun FormBuilder.getFormData(state: UiStateClass, element: ElementType?)
 
     protected abstract val whenNotFound: (suspend () -> Unit)?
 
@@ -204,7 +231,7 @@ abstract class EditorModel
                     return@launch
                 }
                 Timber.d("Parent loaded, posting value...")
-                this@EditorModel.parent.postValue(parent)
+                _parent.emit(parent)
 
                 val parentName = parent.let { it::class.simpleName }
                 CoroutineScope(Dispatchers.IO).launch {
@@ -217,9 +244,10 @@ abstract class EditorModel
                 val child = fetchChild(elementId)
                 if (child != null) {
                     Timber.d("Loaded element's data. Posting and filling...")
-                    element.postValue(child)
+                    _element.emit(child)
 
-                    (child as? ImageEntity?)?.let { imageUUID.postValue(it.imageUUID) }
+                    setImageUUID((child as? ImageEntity?)?.imageUUID)
+                    (child as? ImageEntity?)?.let(ImageEntity::imageUUID).let(::setImageUUID)
 
                     fill(child)
                 } else {
@@ -237,17 +265,20 @@ abstract class EditorModel
     }
 
     override fun onCleared() {
-        image.value?.recycle()
+        uiState.value.recycleImage()
         Timber.d("Cleared View Model.")
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
 
     fun create() = viewModelScope.launch {
         withContext(Dispatchers.IO) {
-            isCreating.postValue(CreationStep.Compressing)
+            _isCreating.emit(CreationStep.Compressing)
 
-            val originalUUID = (element.value as? ImageEntity?)?.imageUUID
-            val currentImageUUID = imageUUID.value
+            val uiState = uiState.value
+            val element = element.value
+
+            val originalUUID = (element as? ImageEntity?)?.imageUUID
+            val currentImageUUID = uiState.imageUUID
 
             val imageBytes = if (
             // if creating new area
@@ -255,8 +286,8 @@ abstract class EditorModel
                 // or image updated
                 currentImageUUID == null ||
                 originalUUID != currentImageUUID
-            )
-                image.value?.let { image ->
+            ) {
+                uiState.image?.let { image ->
                     Timber.d("Compressing image...")
                     ByteArrayOutputStream()
                         .apply {
@@ -264,8 +295,9 @@ abstract class EditorModel
                         }
                         .toByteArray()
                 }
-            else
+            } else {
                 null
+            }
 
             val extraData = prepareData()
 
@@ -295,21 +327,22 @@ abstract class EditorModel
                     }
 
                     extraData()
-                    getFormData()
+                    getFormData(uiState, element)
                 }
             ) {
                 val apiKey = Preferences.getApiKey(getApplication()).firstOrNull()
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
 
                 onUpload { bytesSentTotal, contentLength ->
-                    isCreating.postValue(
+                    _isCreating.emit(
                         CreationStep.Uploading((bytesSentTotal.toDouble() / contentLength).toFloat())
                     )
                 }
             }
+            val bodyStr = response.bodyAsText()
             try {
                 val status = response.status
-                val body = response.bodyAsJson()
+                val body = JSONObject(bodyStr)
 
                 val operation: suspend (element: ElementType) -> Unit = when (status) {
                     HttpStatusCode.Created -> {
@@ -324,7 +357,7 @@ abstract class EditorModel
 
                     else -> throw RequestException(status, body)
                 }
-                isCreating.postValue(CreationStep.Finishing)
+                _isCreating.emit(CreationStep.Finishing)
 
                 val data = body.getJSONObject("data")
                 val elementJson = data.getJSONObject("element")
@@ -336,13 +369,16 @@ abstract class EditorModel
 
                 operation(element)
             } catch (e: RequestException) {
-                withContext(Dispatchers.Main) { serverError.value = e }
+                _serverError.emit(e)
+            } catch (e: JSONException) {
+                Timber.e(e, "Could not parse JSON.\n\tBody: $bodyStr")
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Could not create or update.")
                 throw e
             }
 
-            isCreating.postValue(null)
+            _isCreating.emit(null)
         }
     }
 
@@ -353,7 +389,7 @@ abstract class EditorModel
     fun delete() = viewModelScope.launch(Dispatchers.Main) {
         withContext(Dispatchers.IO) {
             try {
-                isDeleting.postValue(true)
+                _isDeleting.emit(true)
 
                 val element = element.value
                 if (element == null) {
@@ -363,29 +399,37 @@ abstract class EditorModel
                     dao.deleteRecursively(element)
                 }
             } finally {
-                isDeleting.postValue(false)
+                _isDeleting.emit(false)
             }
         }
     }
 
+
+    /**
+     * Checks if the requirements for creating the object are met. This is used to enable or
+     * disable the creation button.
+     * @return `true` if the requirements are met, `false` otherwise.
+     */
+    protected abstract fun checkRequirements(state: UiStateClass): Boolean
+
+
     fun loadImage(uri: Uri) = viewModelScope.launch(Dispatchers.IO) {
-        isLoadingImage.postValue(true)
+        _isLoadingImage.emit(true)
         getApplication<Application>().contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
             val bitmap = BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
-            image.postValue(bitmap)
-            imageUUID.postValue(null)
+            setImage(bitmap, null)
         }
-        isLoadingImage.postValue(false)
+        _isLoadingImage.emit(false)
     }
 
     private fun loadFile(
         uri: Uri,
-        nameState: MutableLiveData<String?>,
+        nameSetter: (String?) -> Unit,
         onDataLoaded: (ByteArray) -> Unit
     ) = viewModelScope.launch(Dispatchers.IO) {
         val fileName = getApplication<Application>().getFileName(uri)
         if (fileName == null) Timber.w("Could not get name for file at $uri.")
-        withContext(Dispatchers.Main) { nameState.value = fileName }
+        nameSetter(fileName)
 
         getApplication<Application>().contentResolver.openFileDescriptor(uri, "r")?.use { pdf ->
             FileInputStream(pdf.fileDescriptor).use { stream ->
@@ -395,15 +439,50 @@ abstract class EditorModel
         }
     }
 
-    fun loadKmz(uri: Uri) = loadFile(uri, kmzName) {
-        Timber.d("Picked new KMZ file: ${kmzName.value}. Size: ${it.size}")
+
+    fun loadKmz(uri: Uri) = loadFile(uri, ::setKmzName) {
+        Timber.d("Picked new KMZ file: ${uiState.value.kmzName}. Size: ${it.size}")
         kmzData = it
     }
 
-    fun loadGpx(uri: Uri) = loadFile(uri, gpxName) {
-        Timber.d("Picked new GPX file: ${gpxName.value}. Size: ${it.size}")
+    fun loadGpx(uri: Uri) = loadFile(uri, ::setGpxName) {
+        Timber.d("Picked new GPX file: ${uiState.value.gpxName}. Size: ${it.size}")
         gpxData = it
     }
+
+
+    fun dismissServerError() {
+        _serverError.tryEmit(null)
+    }
+
+    fun setImage(image: Bitmap, uuid: UUID?) {
+        @Suppress("UNCHECKED_CAST")
+        _uiState.tryEmit(
+            uiState.value.copy(image = image, imageUUID = uuid) as UiStateClass
+        )
+    }
+
+    fun setImageUUID(uuid: UUID?) {
+        @Suppress("UNCHECKED_CAST")
+        _uiState.tryEmit(
+            uiState.value.copy(imageUUID = uuid) as UiStateClass
+        )
+    }
+
+    protected fun setKmzName(name: String?) {
+        @Suppress("UNCHECKED_CAST")
+        _uiState.tryEmit(
+            uiState.value.copy(kmzName = name) as UiStateClass
+        )
+    }
+
+    protected fun setGpxName(name: String?) {
+        @Suppress("UNCHECKED_CAST")
+        _uiState.tryEmit(
+            uiState.value.copy(gpxName = name) as UiStateClass
+        )
+    }
+
 
     open class CreationStep(@StringRes val messageRes: Int) {
         object Compressing : CreationStep(R.string.creation_step_compressing)
@@ -421,5 +500,23 @@ abstract class EditorModel
     ) : CreationStep(messageRes) {
         override fun getString(context: Context): String =
             context.getString(messageRes, progress)
+    }
+
+    abstract class BaseUiState(
+        open val image: Bitmap? = null,
+        open val imageUUID: UUID? = null,
+        open val kmzName: String? = null,
+        open val gpxName: String? = null
+    ) {
+        abstract fun copy(
+            image: Bitmap? = this.image,
+            imageUUID: UUID? = this.imageUUID,
+            kmzName: String? = this.kmzName,
+            gpxName: String? = this.gpxName
+        ): BaseUiState
+
+        fun recycleImage() {
+            image?.recycle()
+        }
     }
 }
