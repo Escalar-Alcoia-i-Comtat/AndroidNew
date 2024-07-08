@@ -361,13 +361,13 @@ abstract class EditorModel<
 
                 val data = body.getJSONObject("data")
                 val elementJson = data.getJSONObject("element")
-                val element = elementSerializer.fromJson(elementJson)
+                val newElement = elementSerializer.fromJson(elementJson)
 
-                if (element is ImageEntity) {
-                    element.updateImageIfNeeded(getApplication())
+                if (newElement is ImageEntity) {
+                    newElement.updateImageIfNeeded(getApplication())
                 }
 
-                operation(element)
+                operation(newElement)
             } catch (e: RequestException) {
                 _serverError.emit(e)
             } catch (e: JSONException) {
@@ -487,7 +487,7 @@ abstract class EditorModel<
     open class CreationStep(@StringRes val messageRes: Int) {
         object Compressing : CreationStep(R.string.creation_step_compressing)
         class Uploading(progress: Float) :
-            ProgressStep(R.string.creation_step_uploading, progress)
+            ProgressStep(R.string.creation_step_uploading, progress * 100)
 
         object Finishing : CreationStep(R.string.creation_step_finishing)
 
