@@ -672,6 +672,7 @@ class NewPathActivity : EditorActivity<Sector, Path, BaseEntity, PathModel>(
                             add(reBuilder ?: return@OutlinedButton)
                         }
                         model.setReBuilders(list)
+                        dismiss()
                     },
                     enabled = reBuilder?.let { it.name != null || it.date != null } ?: false
                 ) {
