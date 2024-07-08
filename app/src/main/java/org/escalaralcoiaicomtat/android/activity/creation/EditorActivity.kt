@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import org.escalaralcoiaicomtat.android.R
+import org.escalaralcoiaicomtat.android.exception.remote.RequestException
 import org.escalaralcoiaicomtat.android.storage.data.BaseEntity
 import org.escalaralcoiaicomtat.android.storage.data.DataEntity
 import org.escalaralcoiaicomtat.android.ui.form.FormField
@@ -210,7 +211,7 @@ abstract class EditorActivity<
                     progress.collect { }
                     // code for completion
                     onBack()
-                } catch (e: CancellationException) {
+                } catch (_: CancellationException) {
                     // code for cancellation
                 }
             }
@@ -264,7 +265,7 @@ abstract class EditorActivity<
                 )
             }
 
-            val serverError by model.serverError.collectAsState()
+            val serverError by model.requestException.collectAsState()
             serverError?.let { error ->
                 AlertDialog(
                     onDismissRequest = model::dismissServerError,
@@ -275,7 +276,11 @@ abstract class EditorActivity<
                                 .verticalScroll(rememberScrollState())
                                 .horizontalScroll(rememberScrollState())
                         ) {
-                            Text(stringResource(R.string.server_error_dialog_headline, error.code))
+                            if (error is RequestException) {
+                                Text(
+                                    stringResource(R.string.server_error_dialog_headline, error.code)
+                                )
+                            }
                             error.message?.let {
                                 Text(stringResource(R.string.server_error_dialog_message, it))
                             }
@@ -366,7 +371,9 @@ abstract class EditorActivity<
                     val parent by model.parent.collectAsState()
 
                     // Show side panel on top in mobile
-                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact && (!model.hasParent || parent != null)) {
+                    if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact &&
+                        (!model.hasParent || parent != null)
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -505,7 +512,7 @@ abstract class EditorActivity<
             TextButton(
                 onClick = {
                     model.create().invokeOnCompletion { throwable ->
-                        val hasServerError = model.serverError.value != null
+                        val hasServerError = model.requestException.value != null
                         if (throwable == null && !hasServerError) {
                             Timber.i("Creation successful")
 

@@ -170,13 +170,13 @@ abstract class EditorModel<
      * If the server returns an error while performing an operation, it should be passed here,
      * and the UI will be updated.
      */
-    private val _serverError = MutableStateFlow<RequestException?>(null)
+    private val _requestException = MutableStateFlow<Exception?>(null)
 
     /**
      * If the server returns an error while performing an operation, it should be passed here,
      * and the UI will be updated.
      */
-    val serverError = _serverError.asStateFlow()
+    val requestException = _requestException.asStateFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /**
@@ -369,13 +369,13 @@ abstract class EditorModel<
 
                 operation(newElement)
             } catch (e: RequestException) {
-                _serverError.emit(e)
+                _requestException.emit(e)
             } catch (e: JSONException) {
                 Timber.e(e, "Could not parse JSON.\n\tBody: $bodyStr")
-                throw e
-            } catch (e: Exception) {
+                _requestException.emit(e)
+            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
                 Timber.e(e, "Could not create or update.")
-                throw e
+                _requestException.emit(e)
             }
 
             _isCreating.emit(null)
@@ -452,7 +452,7 @@ abstract class EditorModel<
 
 
     fun dismissServerError() {
-        _serverError.tryEmit(null)
+        _requestException.tryEmit(null)
     }
 
     fun setImage(image: Bitmap, uuid: UUID?) {
@@ -486,8 +486,12 @@ abstract class EditorModel<
 
     open class CreationStep(@StringRes val messageRes: Int) {
         object Compressing : CreationStep(R.string.creation_step_compressing)
-        class Uploading(progress: Float) :
-            ProgressStep(R.string.creation_step_uploading, progress * 100)
+
+        @Suppress("MagicNumber")
+        class Uploading(progress: Float) : ProgressStep(
+            R.string.creation_step_uploading,
+            progress * 100
+        )
 
         object Finishing : CreationStep(R.string.creation_step_finishing)
 
