@@ -2,7 +2,6 @@ import java.time.LocalDateTime
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.amazonappstorepublisher)
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.android)
@@ -116,13 +115,6 @@ android {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
-}
-
-amazon {
-    securityProfile = File(project.rootDir, "amazon_security_profile.json")
-    applicationId = "org.escalaralcoiaicomtat.android"
-    pathToApks = listOf(File(project.rootDir, "app/build/outputs/apk/release/app-release.apk"))
-    replaceEdit = true
 }
 
 task("increaseVersionCode") {

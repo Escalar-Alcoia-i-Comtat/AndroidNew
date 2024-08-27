@@ -1,6 +1,5 @@
 [versions]
 agp = "8.5.2"
-amazonappstorepublisher = "0.1.0"
 android-desugar = "2.1.0"
 androidx-activity = "1.9.1"
 androidx-appcompat = "1.7.0"
@@ -72,7 +71,6 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 [plugins]
-amazonappstorepublisher = { id = "app.brant.amazonappstorepublisher", version.ref = "amazonappstorepublisher" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

@@ -42,11 +42,6 @@ jobs:
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
           echo 'sentry_dsn=${{ secrets.SENTRY_DSN }}' >> local.properties
 
-      - name: Prepare Amazon Security Profile
-        run: |
-          touch amazon_security_profile.json
-          echo '${{ secrets.AMAZON_SECURITY_PROFILE }}' > amazon_security_profile.json
-
       - name: Update Version Name
         id: set_version_name
         run: bash ./gradlew app:updateVersionName -Pversion="${{ github.ref_name }}"
@@ -108,8 +103,3 @@ jobs:
           # mappingFile: ./base/build/outputs/mapping/release/mapping.txt
           whatsNewDirectory: ./changelog
           status: completed
-
-      - name: Upload to Amazon App Store
-        id: upload_amazon
-        run: bash ./gradlew :app:publishToAmazonAppStore
-        continue-on-error: true
