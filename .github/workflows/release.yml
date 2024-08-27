@@ -32,6 +32,8 @@ jobs:
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Prepare Gradle secure file
         run: |
@@ -51,9 +53,7 @@ jobs:
 
       - name: Build
         id: build
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: :app:increaseVersionCode :app:bundleRelease :app:assembleRelease
+        run: ./gradlew :app:increaseVersionCode :app:bundleRelease :app:assembleRelease
 
       - name: Commit version.properties
         id: commit_version

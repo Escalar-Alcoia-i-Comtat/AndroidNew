@@ -27,6 +27,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Prepare Gradle secure file
         run: |
@@ -35,12 +39,8 @@ jobs:
           echo 'signingKeyPassword=${{ secrets.SIGNING_KEY_PASSWORD }}' >> local.properties
           echo 'sentry_dsn=${{ secrets.SENTRY_DSN }}' >> local.properties
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v3.5.0
       - name: Run tests
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: app:lintDebug app:testDebugUnitTest
+        run: ./gradlew app:lintDebug app:testDebugUnitTest
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -66,7 +66,9 @@ jobs:
           distribution: 'temurin'
           java-version: 17
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v3.5.0
+        uses: gradle/actions/wrapper-validation@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Prepare Gradle secure file
         run: |
