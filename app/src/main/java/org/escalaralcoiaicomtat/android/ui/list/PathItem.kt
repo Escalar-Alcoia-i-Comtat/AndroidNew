@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -49,7 +49,7 @@ fun LazyItemScope.PathItem(
     val configuration = LocalConfiguration.current
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
-    val indication = rememberRipple(
+    val indication = ripple(
         // if set false, the ripple effect will not be cropped to the button.
         bounded = true,
         // if you want to spread to stop right at the edges of your targeted composable,
