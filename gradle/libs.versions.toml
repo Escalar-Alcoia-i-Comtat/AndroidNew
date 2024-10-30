@@ -24,7 +24,7 @@ junit = "4.13.2"
 kotlin = "2.0.21"
 kotlinx-serialization-json = "1.7.3"
 ksp = "2.0.21-1.0.26"
-ktor = "3.0.0"
+ktor = "3.0.1"
 sentry = "4.13.0"
 timber = "5.0.1"
 
