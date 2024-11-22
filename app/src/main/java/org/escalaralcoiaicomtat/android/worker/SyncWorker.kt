@@ -83,7 +83,7 @@ class SyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
         const val RESULT_STOP_REASON = "stop_reason"
 
-        suspend fun synchronize(context: Context, force: Boolean = false): LiveData<WorkInfo> {
+        suspend fun synchronize(context: Context, force: Boolean = false): LiveData<WorkInfo?> {
             // TODO - allow running sync just for specific parts, eg just for blocks
 
             val uuid = UUID.randomUUID()

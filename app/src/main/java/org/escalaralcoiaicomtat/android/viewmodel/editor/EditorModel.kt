@@ -334,6 +334,7 @@ abstract class EditorModel<
                 header(HttpHeaders.Authorization, "Bearer $apiKey")
 
                 onUpload { bytesSentTotal, contentLength ->
+                    contentLength ?: return@onUpload
                     _isCreating.emit(
                         CreationStep.Uploading((bytesSentTotal.toDouble() / contentLength).toFloat())
                     )

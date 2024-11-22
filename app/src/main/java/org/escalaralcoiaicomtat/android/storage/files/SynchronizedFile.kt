@@ -31,6 +31,7 @@ import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
 import org.escalaralcoiaicomtat.android.network.get
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.json.JSONException
+import special.anonymous
 import timber.log.Timber
 
 /**
@@ -334,6 +335,7 @@ data class SynchronizedFile(
             Timber.d("Downloading $url...")
             ktorHttpClient.get(url) {
                 onDownload { bytesSentTotal, contentLength ->
+                    contentLength ?: return@onDownload
                     progress?.invoke(bytesSentTotal, contentLength)
                 }
             }.let { response ->
