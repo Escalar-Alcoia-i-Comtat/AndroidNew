@@ -20,7 +20,7 @@ object EndpointUtils {
         .toString()
 
     fun getFile(uuid: String) = server.buildUpon()
-        .appendPath("file")
+        .appendPath("files")
         .appendPath(uuid)
         .build()
         .toString()

@@ -111,11 +111,13 @@ data class SynchronizedFile(
             get(endpoint) { data ->
                 requireNotNull(data)
 
+                val files = data.getJSONArray("files")
+                val file = files.getJSONObject(0)
                 result = RemoteFileInfo(
-                    download = data.getString("download"),
-                    filename = data.getString("filename"),
-                    size = data.getLong("size"),
-                    hash = data.getString("hash"),
+                    download = file.getString("download"),
+                    filename = file.getString("filename"),
+                    size = file.getLong("size"),
+                    hash = file.getString("hash"),
                 )
             }
             return result!!
