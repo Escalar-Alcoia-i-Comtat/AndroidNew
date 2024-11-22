@@ -22,7 +22,7 @@ fun readPropertiesFile(filename: String): Properties {
 
 android {
     namespace = "org.escalaralcoiaicomtat.android"
-    compileSdk = 34
+    compileSdk = 35
 
     val versionProps = readPropertiesFile("version.properties")
     val code = versionProps.getProperty("VERSION_CODE").toInt()
@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId = "org.escalaralcoiaicomtat.android"
         minSdk = 21
-        targetSdk = 34
+        targetSdk = 35
         versionCode = code
         versionName = version
 
