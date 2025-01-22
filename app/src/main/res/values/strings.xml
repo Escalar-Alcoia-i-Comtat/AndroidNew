@@ -260,8 +260,9 @@
     <string name="path_view_builder_message_full">This path was set by %s in %s.</string>
     <string name="path_view_builder_message_no_year">This path was set by %s.</string>
     <string name="path_view_builder_message_no_name">This path was set in %s.</string>
-    <string name="path_view_re_builder_message_year">It was restored by %s in %s.</string>
-    <string name="path_view_re_builder_message">It was restored by %.</string>
+    <string name="path_view_re_builder_message_full">It was restored by %s in %s.</string>
+    <string name="path_view_re_builder_no_year">It was restored by %.</string>
+    <string name="path_view_re_builder_no_name">It was restored in %.</string>
     <string name="path_view_ending_title">Path Ending</string>
     <string name="path_view_ending_walking">Once you finish climbing, you can go down by walking a path available on the top of the path.</string>
     <string name="path_view_ending_rappel">Once you finish climbing, you can go down by rappelling.</string>

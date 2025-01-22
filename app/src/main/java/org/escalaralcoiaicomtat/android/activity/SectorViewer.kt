@@ -1068,18 +1068,18 @@ class SectorViewer : AppCompatActivity() {
                         text.appendLine(
                             if (reBuilder.name != null && reBuilder.date != null) {
                                 stringResource(
-                                    R.string.path_view_builder_message_full,
+                                    R.string.path_view_re_builder_message_full,
                                     reBuilder.name,
                                     reBuilder.date
                                 )
                             } else if (reBuilder.name != null) {
                                 stringResource(
-                                    R.string.path_view_builder_message_no_year,
+                                    R.string.path_view_re_builder_no_year,
                                     reBuilder.name
                                 )
                             } else if (reBuilder.date != null) {
                                 stringResource(
-                                    R.string.path_view_builder_message_no_name,
+                                    R.string.path_view_re_builder_no_name,
                                     reBuilder.date
                                 )
                             } else {
