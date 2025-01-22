@@ -223,9 +223,9 @@
     <string name="path_view_builder_message_full">Esta vía fue equipada por %s en %s.</string>
     <string name="path_view_builder_message_no_year">Esta vía fue equipada por %s.</string>
     <string name="path_view_builder_message_no_name">Esta vía fue equipada en %s.</string>
-    <string name="path_view_re_builder_message_full">It was restored by %s in %s.</string>
-    <string name="path_view_re_builder_no_year">It was restored by %.</string>
-    <string name="path_view_re_builder_no_name">It was restored in %.</string>
+    <string name="path_view_re_builder_message_full">Fue reequipada por %s en %s.</string>
+    <string name="path_view_re_builder_no_year">Fue reequipada por %s.</string>
+    <string name="path_view_re_builder_no_name">Fue reequipada en %s.</string>
     <string name="path_view_ending_title">Reunión</string>
     <string name="path_view_ending_walking">Cuando acabes de escalar, puedes bajar por un camino disponible al final de la vía.</string>
     <string name="path_view_ending_rappel">Cuando acabes de escalar, puedes bajar rapelando.</string>
