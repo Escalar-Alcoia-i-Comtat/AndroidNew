@@ -31,7 +31,6 @@ import org.escalaralcoiaicomtat.android.network.RemoteFileInfo
 import org.escalaralcoiaicomtat.android.network.get
 import org.escalaralcoiaicomtat.android.network.ktorHttpClient
 import org.json.JSONException
-import special.anonymous
 import timber.log.Timber
 
 /**

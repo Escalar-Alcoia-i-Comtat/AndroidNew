@@ -77,7 +77,7 @@ abstract class ImageEntity : DataEntity() {
                 .deleteByImageUUID(image)
 
             SyncWorker.synchronize(context, force = true)
-                .await { it.state.isFinished }
+                .await { it?.state?.isFinished == true }
         } catch (e: IllegalStateException) {
             // Server is not available
             // TODO - show error
