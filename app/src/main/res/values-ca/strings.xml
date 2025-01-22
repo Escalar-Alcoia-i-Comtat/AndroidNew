@@ -223,9 +223,9 @@
     <string name="path_view_builder_message_full">Aquesta via va ser equipada per %s en %s.</string>
     <string name="path_view_builder_message_no_year">Aquesta via va ser equipada per %s.</string>
     <string name="path_view_builder_message_no_name">Aquesta via va ser equipada en %s.</string>
-    <string name="path_view_re_builder_message_full">It was restored by %s in %s.</string>
-    <string name="path_view_re_builder_no_year">It was restored by %.</string>
-    <string name="path_view_re_builder_no_name">It was restored in %.</string>
+    <string name="path_view_re_builder_message_full">Va ser reequipada per %s en %s.</string>
+    <string name="path_view_re_builder_no_year">Va ser reequipada per %s.</string>
+    <string name="path_view_re_builder_no_name">Va ser reequipada en %s.</string>
     <string name="path_view_ending_title">Reunió</string>
     <string name="path_view_ending_walking">Quan acabes d\'escalar, pots baixar per un camí disponible dalt de tot.</string>
     <string name="path_view_ending_rappel">Quan acabes d\'escalar, pots baixar rapelant.</string>
