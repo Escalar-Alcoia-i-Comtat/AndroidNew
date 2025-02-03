@@ -25,7 +25,7 @@ kotlin = "2.1.10"
 kotlinx-serialization-json = "1.8.0"
 ksp = "2.1.10-1.0.29"
 ktor = "3.0.3"
-sentry = "5.0.0"
+sentry = "5.1.0"
 timber = "5.0.1"
 
 [libraries]
