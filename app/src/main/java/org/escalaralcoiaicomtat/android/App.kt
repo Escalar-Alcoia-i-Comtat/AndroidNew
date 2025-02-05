@@ -39,7 +39,7 @@ class App: Application() {
                     // Only enable for production builds
                     options.isEnabled = BuildConfig.DEBUG
                     // Enable performance metrics if opted in
-                    options.enableTracing = performanceMetrics != false
+                    options.tracesSampleRate = if (performanceMetrics == false) 0.0 else 1.0
 
                     // Set the device id as the id of the user
                     Sentry.setUser(User().apply { id = deviceId })
