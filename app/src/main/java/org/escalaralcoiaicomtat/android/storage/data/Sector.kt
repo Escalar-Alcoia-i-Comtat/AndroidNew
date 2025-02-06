@@ -11,6 +11,7 @@ import org.escalaralcoiaicomtat.android.utils.getEnum
 import org.escalaralcoiaicomtat.android.utils.getInstant
 import org.escalaralcoiaicomtat.android.utils.getLongOrNull
 import org.escalaralcoiaicomtat.android.utils.getSerializable
+import org.escalaralcoiaicomtat.android.utils.getSerializableArrayOrNull
 import org.escalaralcoiaicomtat.android.utils.getStringOrNull
 import org.escalaralcoiaicomtat.android.utils.jsonOf
 import org.escalaralcoiaicomtat.android.utils.serialization.JsonSerializable
@@ -29,6 +30,7 @@ data class Sector(
     val walkingTime: Long?,
     override val image: String,
     override val gpx: String?,
+    val tracks: List<ExternalTrack>?,
     val point: LatLng?,
     val weight: String,
     override val parentId: Long
@@ -43,6 +45,7 @@ data class Sector(
             json.getLongOrNull("walking_time"),
             json.getString("image"),
             json.getStringOrNull("gpx"),
+            json.getSerializableArrayOrNull<ExternalTrack, ExternalTrack.Companion>("tracks"),
             json.getSerializable<LatLng, LatLng.Companion>("point"),
             json.getString("weight"),
             json.getLong("zone_id")
@@ -64,6 +67,7 @@ data class Sector(
         "walking_time" to walkingTime,
         "image" to image,
         "gpx" to gpx,
+        "tracks" to tracks,
         "point" to point,
         "weight" to weight,
         "zone_id" to parentId
@@ -84,6 +88,7 @@ data class Sector(
         if (walkingTime != other.walkingTime) return false
         if (image != other.image) return false
         if (gpx != other.gpx) return false
+        if (tracks != other.tracks) return false
         if (point != other.point) return false
         if (weight != other.weight) return false
         if (parentId != other.parentId) return false
@@ -101,6 +106,7 @@ data class Sector(
         result = 31 * result + (walkingTime?.hashCode() ?: 0)
         result = 31 * result + image.hashCode()
         result = 31 * result + (gpx?.hashCode() ?: 0)
+        result = 31 * result + (tracks?.hashCode() ?: 0)
         result = 31 * result + (point?.hashCode() ?: 0)
         result = 31 * result + weight.hashCode()
         result = 31 * result + parentId.hashCode()

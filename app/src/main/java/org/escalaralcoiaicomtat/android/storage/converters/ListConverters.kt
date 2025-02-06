@@ -1,6 +1,7 @@
 package org.escalaralcoiaicomtat.android.storage.converters
 
 import androidx.room.TypeConverter
+import org.escalaralcoiaicomtat.android.storage.data.ExternalTrack
 import org.escalaralcoiaicomtat.android.storage.type.Builder
 import org.escalaralcoiaicomtat.android.storage.type.DataPoint
 import org.escalaralcoiaicomtat.android.storage.type.PitchInfo
@@ -41,4 +42,10 @@ class ListConverters {
             }
         }
         ?.toString()
+
+    @TypeConverter
+    fun toExternalTrackList(value: String?): List<ExternalTrack>? = value?.jsonArray?.serialize(ExternalTrack)
+
+    @TypeConverter
+    fun fromExternalTrackList(value: List<ExternalTrack>?): String? = value?.toJson()?.toString()
 }
